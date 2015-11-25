@@ -1,23 +1,18 @@
 __author__ = 'MarinaFomicheva'
 
-from aligner import *
-from util import *
-from scorer import *
 import codecs
 import getopt
 import sys
-from os import listdir
-from os.path import isfile, join
-from os.path import expanduser
 
-def loadPPDB(ppdbFileName):
+
+def load_ppdb(ppdb_file_name):
 
     global ppdbDict
 
     count = 0
 
-    ppdbFile = open(ppdbFileName, 'r')
-    for line in ppdbFile:
+    ppdb_file = open(ppdb_file_name, 'r')
+    for line in ppdb_file:
         if line == '\n':
             continue
         tokens = line.split()
@@ -25,12 +20,13 @@ def loadPPDB(ppdbFileName):
         ppdbDict[(tokens[0], tokens[1])] = 0.6
         count += 1
 
-def loadWordVectors(vectorsFileName):
 
-    global wordVector
-    vectorFile = open (vectorsFileName, 'r')
+def load_word_vectors(vectors_file_name):
 
-    for line in vectorFile:
+    global word_vector
+    vector_file = open (vectors_file_name, 'r')
+
+    for line in vector_file:
         if line == '\n':
             continue
 
@@ -41,15 +37,15 @@ def loadWordVectors(vectorsFileName):
         word = match.group(1)
         vector = match.group(2)
 
-        wordVector[word] = vector
+        word_vector[word] = vector
 
 def main(args):
 
     reference_file = ''
     test_file = ''
     output_directory = ''
-    writeAlignments = False
-    vectorsFileName = ''
+    write_alignments = False
+    vectors_file_name = ''
 
     opts, args = getopt.getopt(args, 'hr:t:v:a:o:', ['reference=', 'test=', 'vectors_file=', 'writealignments=', 'output_directory='])
 
@@ -63,29 +59,29 @@ def main(args):
         elif opt in ('-t', '--test'):
             test_file = arg
         elif opt in ('-v', '--vectors_file'):
-            vectorsFileName = arg
+            vectors_file_name = arg
         elif opt in ('-a', '--writealignments'):
-            writeAlignments = bool(arg)
+            write_alignments = bool(arg)
         elif opt in ('-o', '--output_directory'):
             output_directory = arg
 
     if len(opts) == 0:
-        reference_file = './Data/reference'
-        test_file = 'Data/test'
-        writeAlignments = True
-        output_directory = './Data'
+        reference_file = './data_simple/reference'
+        test_file = 'data_simple/test'
+        write_alignments = True
+        output_directory = './data_simple'
 
     metric = 'upf-cobalt'
 
-    ppdbFileName = './Resources/ppdb-1.0-xxxl-lexical.extended.synonyms.uniquepairs'
-    loadPPDB(ppdbFileName)
-    if (vectorsFileName): loadWordVectors(vectorsFileName)
+    ppdb_file_name = './lex_resources/ppdb-1.0-xxxl-lexical.extended.synonyms.uniquepairs'
+    load_ppdb(ppdb_file_name)
+    if vectors_file_name: load_word_vectors(vectors_file_name)
 
-    sentences_ref = readSentences(codecs.open(reference_file, encoding='UTF-8'))
-    sentences_test = readSentences(codecs.open(test_file, encoding='UTF-8'))
+    sentences_ref = read_sentences(codecs.open(reference_file, encoding='UTF-8'))
+    sentences_test = read_sentences(codecs.open(test_file, encoding='UTF-8'))
 
     output_scoring = open(output_directory + '/' + metric + '.seg.score', 'w')
-    if (writeAlignments): output_alignment = open(output_directory + '/' + metric + '.align.out', 'w')
+    if write_alignments: output_alignment = open(output_directory + '/' + metric + '.align.out', 'w')
 
     scorer = Scorer()
     aligner = Aligner('english')
@@ -100,7 +96,7 @@ def main(args):
         word_level_scores = scorer.word_scores(sentence1, sentence2, alignments)
         score1 = scorer.sentence_score_cobalt(sentence1, sentence2, alignments, word_level_scores)
 
-        if (writeAlignments):
+        if write_alignments:
             output_alignment.write('Sentence #' + str(phrase) + '\n')
 
             for index in xrange(len(alignments[0])):
@@ -108,7 +104,7 @@ def main(args):
 
         output_scoring.write(str(phrase) + '\t' + str(score1) + '\n')
 
-    if (writeAlignments):
+    if write_alignments:
         output_alignment.close()
 
     output_scoring.close()

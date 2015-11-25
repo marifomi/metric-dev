@@ -1,4 +1,4 @@
-from config import *
+from lex_resources.config import *
 
 def isSublist(A, B):
 # returns True if A is a sublist of B, False otherwise
@@ -111,31 +111,3 @@ def isAcronym(word, namedEntity):
 
     return acronym
 
-
-def readSentences(sentenceFile):
-
-    sentenceStructure = ''
-    sentences = []
-
-    for line in sentenceFile:
-
-        if line.startswith('Sentence #'):
-            if sentenceStructure != '':
-                sentences.append(sentenceStructure)
-            sentenceStructure = ''
-
-        sentenceStructure += line + '\n'
-
-    sentences.append(sentenceStructure)
-
-    return sentences
-
-
-def readFileNames(filesFile):
-    files = []
-
-    for line in filesFile:
-        line = line.strip()
-        files.append(line)
-
-    return files

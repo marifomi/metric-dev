@@ -1,7 +1,3 @@
-from aligner import *
-from util import *
-from scorer import *
-from reader import *
 import codecs
 import sys
 from os import listdir
@@ -11,6 +7,7 @@ import subprocess
 import csv
 import re
 
+from utils.alignments_reader import *
 from pyevolve import GSimpleGA
 from pyevolve import G1DList
 from pyevolve import Selectors
@@ -57,7 +54,7 @@ def calculate_correlation():
 
 def calculate_scores(scorer):
     for pair in language_pairs:
-        sentences_ref = readSentences(codecs.open(reference_dir + '/' + dataset + '-ref.' + pair + '.out', encoding='UTF-8'))
+        sentences_ref = read_sentences(codecs.open(reference_dir + '/' + dataset + '-ref.' + pair + '.out', encoding='UTF-8'))
 
         scoring_output_file = open(output_dir + '/' + 'training.' + pair + '.' + 'seg.score', 'w')
 
@@ -67,7 +64,7 @@ def calculate_scores(scorer):
 
         for t in test_files:
             system = t.split('.')[1] + '.' + t.split('.')[2]
-            sentences_test = readSentences(codecs.open(test_dir + '/' + dataset + '/' + pair + '/' + t, encoding='UTF-8'))
+            sentences_test = read_sentences(codecs.open(test_dir + '/' + dataset + '/' + pair + '/' + t, encoding='UTF-8'))
             alignment_file = output_dir + '/' + metric + '.' + dataset + '.' + system + '.' + pair + '.align.out'
             alignments = reader.read(alignment_file)
 

@@ -1,8 +1,7 @@
-from config import *
-from nltk.corpus import wordnet
-import re
 import math
-from types import *
+
+from lex_resources.config import *
+
 
 def wordRelatednessAlignment(word1, word2, config):
 

@@ -1,8 +1,8 @@
-from synonymDictionary import SynonymDictionary
-from contractionDictionary import ContractionDictionary
+from lex_resources.synonym_dictionary import SynonymDictionary
+from lex_resources.contraction_dictionary import ContractionDictionary
 
 ppdbDict = {}
-wordVector = {}
+word_vector = {}
 posVector = {}
 
 from nltk.corpus import stopwords

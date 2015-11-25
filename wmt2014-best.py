@@ -1,9 +1,4 @@
-from aligner import *
-from util import *
-from scorer import *
-from reader import *
 import codecs
-import getopt
 import sys
 from os import listdir
 from os.path import isfile, join
@@ -12,10 +7,7 @@ import subprocess
 import csv
 import re
 
-from pyevolve import GSimpleGA
-from pyevolve import G1DList
-from pyevolve import Selectors
-from pyevolve import Initializators, Mutators
+from utils.alignments_reader import *
 
 
 home = expanduser("~")
@@ -52,7 +44,7 @@ def calculate_correlation():
 
 
 def calculate_scores(scorer):
-    sentences_ref = readSentences(codecs.open(reference_dir + '/' + dataset + '-ref.' + language_pair + '.out', encoding='UTF-8'))
+    sentences_ref = read_sentences(codecs.open(reference_dir + '/' + dataset + '-ref.' + language_pair + '.out', encoding='UTF-8'))
 
     scoring_output_file = open(output_dir + '/' + 'mwa-best-wordnet-min.' + language_pair + '.' + 'seg.score', 'w')
 
@@ -62,7 +54,7 @@ def calculate_scores(scorer):
 
     for t in test_files:
         system = t.split('.')[1] + '.' + t.split('.')[2]
-        sentences_test = readSentences(codecs.open(test_dir + '/' + dataset + '/' + language_pair + '/' + t, encoding='UTF-8'))
+        sentences_test = read_sentences(codecs.open(test_dir + '/' + dataset + '/' + language_pair + '/' + t, encoding='UTF-8'))
         alignment_file = output_dir + '/' + dataset + '.' + system + '.' + language_pair + '.align.out'
         alignments = reader.read(alignment_file)
 

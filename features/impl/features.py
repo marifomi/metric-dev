@@ -7,7 +7,7 @@ import numpy
 from utils import word_sim
 from lex_resources import config
 import scorer
-from abstract_feature import *
+from features.impl.abstract_feature import *
 
 
 class CountWordsTest(AbstractFeature):
@@ -495,6 +495,7 @@ class AvgPenExactTest(AbstractFeature):
         else:
             AbstractFeature.set_value(self, 0)
 
+
 class AvgPenExactRef(AbstractFeature):
 
     def __init__(self):
@@ -585,6 +586,7 @@ class AvgPenNoExactTest(AbstractFeature):
             AbstractFeature.set_value(self, numpy.mean(penalties))
         else:
             AbstractFeature.set_value(self, 0)
+
 
 class AvgPenNoExactRef(AbstractFeature):
 
@@ -835,6 +837,7 @@ class PropContentPenRef(AbstractFeature):
         else:
             AbstractFeature.set_value(self, 0)
 
+
 class PropFunctionPenTest(AbstractFeature):
 
     def __init__(self):
@@ -867,6 +870,7 @@ class PropFunctionPenTest(AbstractFeature):
             AbstractFeature.set_value(self, counter_penalties / counter_words)
         else:
             AbstractFeature.set_value(self, 0.0)
+
 
 class PropFunctionPenRef(AbstractFeature):
 
@@ -924,6 +928,7 @@ class PropAlignedPosExact(AbstractFeature):
             AbstractFeature.set_value(self, count / float(len(alignments[0])))
         else:
             AbstractFeature.set_value(self, 0)
+
 
 class PropAlignedPosCoarse(AbstractFeature):
 
@@ -1197,7 +1202,7 @@ class LenRatio(AbstractFeature):
         AbstractFeature.set_value(self, len(candidate_parsed)/len(reference_parsed))
 
 
-class AvgDistanceNonAligned(AbstractFeature):
+class AvgDistanceNonAlignedTest(AbstractFeature):
 
     def __init__(self):
         AbstractFeature.__init__(self)
@@ -1206,30 +1211,57 @@ class AvgDistanceNonAligned(AbstractFeature):
 
     def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
 
-         non_aligned = []
-         distances = []
+        non_aligned = []
+        distances = []
 
-         for i, word in enumerate(candidate_parsed, start=1):
+        for i, word in enumerate(candidate_parsed, start=1):
 
-             if i not in [x[0] for x in alignments[0]]:
+            if i not in [x[0] for x in alignments[0]]:
 
-                 non_aligned.append(i)
+                non_aligned.append(i)
 
-         if not len(non_aligned) > 1:
-             AbstractFeature.set_value(self, 0)
-             return
+        if not len(non_aligned) > 1:
+            AbstractFeature.set_value(self, 0)
+            return
 
-         for i, word in enumerate(sorted(non_aligned)):
+        for i, word in enumerate(sorted(non_aligned)):
 
-             if i < len(non_aligned) - 1:
+            if i < len(non_aligned) - 1:
                 distances.append(sorted(non_aligned)[i + 1] - word)
-             else:
-                 break
+            else:
+                break
 
-         AbstractFeature.set_value(self, numpy.sum(distances)/len(distances))
-
-
+        AbstractFeature.set_value(self, numpy.sum(distances)/len(distances))
 
 
+class AvgDistanceNonAlignedRef(AbstractFeature):
 
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'avg_distance_non_aligned_ref')
+        AbstractFeature.set_description(self, "Avg distance between non-aligned words in candidate translation")
+
+    def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
+
+        non_aligned = []
+        distances = []
+
+        for i, word in enumerate(reference_parsed, start=1):
+
+            if i not in [x[0] for x in alignments[0]]:
+
+                non_aligned.append(i)
+
+        if not len(non_aligned) > 1:
+            AbstractFeature.set_value(self, 0)
+            return
+
+        for i, word in enumerate(sorted(non_aligned)):
+
+            if i < len(non_aligned) - 1:
+                distances.append(sorted(non_aligned)[i + 1] - word)
+            else:
+                break
+
+        AbstractFeature.set_value(self, numpy.sum(distances)/len(distances))
 

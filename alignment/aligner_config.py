@@ -8,7 +8,7 @@ class AlignerConfig(object):
     similarity_threshold = 0
 
     def __init__(self, language):
-        self.config.readfp(open('Config/' + language + '.cfg'))
+        self.config.readfp(open('config/aligner/' + language + '.cfg'))
         self.alignment_similarity_threshold = self.config.getfloat('Aligner', 'alignment_similarity_threshold')
 
         self.exact = self.config.getfloat('Aligner', 'exact')
@@ -20,7 +20,6 @@ class AlignerConfig(object):
         self.selected_lexical_resources = loads(self.config.get('Aligner', 'selected_lexical_resources'))
 
         self.theta = self.config.getfloat('Aligner', 'theta')
-
 
     def get_similar_group(self, pos_source, pos_target, is_opposite, relation):
         group_name = pos_source + '_' + ('opposite_' if is_opposite else '') + pos_target + '_' + relation

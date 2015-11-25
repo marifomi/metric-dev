@@ -69,7 +69,7 @@ def main():
     aligner = Aligner('english')
 
     ref_file_name = norm_ref_file_name(reference_dir, args.dataset, args.direction)
-    ref_data = readSentences(codecs.open(ref_file_name, encoding='UTF-8'))
+    ref_data = read_sentences(codecs.open(ref_file_name, encoding='UTF-8'))
     testFiles = [f for f in listdir(test_dir + '/' + args.dataset + '/' + args.direction) if isfile(join(test_dir + '/' + args.dataset + '/' + args.direction, f))]
 
     for t in testFiles:
@@ -78,7 +78,7 @@ def main():
         if not system == args.system_name:
             continue
 
-        test_data = readSentences(codecs.open(test_dir + '/' + args.dataset + '/' + args.direction + '/' + t, encoding='UTF-8'))
+        test_data = read_sentences(codecs.open(test_dir + '/' + args.dataset + '/' + args.direction + '/' + t, encoding='UTF-8'))
 
         for i, phrase_ref in enumerate(ref_data):
             num_phrase = i + 1

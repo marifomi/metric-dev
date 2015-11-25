@@ -1,14 +1,12 @@
 from __future__ import division
 from __future__ import print_function
 
-from aligner import *
-from util import *
-from scorer import *
 import codecs
 from os import listdir
 from os.path import isfile, join
 import argparse
-from coreNlpUtil import *
+
+from utils.core_nlp_utils import *
 
 
 def loadPPDB(ppdbFileName):
@@ -172,7 +170,7 @@ def main():
 
             scores_file = open(output_dir + '/' + metric + '.' + languagePair + '.' + 'seg.score', 'w')
             refFileName = norm_ref_file_name(reference_dir, dataset, languagePair)
-            ref_data = readSentences(codecs.open(refFileName, encoding='UTF-8'))
+            ref_data = read_sentences(codecs.open(refFileName, encoding='UTF-8'))
 
             testFiles = [f for f in listdir(test_dir + '/' + dataset + '/' + languagePair) if isfile(join(test_dir + '/' + dataset + '/' + languagePair, f))]
 
@@ -187,7 +185,7 @@ def main():
                 if (parameters.system_name) and not system == parameters.system_name:
                     continue
 
-                test_data = readSentences(codecs.open(test_dir + '/' + dataset + '/' + languagePair + '/' + t, encoding='UTF-8'))
+                test_data = read_sentences(codecs.open(test_dir + '/' + dataset + '/' + languagePair + '/' + t, encoding='UTF-8'))
 
                 if (parameters.alignments):
                     align_file = open(output_dir + '/' + dataset + '.' + system + '.' + languagePair + '.align.out', 'w')

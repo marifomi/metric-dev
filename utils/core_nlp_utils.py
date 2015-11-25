@@ -1,5 +1,5 @@
-from parsedSentencesLoader import ParsedSentencesLoader
-from word import Word
+from utils.parsed_sentences_loader import ParsedSentencesLoader
+from utils.word import Word
 
 
 def parseText(sentences):
@@ -330,3 +330,23 @@ def findChildren(dependencyParse, wordIndex, word):
                 break
 
     return childrenWithRelation
+
+##############################################################################################################################
+
+def read_sentences(sentence_file):
+
+    sentence_structure = ''
+    sentences = []
+
+    for line in sentence_file:
+
+        if line.startswith('Sentence #'):
+            if sentence_structure != '':
+                sentences.append(sentence_structure)
+            sentence_structure = ''
+
+        sentence_structure += line + '\n'
+
+    sentences.append(sentence_structure)
+
+    return sentences

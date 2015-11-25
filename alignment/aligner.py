@@ -1,9 +1,9 @@
-import math
-from alignerConfig import AlignerConfig
-from wordSim import *
-from util import *
-from coreNlpUtil import *
+
 from operator import itemgetter
+from aligner_config import AlignerConfig
+from utils.word_sim import *
+from util import *
+from utils.core_nlp_utils import *
 
 
 class Aligner(object):
