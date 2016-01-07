@@ -1,1 +1,8 @@
 .idea/*
+tmp/
+test/
+data/
+output/
+quest/
+alignments/
+config/
