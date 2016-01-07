@@ -7,6 +7,9 @@ import os
 import subprocess
 import shutil
 import numpy as np
+from src.utils.core_nlp_utils import read_sentences
+from src.utils.core_nlp_utils import prepareSentence2
+import re
 
 class RunTools(object):
 
@@ -25,7 +28,33 @@ class RunTools(object):
         reader = AlignmentsReader()
         return reader.read(align_dir + '/' + tgt_file.split('/')[-1] + '.align')
 
-    def tokenize(self, tokenizer, input_file_name):
+    def tokenize_from_parse(self, input_file_name, output_file_name):
+
+        o = codecs.open(output_file_name, 'w', 'utf-8')
+        lines = codecs.open(input_file_name, 'r', 'utf-8')
+        processed = read_sentences(lines)
+
+        for i, sentence in enumerate(processed):
+            parsed = prepareSentence2(sentence)
+            words = []
+
+            for item in parsed:
+                word = re.sub("``|''", "\"", item.form)
+                word = re.sub("-LRB-", "(", word)
+                word = re.sub("-RRB-", ")", word)
+                word = re.sub("-LSB-", "[", word)
+                word = re.sub("-RSB-", "]", word)
+                word = re.sub("-LCB-", "{", word)
+                word = re.sub("-RCB-", "}", word)
+                words.append(word)
+
+            o.write(' '.join(words) + '\n')
+
+        o.close()
+
+    def tokenize_quest(self, tokenizer, input_file_name):
+
+        # Using quest tokenizer
 
         myinput = open(input_file_name, 'r')
         myoutput = open(input_file_name + '.tok', 'w')
@@ -55,6 +84,9 @@ class RunTools(object):
         shutil.rmtree(os.getcwd() + '/' + 'input')
 
     def run_quest_word(self, quest_dir, quest_config, src_lang, tgt_lang, src_path, tgt_path, out_file):
+
+        # For combining cobalt and quest, check that the number of words in tokenized files is the same that in the
+        # files parsed with stanford corenlp
 
         subprocess.call(['java',
                          '-cp',
@@ -109,16 +141,22 @@ class RunTools(object):
 
 def main():
 
-    quest_dir = '/Users/MarinaFomicheva/Dropbox/workspace/questplusplus'
-    quest_config = '/Users/MarinaFomicheva/Dropbox/workspace/questplusplus/config/config.my_word-level.properties'
-    src_lang = 'spanish'
-    tgt_lang = 'english'
-    src_path = '/Users/MarinaFomicheva/Dropbox/workspace/dataSets/wmt13-graham/tokenized/reference.tok'
-    tgt_path = '/Users/MarinaFomicheva/Dropbox/workspace/dataSets/wmt13-graham/tokenized/system.tok'
-    out_file = os.getcwd() + '/' + 'quest' + '/' + 'output.txt'
-    tools = RunTools()
-    tools.run_quest_word(quest_dir, quest_config, src_lang, tgt_lang, src_path, tgt_path, out_file)
+    # quest_dir = '/Users/MarinaFomicheva/Dropbox/workspace/questplusplus'
+    # quest_config = '/Users/MarinaFomicheva/Dropbox/workspace/questplusplus/config/config.my_word-level.properties'
+    # src_lang = 'spanish'
+    # tgt_lang = 'english'
+    # src_path = '/Users/MarinaFomicheva/Dropbox/workspace/dataSets/wmt13-graham/tokenized/reference.tok'
+    # tgt_path = '/Users/MarinaFomicheva/Dropbox/workspace/dataSets/wmt13-graham/tokenized/system.tok'
+    # out_file = os.getcwd() + '/' + 'quest' + '/' + 'output.txt'
+    # tools = RunTools()
+    # tools.run_quest_word(quest_dir, quest_config, src_lang, tgt_lang, src_path, tgt_path, out_file)
     #tools.get_quest_word(tgt_path, os.getcwd() + '/' + 'output' + '/' + 'output.txt')
+
+    my_file = os.getcwd() + '/' + 'data' + '/' + 'system.parse'
+    out = os.getcwd() + '/' + 'data' + '/' + 'system.stan.tok'
+    tools = RunTools()
+    tools.tokenize_from_parse(my_file, out)
+
 
 if __name__ == '__main__':
     main()

@@ -51,8 +51,8 @@ class FeatureExtractor(object):
             quest_dir = config.get('Resources', 'quest_dir')
             quest_config = config.get('Resources', 'quest_config')
             quest_out = config.get('Resources', 'quest_output')
-            src_tok = ref_file_name + '.tok'
-            tgt_tok = tst_file_name + '.tok'
+            src_tok = ref_file_name + '.stan.tok'
+            tgt_tok = tst_file_name + '.stan.tok'
             out_path = quest_out + '/' + 'output.txt'
             tools.run_quest_word(quest_dir, quest_config, 'spanish', 'english', src_tok, tgt_tok, out_path)
             quest_word_features = tools.get_quest_word(tgt_tok, out_path)
@@ -91,6 +91,7 @@ class FeatureExtractor(object):
                     continue
 
                 instance.run(my_sentence_tgt, my_sentence_ref)
+
                 phr_feats.append(instance.get_value())
 
             self.vals.append(phr_feats)

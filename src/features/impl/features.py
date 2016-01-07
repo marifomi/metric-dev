@@ -1,5 +1,7 @@
 from src.scorer.scorer import Scorer
 from src.lex_resources import config
+import codecs
+import os
 
 __author__ = 'u88591'
 
@@ -1286,6 +1288,7 @@ class MinWordQuest(AbstractFeature):
         else:
              AbstractFeature.set_value(self, 0.0)
 
+
 class MaxWordQuest(AbstractFeature):
 
     def __init__(self):
@@ -1309,6 +1312,50 @@ class MaxWordQuest(AbstractFeature):
              AbstractFeature.set_value(self, max(back_props))
         else:
              AbstractFeature.set_value(self, 0.0)
+
+
+class PropNonAlignedOOV(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'prop_non_aligned_oov')
+        AbstractFeature.set_description(self, "Proportion of non-aligned out-of-vocabulary words (lm back-prop = 1)")
+
+    def run(self, cand, ref):
+
+        oov = 0
+        for i, word in enumerate(cand.parse):
+            if word.form in config.punctuations:
+                continue
+
+            if i + 1 not in [x[0] for x in cand.alignments[0]]:
+                if cand.quest_word[i][0] == 1:
+                    oov += 1
+
+        result = oov/float(len(cand.parse))
+        AbstractFeature.set_value(self, result)
+
+class VizWordQuest(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'viz_word_quest')
+        AbstractFeature.set_description(self, "Visualize back-propagation behaviour")
+
+    def run(self, cand, ref):
+
+        print ' '.join([x.form for x in ref.parse])
+        print ' '.join([x.form for x in cand.parse])
+
+        if len(cand.parse) != len(cand.quest_word):
+            print "Sentence lengths quest - cobalt do not match!"
+            return
+
+        for i, word in enumerate(cand.parse):
+            print word.form + '\t' + str(cand.quest_word[i][0])
+
+        AbstractFeature.set_value(self, 'NaN')
+
 
 class LenRatio(AbstractFeature):
 
