@@ -1,13 +1,11 @@
 from operator import itemgetter
+import codecs
 
 from aligner_config import AlignerConfig
-
 from src.utils.word_sim import *
 from src.alignment.util import *
 from src.utils.core_nlp_utils import *
-from alignments_reader import AlignmentsReader
 from src.utils import load_resources
-import codecs
 
 
 class Aligner(object):
@@ -1053,16 +1051,15 @@ class Aligner(object):
 
     def align_documents(self, tgt, ref):
 
-        tgt_ = codecs.open(tgt, 'r', 'utf-8')
-        ref_ = codecs.open(ref, 'r', 'utf-8')
-        tst_phrases = read_sentences(tgt_)
-        ref_phrases = read_sentences(ref_)
+        tst_phrases = read_sentences(codecs.open(tgt, 'r', encoding='UTF-8'))
+        ref_phrases = read_sentences(codecs.open(ref, 'r', encoding='UTF-8'))
 
         load_resources.load_ppdb(self.config.path_to_ppdb)
         load_resources.load_word_vectors(self.config.path_to_vectors)
 
         for i, candidate in enumerate(tst_phrases):
             self.alignments.append(self.align_sentence(candidate, ref_phrases[i]))
+            print str(i)
 
     def write_alignments(self, output_file_name):
 
@@ -1073,7 +1070,7 @@ class Aligner(object):
 
             for j, widx in enumerate(self.alignments[i][0]):
 
-                my_output.write(str(widx) + ' : ' + '[' + str(self.alignments[i][1][j][0]) + ', ' + str(self.alignments[i][1][j][0]) + ']' + ' : ')
+                my_output.write(str(widx) + ' : ' + '[' + self.alignments[i][1][j][0] + ', ' + self.alignments[i][1][j][0] + ']' + ' : ')
                 my_output.write('srcDiff=' + ','.join(self.alignments[i][2][j]['srcDiff']) + ';')
                 my_output.write('srcCon=' + ','.join(self.alignments[i][2][j]['srcCon']) + ';')
                 my_output.write('tgtDiff=' + ','.join(self.alignments[i][2][j]['tgtDiff']) + ';')
