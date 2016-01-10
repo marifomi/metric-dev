@@ -8,15 +8,12 @@ import codecs
 from src.utils.sentence import Sentence
 from src.utils.core_nlp_utils import read_sentences
 from src.utils.core_nlp_utils import prepareSentence2
-from src.alignment.aligner import Aligner
-from src.alignment.alignments_reader import AlignmentsReader
-from src.tools.lang_model_generator import LangModelGenerator
 from src.features.impl import features
 from src.tools.run_tools import RunTools
 
 
-config = ConfigParser()
-config.readfp(open(os.getcwd() + '/config/metric.cfg'))
+cfg = ConfigParser()
+cfg.readfp(open(os.getcwd() + '/config/metric.cfg'))
 
 class FeatureExtractor(object):
 
@@ -27,42 +24,49 @@ class FeatureExtractor(object):
 
     def get_feature_names(self):
 
-        file_ = open(config.get('Features', 'path'), 'r')
+        file_ = open(cfg.get('Features', 'path'), 'r')
         for line in file_:
             self.names.append(line.strip())
 
     def read_config(self):
 
-        self.mode = config.get('Features', 'mode')
+        self.mode = cfg.get('Features', 'mode')
 
     def extract_features(self, tst_file_name, ref_file_name, **kwargs):
 
-        tst_parse = open(tst_file_name + '.parse', 'r')
-        ref_parse = open(ref_file_name + '.parse', 'r')
-        tst_parse_ = read_sentences(tst_parse)
-        ref_parse_ = read_sentences(ref_parse)
+        tst_parse = read_sentences(codecs.open(tst_file_name + '.parse', 'r', 'utf-8'))
+        ref_parse = read_sentences(codecs.open(ref_file_name + '.parse', 'r', 'utf-8'))
 
         tools = RunTools()
         if self.mode == 'adequacy' or self.mode == 'all':
             tools.run_aligner(tst_file_name + '.parse', ref_file_name + '.parse', kwargs['align_dir'])
             alignments = tools.get_alignments(tst_file_name + '.parse', kwargs['align_dir'])
 
-        if self.mode == 'fluency' or self.mode == 'all':
-            quest_dir = config.get('Resources', 'quest_dir')
-            quest_config = config.get('Resources', 'quest_config')
-            quest_out = config.get('Resources', 'quest_output')
-            src_tok = ref_file_name + '.stan.tok'
-            tgt_tok = tst_file_name + '.stan.tok'
-            out_path = quest_out + '/' + 'output.txt'
-            tools.run_quest_word(quest_dir, quest_config, 'spanish', 'english', src_tok, tgt_tok, out_path)
-            quest_word_features = tools.get_quest_word(tgt_tok, out_path)
+        if self.mode == 'fluency_sent' or self.mode == 'all':
+            tools.run_quest_sent(cfg.get('Resources', 'quest_dir'), cfg.get('Resources', 'quest_config_sent'),
+                                 'spanish', 'english', ref_file_name, tst_file_name,
+                                 cfg.get('Resources', 'quest_output') + '/' + 'sent_output.txt')
+            quest_sent_features = tools.get_quest_sent(cfg.get('Resources', 'quest_output') + '/' + 'sent_output.txt',
+                                                       cfg.get('Resources', 'quest_features_sent')
+                                                       )
 
-        for i, sentence in enumerate(tst_parse_):
+        if self.mode == 'fluency_word' or self.mode == 'all':
+            tools.tokenize_from_parse(tst_file_name + '.parse', tst_file_name + '.stan.tok')
+            tools.tokenize_from_parse(ref_file_name + '.parse', ref_file_name + '.stan.tok')
+            tools.run_quest_word(cfg.get('Resources', 'quest_dir'), cfg.get('Resources', 'quest_config_word'),
+                                 'spanish', 'english', ref_file_name + '.stan.tok', tst_file_name + '.stan.tok',
+                                 cfg.get('Resources', 'quest_output') + '/' + 'word_output.txt')
+            quest_word_features = tools.get_quest_word(tst_file_name + '.stan.tok',
+                                                       cfg.get('Resources', 'quest_output') + '/' + 'word_output.txt',
+                                                       cfg.get('Resources', 'quest_features_word')
+                                                       )
+
+        for i, sentence in enumerate(tst_parse):
 
             phr_feats = []
 
             candidate_parsed = prepareSentence2(sentence)
-            reference_parsed = prepareSentence2(ref_parse_[i])
+            reference_parsed = prepareSentence2(ref_parse[i])
 
             my_sentence_tgt = Sentence()
             my_sentence_ref = Sentence()
@@ -74,7 +78,10 @@ class FeatureExtractor(object):
                 my_sentence_tgt.add_alignments(alignments[i])
                 my_sentence_ref.add_alignments(alignments[i])
 
-            if self.mode == 'fluency' or self.mode == 'all':
+            if self.mode == 'fluency_sent' or self.mode == 'all':
+                my_sentence_tgt.add_quest_sent(quest_sent_features[i])
+
+            if self.mode == 'fluency_word' or self.mode == 'all':
                 my_sentence_tgt.add_quest_word(quest_word_features[i])
 
             for name, my_class in sorted(inspect.getmembers(features)):
@@ -101,7 +108,7 @@ def main():
 
     tst = os.getcwd() + '/' + 'data' + '/' + 'system'
     ref = os.getcwd() + '/' + 'data' + '/' + 'reference'
-    output = open(os.getcwd() + '/' + 'output' + '/' + 'features.tsv', 'w')
+    output = open(os.getcwd() + '/' + 'test' + '/' + 'test.tsv', 'w')
 
     extractor = FeatureExtractor()
     extractor.read_config()
