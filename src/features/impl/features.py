@@ -1257,7 +1257,7 @@ class AvgWordQuest(AbstractFeature):
 
             if i + 1 not in [x[0] for x in cand.alignments[0]]:
                 cnt += 1
-                back_props.append(cand.quest_word[i][0])
+                back_props.append(cand.quest_word[i]['WCE1015'])
 
         if cnt > 0:
              AbstractFeature.set_value(self, numpy.mean(back_props))
@@ -1281,7 +1281,7 @@ class MinWordQuest(AbstractFeature):
 
             if i + 1 not in [x[0] for x in cand.alignments[0]]:
                 cnt += 1
-                back_props.append(cand.quest_word[i][0])
+                back_props.append(cand.quest_word[i]['WCE1015'])
 
         if cnt > 0:
              AbstractFeature.set_value(self, min(back_props))
@@ -1306,12 +1306,119 @@ class MaxWordQuest(AbstractFeature):
 
             if i + 1 not in [x[0] for x in cand.alignments[0]]:
                 cnt += 1
-                back_props.append(cand.quest_word[i][0])
+                back_props.append(cand.quest_word[i]['WCE1015'])
 
         if cnt > 0:
              AbstractFeature.set_value(self, max(back_props))
         else:
              AbstractFeature.set_value(self, 0.0)
+
+
+class AvgWordQuestLen(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'avg_word_quest_len')
+        AbstractFeature.set_description(self, "Average on the longest target n-gram")
+
+    def run(self, cand, ref):
+
+        back_props = []
+        cnt = 0
+        for i, word in enumerate(cand.parse):
+            if word.form in config.punctuations:
+                continue
+
+            if i + 1 not in [x[0] for x in cand.alignments[0]]:
+                cnt += 1
+                back_props.append(cand.quest_word[i]['WCE1037'])
+
+        if cnt > 0:
+             AbstractFeature.set_value(self, numpy.mean(back_props))
+        else:
+             AbstractFeature.set_value(self, 0.0)
+
+class MinWordQuestLen(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'min_word_quest_len')
+        AbstractFeature.set_description(self, "Minimum on the longest target n-gram")
+
+    def run(self, cand, ref):
+
+        back_props = []
+        cnt = 0
+        for i, word in enumerate(cand.parse):
+            if word.form in config.punctuations:
+                continue
+
+            if i + 1 not in [x[0] for x in cand.alignments[0]]:
+                cnt += 1
+                back_props.append(cand.quest_word[i]['WCE1037'])
+
+        if cnt > 0:
+             AbstractFeature.set_value(self, min(back_props))
+        else:
+             AbstractFeature.set_value(self, 0.0)
+
+
+class MaxWordQuestLen(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'max_word_quest_len')
+        AbstractFeature.set_description(self, "Maximum on the longest target n-gram")
+
+    def run(self, cand, ref):
+
+        back_props = []
+        cnt = 0
+        for i, word in enumerate(cand.parse):
+            if word.form in config.punctuations:
+                continue
+
+            if i + 1 not in [x[0] for x in cand.alignments[0]]:
+                cnt += 1
+                back_props.append(cand.quest_word[i]['WCE1037'])
+
+        if cnt > 0:
+             AbstractFeature.set_value(self, max(back_props))
+        else:
+             AbstractFeature.set_value(self, 0.0)
+
+
+class LangModProb(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'lang_mod_prob')
+        AbstractFeature.set_description(self, "Language model log-probability")
+
+    def run(self, cand, ref):
+        AbstractFeature.set_value(self, cand.quest_sent['1012'])
+
+
+class LangModPerlex(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'lang_mod_perplex')
+        AbstractFeature.set_description(self, "Language model perplexity")
+
+    def run(self, cand, ref):
+        AbstractFeature.set_value(self, cand.quest_sent['1013'])
+
+
+class LangModPerlex2(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'lang_mod_perplex2')
+        AbstractFeature.set_description(self, "Language model perplexity with no end sentence marker")
+
+    def run(self, cand, ref):
+        AbstractFeature.set_value(self, cand.quest_sent['1014'])
 
 
 class PropNonAlignedOOV(AbstractFeature):
@@ -1329,11 +1436,69 @@ class PropNonAlignedOOV(AbstractFeature):
                 continue
 
             if i + 1 not in [x[0] for x in cand.alignments[0]]:
-                if cand.quest_word[i][0] == 1:
+                if cand.quest_word[i]['WCE1015'] == 1:
                     oov += 1
 
         result = oov/float(len(cand.parse))
         AbstractFeature.set_value(self, result)
+
+class PropAllOOV(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'prop_all_oov')
+        AbstractFeature.set_description(self, "Proportion of out-of-vocabulary words (lm back-prop = 1)")
+
+    def run(self, cand, ref):
+
+        oov = 0
+        for i, word in enumerate(cand.parse):
+            if word.form in config.punctuations:
+                continue
+
+            if cand.quest_word[i]['WCE1015'] == 1:
+                oov += 1
+
+        result = oov/float(len(cand.parse))
+        AbstractFeature.set_value(self, result)
+
+
+class Bleu(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'bleu')
+        AbstractFeature.set_description(self, "Bleu score")
+
+    def run(self, cand, ref):
+        AbstractFeature.set_value(self, cand.bleu)
+
+
+class Meteor(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'meteor')
+        AbstractFeature.set_description(self, "Meteor score")
+
+    def run(self, cand, ref):
+        AbstractFeature.set_value(self, cand.meteor)
+
+
+class Cobalt(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'cobalt')
+        AbstractFeature.set_description(self, "Cobalt score")
+
+    def run(self, cand, ref):
+
+        my_scorer = Scorer()
+        word_level_scores = my_scorer.word_scores(cand.parse, ref.parse, cand.alignments)
+        score = my_scorer.sentence_score_cobalt(cand.parse, ref.parse, cand.alignments, word_level_scores)
+        AbstractFeature.set_value(self, score)
+
 
 class VizWordQuest(AbstractFeature):
 
@@ -1352,7 +1517,7 @@ class VizWordQuest(AbstractFeature):
             return
 
         for i, word in enumerate(cand.parse):
-            print word.form + '\t' + str(cand.quest_word[i][0])
+            print word.form + '\t' + str(cand.quest_word[i]['WCE1015'])
 
         AbstractFeature.set_value(self, 'NaN')
 
