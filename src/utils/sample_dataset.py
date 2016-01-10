@@ -41,23 +41,17 @@ def create_samples(f_features, f_obj, f_train_phrs, f_test_phrs):
         feats_o.close()
         obj_o.close()
 
-    predicted = learn_model.run(os.getcwd() + '/' + 'config' + '/' + 'learner' + '/' + 'my_svr.cfg')
-
 if __name__ == '__main__':
     # sample(1120)
-    create_samples(os.getcwd() + '/' + 'output' + '/' + 'features_word_level.tsv', os.getcwd() + '/' + 'output' + '/' + 'sample.seg.ad.stnd.all-en.tsv',
-               os.getcwd() + '/' + 'output' + '/' + 'train_phrases.txt',
-               os.getcwd() + '/' + 'output' + '/' + 'test_phrases.txt'
-               )
-    corr_bleu = baseline(os.getcwd() + '/' + 'output' + '/' + 'test_phrases.txt',
-                         os.getcwd() + '/' + 'output' + '/' + 'bleu.scores',
-                         os.getcwd() + '/' + 'output' + '/' + 'sample.seg.ad.stnd.all-en.tsv',
-    )
 
-    corr_meteor = baseline(os.getcwd() + '/' + 'output' + '/' + 'test_phrases.txt',
-                         os.getcwd() + '/' + 'output' + '/' + 'meteor.scores',
-                         os.getcwd() + '/' + 'output' + '/' + 'sample.seg.ad.stnd.all-en.tsv',
-    )
-    print str(corr_bleu)
-    print str(corr_meteor)
+    predicted = learn_model.run(os.getcwd() + '/' + 'config' + '/' + 'learner' + '/' + 'svr.cfg',
+                                x_train_path='/Users/MarinaFomicheva/workspace/upf-cobalt/output/features_word_level.tsv.0',
+                                x_test_path='/Users/MarinaFomicheva/workspace/upf-cobalt/output/features_word_level.tsv.1',
+                                y_train_path='/Users/MarinaFomicheva/workspace/upf-cobalt/output/sample.seg.ad.stnd.all-en.tsv.0',
+                                y_test_path='/Users/MarinaFomicheva/workspace/upf-cobalt/output/sample.seg.ad.stnd.all-en.tsv.1'
+                                )
 
+    # create_samples(os.getcwd() + '/' + 'output' + '/' + 'features_word_level.tsv', os.getcwd() + '/' + 'output' + '/' + 'sample.seg.ad.stnd.all-en.tsv',
+    #            os.getcwd() + '/' + 'output' + '/' + 'train_phrases.txt',
+    #            os.getcwd() + '/' + 'output' + '/' + 'test_phrases.txt'
+    #            )
