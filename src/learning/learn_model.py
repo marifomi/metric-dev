@@ -390,8 +390,7 @@ def fit_predict(config, X_train, y_train, X_test=None, y_test=None, ref_thd=None
 
         return predictions
 
-def run(cfg_path):
-
+def run(cfg_path, **kwargs):
 
     log.basicConfig(level=log.INFO)
 
@@ -399,13 +398,21 @@ def run(cfg_path):
     with open(cfg_path, "r") as cfg_file:
         config = yaml.load(cfg_file.read())
 
-    x_train_path = config.get("x_train", None)
+    if 'x_train_path' in kwargs.keys():
+        x_train_path = kwargs['x_train_path']
+    else:
+        x_train_path = config.get("x_train", None)
+
     if not x_train_path:
         msg = "'x_train' option not found in the configuration file. \
         The training dataset is mandatory."
         raise Exception(msg)
 
-    y_train_path = config.get("y_train", None)
+    if 'y_train_path' in kwargs.keys():
+        y_train_path = kwargs['y_train_path']
+    else:
+        y_train_path = config.get("y_train", None)
+
     if not y_train_path:
         msg = "'y_train' option not found in the configuration file. \
         The training dataset is mandatory."
@@ -418,8 +425,15 @@ def run(cfg_path):
         raise Exception(msg)
     
     # checks for the optional parameters
-    x_test_path = config.get("x_test", None)
-    y_test_path = config.get("y_test", None)
+    if 'x_test_path' in kwargs.keys():
+        x_test_path = kwargs['x_test_path']
+    else:
+        x_test_path = config.get("x_test", None)
+
+    if 'y_test_path' in kwargs.keys():
+        y_test_path = kwargs['y_test_path']
+    else:
+        y_test_path = config.get("y_test", None)
 
     separator = config.get("separator", DEFAULT_SEP)
     
@@ -446,8 +460,7 @@ def run(cfg_path):
     y_hat = fit_predict(config, X_train, y_train, X_test, y_test, config.get("ref_thd", None))
 
     return y_hat
-    
-    
+
 def main(argv=None): # IGNORE:C0111
     '''Command line options.'''
 
