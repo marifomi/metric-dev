@@ -1,6 +1,7 @@
 import codecs
 
-class AlignmentsReader(object):
+
+class CobaltAlignReader(object):
 
     def read(self, alignment_file):
 
@@ -19,9 +20,9 @@ class AlignmentsReader(object):
                 differences = []
 
             elif line.startswith('['):
-                indexes.append(AlignmentsReader.read_alignment_idx(line))
-                words.append(AlignmentsReader.read_alignment_words(line))
-                differences.append(AlignmentsReader.read_differences(self, line))
+                indexes.append(CobaltAlignReader.read_alignment_idx(line))
+                words.append(CobaltAlignReader.read_alignment_words(line))
+                differences.append(CobaltAlignReader.read_differences(self, line))
 
         alignments.append([indexes, words, differences])
 
