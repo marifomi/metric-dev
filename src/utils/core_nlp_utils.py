@@ -345,7 +345,7 @@ def read_sentences(sentence_file):
                 sentences.append(sentence_structure)
             sentence_structure = ''
 
-        sentence_structure += line + '\n'
+        sentence_structure += line
 
     sentences.append(sentence_structure)
 
