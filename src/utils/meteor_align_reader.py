@@ -22,7 +22,7 @@ class MeteorAlignReader(object):
                 phrase = int(re.sub(r'^Alignment\t([0-9]+).+$', r'\1', line.strip()))
 
                 if phrase > 1:
-                    alignments.append([indexes, words])
+                    alignments.append([self.add_one(indexes), words])
 
                 indexes = []
                 words = []
@@ -34,11 +34,19 @@ class MeteorAlignReader(object):
                     wpair = [words_test[pair[0]], words_ref[pair[1]]]
                     words.append(wpair)
 
-        alignments.append([indexes, words])
-
-        lines.close()
+        alignments.append([self.add_one(indexes), words])
 
         return alignments
+
+    @staticmethod
+    def add_one(indexes):
+
+        result = []
+        for pair in indexes:
+            new_pair = [pair[0] + 1, pair[1] + 1]
+            result.append(new_pair)
+
+        return result
 
     @staticmethod
     def read_alignment_idx(line):
@@ -87,6 +95,7 @@ def main():
     my_file = os.getcwd() + '/' + 'test' + '/' + 'meteor.align-align.out'
     reader = MeteorAlignReader()
     alignments = reader.read(my_file)
+    print
 
 if __name__ == '__main__':
     main()
