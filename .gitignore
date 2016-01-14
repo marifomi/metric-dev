@@ -6,3 +6,6 @@ output/
 quest/
 alignments/
 config/
+test_wmt/
+baselines/
+results/
