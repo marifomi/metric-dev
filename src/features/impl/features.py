@@ -124,8 +124,8 @@ class PropAlignedTest(AbstractFeature):
 
     def run(self, cand, ref):
 
-        if len(cand.parse) > 0:
-            AbstractFeature.set_value(self, len(cand.alignments[0]) / float(len(cand.parse)))
+        if len(cand.tokens) > 0:
+            AbstractFeature.set_value(self, len(cand.alignments[0]) / float(len(cand.tokens)))
         else:
             AbstractFeature.set_value(self, 0)
 
@@ -1251,8 +1251,8 @@ class AvgWordQuest(AbstractFeature):
 
         back_props = []
         cnt = 0
-        for i, word in enumerate(cand.parse):
-            if word.form in config.punctuations:
+        for i, word in enumerate(cand.tokens):
+            if word in config.punctuations:
                 continue
 
             if i + 1 not in [x[0] for x in cand.alignments[0]]:
@@ -1275,8 +1275,8 @@ class MinWordQuest(AbstractFeature):
 
         back_props = []
         cnt = 0
-        for i, word in enumerate(cand.parse):
-            if word.form in config.punctuations:
+        for i, word in enumerate(cand.tokens):
+            if word in config.punctuations:
                 continue
 
             if i + 1 not in [x[0] for x in cand.alignments[0]]:
@@ -1300,8 +1300,8 @@ class MaxWordQuest(AbstractFeature):
 
         back_props = []
         cnt = 0
-        for i, word in enumerate(cand.parse):
-            if word.form in config.punctuations:
+        for i, word in enumerate(cand.tokens):
+            if word in config.punctuations:
                 continue
 
             if i + 1 not in [x[0] for x in cand.alignments[0]]:
@@ -1325,8 +1325,8 @@ class AvgWordQuestLen(AbstractFeature):
 
         back_props = []
         cnt = 0
-        for i, word in enumerate(cand.parse):
-            if word.form in config.punctuations:
+        for i, word in enumerate(cand.tokens):
+            if word in config.punctuations:
                 continue
 
             if i + 1 not in [x[0] for x in cand.alignments[0]]:
@@ -1349,8 +1349,8 @@ class MinWordQuestLen(AbstractFeature):
 
         back_props = []
         cnt = 0
-        for i, word in enumerate(cand.parse):
-            if word.form in config.punctuations:
+        for i, word in enumerate(cand.tokens):
+            if word in config.punctuations:
                 continue
 
             if i + 1 not in [x[0] for x in cand.alignments[0]]:
@@ -1374,8 +1374,8 @@ class MaxWordQuestLen(AbstractFeature):
 
         back_props = []
         cnt = 0
-        for i, word in enumerate(cand.parse):
-            if word.form in config.punctuations:
+        for i, word in enumerate(cand.tokens):
+            if word in config.punctuations:
                 continue
 
             if i + 1 not in [x[0] for x in cand.alignments[0]]:
@@ -1431,15 +1431,15 @@ class PropNonAlignedOOV(AbstractFeature):
     def run(self, cand, ref):
 
         oov = 0
-        for i, word in enumerate(cand.parse):
-            if word.form in config.punctuations:
+        for i, word in enumerate(cand.tokens):
+            if word in config.punctuations:
                 continue
 
             if i + 1 not in [x[0] for x in cand.alignments[0]]:
                 if cand.quest_word[i]['WCE1015'] == 1:
                     oov += 1
 
-        result = oov/float(len(cand.parse))
+        result = oov/float(len(cand.tokens))
         AbstractFeature.set_value(self, result)
 
 class PropAllOOV(AbstractFeature):
@@ -1452,14 +1452,14 @@ class PropAllOOV(AbstractFeature):
     def run(self, cand, ref):
 
         oov = 0
-        for i, word in enumerate(cand.parse):
-            if word.form in config.punctuations:
+        for i, word in enumerate(cand.tokens):
+            if word in config.punctuations:
                 continue
 
             if cand.quest_word[i]['WCE1015'] == 1:
                 oov += 1
 
-        result = oov/float(len(cand.parse))
+        result = oov/float(len(cand.tokens))
         AbstractFeature.set_value(self, result)
 
 
@@ -1517,7 +1517,7 @@ class VizWordQuest(AbstractFeature):
             return
 
         for i, word in enumerate(cand.parse):
-            print word.form + '\t' + str(cand.quest_word[i]['WCE1015'])
+            print word + '\t' + str(cand.quest_word[i]['WCE1015'])
 
         AbstractFeature.set_value(self, 'NaN')
 
