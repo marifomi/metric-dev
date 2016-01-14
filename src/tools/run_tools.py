@@ -2,6 +2,7 @@ __author__ = 'MarinaFomicheva'
 
 from src.alignment.aligner import Aligner
 from src.utils.cobalt_align_reader import CobaltAlignReader
+from src.utils.meteor_align_reader import MeteorAlignReader
 import codecs
 import os
 import subprocess
@@ -12,6 +13,7 @@ from src.utils.core_nlp_utils import prepareSentence2
 from src.utils import txt_xml
 import re
 from src.utils.features_reader import FeaturesReader
+import src.utils.txt_xml as xml
 
 class RunTools(object):
 
@@ -28,25 +30,90 @@ class RunTools(object):
 
     @staticmethod
     def bleu(src_path, tgt_path, ref_path, my_file):
+
+        if not os.path.exists(src_path + '.xml'):
+            xml.run(src_path, tgt_path, ref_path)
+
         bleu = os.getcwd() + '/' + 'src' + '/' + 'tools' + '/' + 'mteval-v13m.pl'
         o = open(my_file, 'w')
-        subprocess.call(['perl', bleu, '-b', '-d', str(2), '-r', ref_path, '-t', tgt_path, '-s', src_path], stdout=o)
+        subprocess.call(['perl', bleu, '-b', '-d', str(2), '-r', ref_path + '.xml',
+                         '-t', tgt_path + '.xml',
+                         '-s', src_path + '.xml'], stdout=o)
         o.close()
 
-    def run_aligner(self, tgt_parse, ref_parse, out_dir):
+    @staticmethod
+    def get_bleu(scores_file):
 
-        if os.path.exists(out_dir + '/' + tgt_parse.split('/')[-1] + '.align'):
+        result = []
+        for line in open(scores_file).readlines():
+            if not line.startswith('  BLEU'):
+                continue
+            result.append(float(re.sub(r'^.+= ([01]\.[0-9]+).+$', r'\1', line.strip())))
+        return result
+
+    @staticmethod
+    def get_meteor(scores_file):
+
+        result = []
+        for line in open(scores_file).readlines():
+            if not line.startswith('Segment '):
+                continue
+            result.append(float(line.strip().split('\t')[1]))
+        return result
+
+    def run_aligner_cobalt(self, tgt_parse, ref_parse, out_dir):
+
+        if os.path.exists(out_dir + '/' + tgt_parse.split('/')[-1] + '.cobalt-align.out'):
             print("Alignments already exist.\n Aligner will not run.")
             return
 
         aligner = Aligner('english')
         aligner.align_documents(tgt_parse, ref_parse)
-        aligner.write_alignments(out_dir + '/' + tgt_parse.split('/')[-1] + '.align')
+        aligner.write_alignments(out_dir + '/' + tgt_parse.split('/')[-1] + '.cobalt-align.out')
 
-    def get_alignments(self, tgt_file, align_dir):
+    def get_alignments(self, tgt_file, align_dir, aligner):
 
-        reader = CobaltAlignReader()
-        return reader.read(align_dir + '/' + tgt_file.split('/')[-1] + '.align')
+        if aligner == 'meteor':
+            reader = MeteorAlignReader()
+        else:
+            reader = CobaltAlignReader()
+
+        return reader.read(align_dir + '/' + tgt_file.split('/')[-1] + '.' + aligner + '-align.out')
+
+    def get_tokens(self, input_file_name):
+
+        sents_tokens = []
+
+        lines = codecs.open(input_file_name, 'r', 'utf-8')
+        for line in lines:
+            tokens = line.strip().split(' ')
+            sents_tokens.append(tokens)
+
+        lines.close()
+        return sents_tokens
+
+    def tokenize_from_aligner(self, input_file_name, output_file_name_tgt, output_file_name_ref):
+
+        if os.path.exists(output_file_name_tgt):
+            print("The file " + output_file_name_tgt + " is already tokenized.\n Tokenizer will not run.")
+            return
+
+        o_tgt = codecs.open(output_file_name_tgt, 'w', 'utf-8')
+        o_ref = codecs.open(output_file_name_ref, 'w', 'utf-8')
+        lines = codecs.open(input_file_name, 'r', 'utf-8').readlines()
+
+        for i, line in enumerate(lines):
+            if line.startswith('Line2Start:Length'):
+                continue
+
+            if line.startswith('Alignment\t'):
+                words_test = lines[i + 1].strip().split(' ')
+                words_ref = lines[i + 2].strip().split(' ')
+                o_tgt.write(' '.join(words_test) + '\n')
+                o_ref.write(' '.join(words_ref) + '\n')
+
+        o_tgt.close()
+        o_ref.close()
 
     def tokenize_from_parse(self, input_file_name, output_file_name):
 
