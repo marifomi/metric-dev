@@ -3,8 +3,8 @@ __author__ = 'MarinaFomicheva'
 from json import loads
 import inspect
 from src.tools import processors
-import os
-from ConfigParser import ConfigParser
+from src.utils.sentence import Sentence
+from src.features.feature_extractor import FeatureExtractor as FE
 
 class RunTools(object):
 
@@ -12,34 +12,49 @@ class RunTools(object):
         self.config = config
         self.outputs = {}
 
-    def run_tools(self):
+    def run_tools(self, sample):
 
-        my_processors = loads(self.config.get('Resources', 'processors'))
+        select_names = loads(self.config.get('Resources', 'processors'))
+        select_procs = []
+        exist_procs = {}
 
-        for name, my_class in sorted(inspect.getmembers(processors)):
+        for name, my_class in inspect.getmembers(processors):
+            exist_procs[name] = my_class
 
-            if 'Abstract' in name:
-                continue
+        for proc in select_names:
+            name_class = (proc, exist_procs[proc])
+            select_procs.append(name_class)
 
-            if not inspect.isclass(my_class):
-                continue
+        for name, my_class in select_procs:
 
             instance = my_class()
 
-            if instance.get_name() not in my_processors:
-                continue
+            print instance.get_name()
+            instance.run(self.config, sample)
+            instance.get(self.config, sample)
 
-            instance.run(self.config)
+            self.outputs['tgt', instance.get_name()] = instance.get_result_tgt()
+            self.outputs['ref', instance.get_name()] = instance.get_result_ref()
 
-            self.outputs[name] = instance.get_result()
+    def assign_data(self, sample):
 
-def main():
+        self.run_tools(sample)
 
-    cfg = ConfigParser()
-    cfg.readfp(open(os.getcwd() + '/config/system.cfg'))
+        sample_length = FE.get_len(self.config.get('Data', 'tgt') + '.' + sample)
 
-    tools = RunTools(cfg)
-    tools.run_tools()
+        sentences_tgt = []
+        sentences_ref = []
+        for i, sentence in enumerate(range(sample_length)):
 
-if __name__ == '__main__':
-    main()
+            my_sentence_tgt = Sentence()
+            my_sentence_ref = Sentence()
+
+            for method in set([x[1] for x in self.outputs.keys()]):
+                my_sentence_tgt.add_data(method, self.outputs['tgt', method][i])
+                my_sentence_ref.add_data(method, self.outputs['ref', method][i])
+
+            sentences_tgt.append(my_sentence_tgt)
+            sentences_ref.append(my_sentence_ref)
+
+        self.outputs = {}
+        return [sentences_tgt, sentences_ref]
