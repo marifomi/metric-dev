@@ -1,36 +1,20 @@
 __author__ = 'MarinaFomicheva'
 
-import re
-from src.utils.features_reader import FeaturesReader
+from collections import defaultdict
+from src.utils.core_nlp_utils import prepareSentence2
 
-class Sentence(object):
+
+class Sentence(defaultdict):
 
     def __init__(self):
-        self.parse = []
-        self.alignments = []
-        self.quest_word = []
-        self.quest_sent = []
-        self.bleu = []
-        self.meteor = []
+        defaultdict.__init__(self, list)
 
-    def add_alignments(self, alignments):
-        self.alignments = alignments
+    def add_data(self, method, sent_data):
+        if 'aligner' in method:
+            self['alignments'] = sent_data
+        if 'tokenizer' in method:
+            self['tokens'] = sent_data
+        else:
+            self[method] = sent_data
 
-    def add_parse(self, parse):
-        self.parse = parse
-
-    def add_tokenized(self, tokens):
-        self.tokens = tokens
-
-    def add_quest_word(self, quest_word):
-        self.quest_word = quest_word
-
-    def add_quest_sent(self, quest_sent):
-        self.quest_sent = quest_sent
-
-    def add_bleu(self, bleu):
-        self.bleu = bleu
-
-    def add_meteor(self, meteor):
-        self.meteor = meteor
 
