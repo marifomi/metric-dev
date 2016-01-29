@@ -4,7 +4,7 @@ from sklearn import cross_validation as cv
 from src.learning import learn_model
 import os
 import numpy as np
-from src.utils.core_nlp_utils import read_sentences
+from src.utils.core_nlp_utils import read_parsed_sentences
 import codecs
 
 def save_sampled_phrs(sampled_phrs, file1, file2):
@@ -32,7 +32,7 @@ def print_sampled_data(f_in, f_train_phrs, f_test_phrs, format=None):
     out_test = codecs.open(f_in + '.test', 'w', 'utf-8')
 
     if format == 'parsed':
-        sentences = read_sentences(codecs.open(f_in, 'r', 'utf-8'))
+        sentences = read_parsed_sentences(codecs.open(f_in, 'r', 'utf-8'))
     else:
         sentences = codecs.open(f_in, 'r', 'utf-8').readlines()
 
@@ -66,27 +66,14 @@ def create_samples(f_features, f_obj, f_train_phrs, f_test_phrs):
         feats_o.close()
         obj_o.close()
 
+def main():
+
+    file1 = os.getcwd() + '/' + 'data' + '/' + 'mtc4' + '/' + 'phr_train.txt'
+    file2 = os.getcwd() + '/' + 'data' + '/' + 'mtc4' + '/' + 'phr_test.txt'
+
+    multi_bleu = os.getcwd() + '/' + 'data' + '/' + 'mtc4' + '/' + 'bleu_ref_multi.txt'
+    print_sampled_data(multi_bleu, file1, file2)
+
+
 if __name__ == '__main__':
-
-    #f_in = os.getcwd() + '/' + 'data' + '/' + 'system.parse'
-    f_in = os.getcwd() + '/' + 'data' + '/' + 'system.parse'
-    f_train_phrs = os.getcwd() + '/' + 'output' + '/' + 'train_phrases' + '.txt'
-    f_test_phrs = os.getcwd() + '/' + 'output' + '/' + 'test_phrases' + '.txt'
-    f_out_train = os.getcwd() + '/' + 'test' + '/' + 'train_parsed' + '.txt'
-    f_out_test = os.getcwd() + '/' + 'test' + '/' + 'test_parsed2' + '.txt'
-
-    # write_sampled_data(f_in, f_train_phrs, f_test_phrs, f_out_train, f_out_test, format='parsed')
-    print_sampled_data(f_in, f_train_phrs, f_test_phrs, f_out_train, f_out_test, format='parsed')
-
-
-    # predicted = learn_model.run(os.getcwd() + '/' + 'config' + '/' + 'learner' + '/' + 'svr.cfg',
-    #                             x_train_path='/Users/MarinaFomicheva/workspace/upf-cobalt/output/features_word_level.tsv.0',
-    #                             x_test_path='/Users/MarinaFomicheva/workspace/upf-cobalt/output/features_word_level.tsv.1',
-    #                             y_train_path='/Users/MarinaFomicheva/workspace/upf-cobalt/output/sample.seg.ad.stnd.all-en.tsv.0',
-    #                             y_test_path='/Users/MarinaFomicheva/workspace/upf-cobalt/output/sample.seg.ad.stnd.all-en.tsv.1'
-    #                             )
-
-    # create_samples(os.getcwd() + '/' + 'output' + '/' + 'features_word_level.tsv', os.getcwd() + '/' + 'output' + '/' + 'sample.seg.ad.stnd.all-en.tsv',
-    #            os.getcwd() + '/' + 'output' + '/' + 'train_phrases.txt',
-    #            os.getcwd() + '/' + 'output' + '/' + 'test_phrases.txt'
-    #            )
+    main()
