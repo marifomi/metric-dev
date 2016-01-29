@@ -5,24 +5,26 @@ import os
 
 __author__ = 'u88591'
 
-import math
 import numpy
-
 from src.utils import word_sim
 from src.lex_resources import config
-import src.scorer as scorer
 from src.features.impl.abstract_feature import *
+from gensim import matutils
+from numpy import array, dot
+import math
+from scipy.spatial import distance
 
 
-class CountWordsTest(AbstractFeature):
+
+class CountWordsTarget(AbstractFeature):
 
     def __init__(self):
         AbstractFeature.__init__(self)
-        AbstractFeature.set_name(self, 'count_words_test')
+        AbstractFeature.set_name(self, 'count_words_target')
         AbstractFeature.set_description(self, "Number of words in the candidate")
 
-    def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
-         AbstractFeature.set_value(self, len(candidate_parsed))
+    def run(self, cand, ref):
+         AbstractFeature.set_value(self, len(cand['tokens']))
 
 
 class CountWordsRef(AbstractFeature):
@@ -32,22 +34,33 @@ class CountWordsRef(AbstractFeature):
         AbstractFeature.set_name(self, 'count_words_ref')
         AbstractFeature.set_description(self, "Number of words in the reference")
 
-    def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
-         AbstractFeature.set_value(self, len(reference_parsed))
+    def run(self, cand, ref):
+         AbstractFeature.set_value(self, len(ref['tokens']))
 
 
-class CountContentTest(AbstractFeature):
+class LengthsRatio(AbstractFeature):
 
     def __init__(self):
         AbstractFeature.__init__(self)
-        AbstractFeature.set_name(self, 'count_content_test')
+        AbstractFeature.set_name(self, 'lengths_ratio')
+        AbstractFeature.set_description(self, "Ratio of candidate and reference sentence lengths")
+
+    def run(self, cand, ref):
+        AbstractFeature.set_value(self, len(cand['tokens'])/len(ref['tokens']))
+
+
+class CountContentTarget(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'count_content_target')
         AbstractFeature.set_description(self, "Number of content words in the candidate")
 
-    def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
+    def run(self, cand, ref):
         count = 0
 
-        for word in candidate_parsed:
-            if not word_sim.functionWord(word.form):
+        for word in cand['tokens']:
+            if not word_sim.functionWord(word):
                 count += 1
 
         AbstractFeature.set_value(self, count)
@@ -60,28 +73,28 @@ class CountContentRef(AbstractFeature):
         AbstractFeature.set_name(self, 'count_content_ref')
         AbstractFeature.set_description(self, "Number of content words in the reference")
 
-    def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
+    def run(self, cand, ref):
         count = 0
 
-        for word in reference_parsed:
-             if not word_sim.functionWord(word.form):
+        for word in ref['tokens']:
+             if not word_sim.functionWord(word):
                  count += 1
 
         AbstractFeature.set_value(self, count)
 
 
-class CountFunctionTest(AbstractFeature):
+class CountFunctionTarget(AbstractFeature):
 
     def __init__(self):
         AbstractFeature.__init__(self)
-        AbstractFeature.set_name(self, 'count_function_test')
+        AbstractFeature.set_name(self, 'count_function_target')
         AbstractFeature.set_description(self, "Number of function words in the candidate")
 
-    def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
+    def run(self, cand, ref):
         count = 0
 
-        for word in candidate_parsed:
-            if word_sim.functionWord(word.form):
+        for word in cand['tokens']:
+            if word_sim.functionWord(word):
                 count += 1
 
         AbstractFeature.set_value(self, count)
@@ -94,11 +107,11 @@ class CountFunctionRef(AbstractFeature):
         AbstractFeature.set_name(self, 'count_function_ref')
         AbstractFeature.set_description(self, "Number of function words in the reference")
 
-    def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
+    def run(self, cand, ref):
         count = 0
 
-        for word in reference_parsed:
-            if word_sim.functionWord(word.form):
+        for word in ref['tokens']:
+            if word_sim.functionWord(word):
                 count += 1
 
         AbstractFeature.set_value(self, count)
@@ -111,21 +124,72 @@ class CountAligned(AbstractFeature):
        AbstractFeature.set_name(self, 'count_aligned')
        AbstractFeature.set_description(self, "Number of aligned words")
 
-    def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
-        AbstractFeature.set_value(self, len(alignments[0]))
+    def run(self, cand, ref):
+        AbstractFeature.set_value(self, len(cand['alignments'][0]))
 
 
-class PropAlignedTest(AbstractFeature):
+class CountNonAlignedTarget(AbstractFeature):
+
+    def __init__(self):
+       AbstractFeature.__init__(self)
+       AbstractFeature.set_name(self, 'count_non_aligned_target')
+       AbstractFeature.set_description(self, "Number of non-aligned words")
+
+    def run(self, cand, ref):
+        AbstractFeature.set_value(self, len(cand['tokens']) - len(cand['alignments'][0]))
+
+
+class CountNonAlignedRef(AbstractFeature):
+
+    def __init__(self):
+       AbstractFeature.__init__(self)
+       AbstractFeature.set_name(self, 'count_non_aligned_ref')
+       AbstractFeature.set_description(self, "Number of non-aligned words")
+
+    def run(self, cand, ref):
+        AbstractFeature.set_value(self, len(ref['tokens']) - len(ref['alignments'][0]))
+
+
+class PropNonAlignedTarget(AbstractFeature):
 
     def __init__(self):
         AbstractFeature.__init__(self)
-        AbstractFeature.set_name(self, 'prop_aligned_test')
+        AbstractFeature.set_name(self, 'prop_non_aligned_target')
+        AbstractFeature.set_description(self, "Proportion of non-aligned words in the candidate")
+
+    def run(self, cand, ref):
+
+        if len(cand['tokens']) > 0:
+            AbstractFeature.set_value(self, len(cand['tokens']) - len(cand['alignments'][0]) / float(len(cand['tokens'])))
+        else:
+            AbstractFeature.set_value(self, 0)
+
+
+class PropNonAlignedRef(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'prop_non_aligned_ref')
+        AbstractFeature.set_description(self, "Proportion of non-aligned words in the reference")
+
+    def run(self, cand, ref):
+
+        if len(ref['tokens']) > 0:
+            AbstractFeature.set_value(self, len(ref['tokens']) - len(cand['alignments'][0]) / float(len(ref['tokens'])))
+        else:
+            AbstractFeature.set_value(self, 0)
+
+class PropAlignedTarget(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'prop_aligned_target')
         AbstractFeature.set_description(self, "Proportion of aligned words in the candidate")
 
     def run(self, cand, ref):
 
-        if len(cand.tokens) > 0:
-            AbstractFeature.set_value(self, len(cand.alignments[0]) / float(len(cand.tokens)))
+        if len(cand['tokens']) > 0:
+            AbstractFeature.set_value(self, len(cand['alignments'][0]) / float(len(cand['tokens'])))
         else:
             AbstractFeature.set_value(self, 0)
 
@@ -139,15 +203,142 @@ class PropAlignedRef(AbstractFeature):
 
     def run(self, cand, ref):
 
-        if len(ref.parse) > 0:
-            AbstractFeature.set_value(self, len(cand.alignments[0]) / float(len(ref.parse)))
+        if len(ref['parse']) > 0:
+            AbstractFeature.set_value(self, len(cand['alignments'][0]) / float(len(ref['parse'])))
         else:
             AbstractFeature.set_value(self, 0)
 
 
+class CountAlignedContent(AbstractFeature):
+
+    # Supposing content words can only be aligned to content words
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'count_aligned_content')
+        AbstractFeature.set_description(self, "Count of aligned content words")
+
+    def run(self, cand, ref):
+
+        if len(cand['alignments'][0]) > 0:
+            count = 0
+
+            for word in cand['alignments'][1]:
+                if word[0] not in config.stopwords and word[0] not in config.punctuations:
+                    count += 1
+
+            AbstractFeature.set_value(self, count)
+
+
+class CountAlignedFunction(AbstractFeature):
+
+    # Supposing content words can only be aligned to content words
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'count_aligned_function')
+        AbstractFeature.set_description(self, "Count of aligned function words")
+
+    def run(self, cand, ref):
+
+        if len(cand['alignments'][0]) > 0:
+            count = 0
+            for word in cand['alignments'][1]:
+                if word[0] in config.stopwords or word[0] in config.punctuations:
+                    count += 1
+
+            AbstractFeature.set_value(self, count)
+
+
+class CountNonAlignedContent(AbstractFeature):
+
+    # Supposing content words can only be aligned to content words
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'count_non_aligned_content')
+        AbstractFeature.set_description(self, "Count of non aligned content words")
+
+    def run(self, cand, ref):
+
+        count = 0
+        for i, word in enumerate(cand['tokens']):
+            if i + 1 not in [x[0] for x in cand['alignments'][0]]:
+                if word not in config.stopwords and word not in config.punctuations:
+                    count += 1
+
+            AbstractFeature.set_value(self, count)
+
+
+class CountNonAlignedFunction(AbstractFeature):
+
+    # Supposing content words can only be aligned to content words
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'count_non_aligned_function')
+        AbstractFeature.set_description(self, "Count of non-aligned function words")
+
+    def run(self, cand, ref):
+
+        count = 0
+        for i, word in enumerate(cand['tokens']):
+            if i + 1 not in [x[0] for x in cand['alignments'][0]]:
+                if word in config.stopwords and word not in config.punctuations:
+                    count += 1
+
+            AbstractFeature.set_value(self, count)
+
+
+class PropNonAlignedContent(AbstractFeature):
+
+    # On target side
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'prop_non_aligned_content')
+        AbstractFeature.set_description(self, "Proportion of non aligned content words")
+
+    def run(self, cand, ref):
+
+        count = 0
+        for i, word in enumerate(cand['tokens']):
+            if i + 1 not in [x[0] for x in cand['alignments'][0]]:
+                if word not in config.stopwords and word not in config.punctuations:
+                    count += 1
+
+            if len(cand['tokens']) == len(cand['alignments'][0]):
+                AbstractFeature.set_value(self, 0)
+            else:
+                AbstractFeature.set_value(self, count/float(len(cand['tokens']) - len(cand['alignments'][0])))
+
+
+class PropNonAlignedFunction(AbstractFeature):
+
+    # On target side
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'prop_non_aligned_function')
+        AbstractFeature.set_description(self, "Prop of non-aligned function words")
+
+    def run(self, cand, ref):
+
+        count = 0
+        for i, word in enumerate(cand['tokens']):
+            if i + 1 not in [x[0] for x in cand['alignments'][0]]:
+                if word in config.stopwords and word not in config.punctuations:
+                    count += 1
+
+            if len(cand['tokens']) == len(cand['alignments'][0]):
+                AbstractFeature.set_value(self, 0)
+            else:
+                AbstractFeature.set_value(self, count/float(len(cand['tokens']) - len(cand['alignments'][0])))
+
+
 class PropAlignedContent(AbstractFeature):
 
-    ## Supposing content words can only be aligned to content words
+    # Supposing content words can only be aligned to content words
 
     def __init__(self):
         AbstractFeature.__init__(self)
@@ -156,21 +347,21 @@ class PropAlignedContent(AbstractFeature):
 
     def run(self, cand, ref):
 
-        if len(cand.alignments[0]) > 0:
+        if len(cand['alignments'][0]) > 0:
             count = 0
 
-            for word in cand.alignments[1]:
+            for word in cand['alignments'][1]:
                 if word[0] not in config.stopwords and word[0] not in config.punctuations:
                     count += 1
 
-            AbstractFeature.set_value(self, count / float(len(cand.alignments[0])))
+            AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
         else:
             AbstractFeature.set_value(self, 0)
 
 
 class PropAlignedFunction(AbstractFeature):
 
-    ## Supposing content words can only be aligned to content words
+    # Supposing content words can only be aligned to content words
 
     def __init__(self):
         AbstractFeature.__init__(self)
@@ -179,13 +370,13 @@ class PropAlignedFunction(AbstractFeature):
 
     def run(self, cand, ref):
 
-        if len(cand.alignments[0]) > 0:
+        if len(cand['alignments'][0]) > 0:
             count = 0
-            for word in cand.alignments[1]:
+            for word in cand['alignments'][1]:
                 if word[0] in config.stopwords or word[0] in config.punctuations:
                     count += 1
 
-            AbstractFeature.set_value(self, count / float(len(cand.alignments[0])))
+            AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
         else:
             AbstractFeature.set_value(self, 0)
 
@@ -197,21 +388,43 @@ class PropAlignedExactExact(AbstractFeature):
         AbstractFeature.set_name(self, 'prop_aligned_exact_exact')
         AbstractFeature.set_description(self, "Proportion of aligned words with exact lexical match and exact POS match")
 
-    def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
+    def run(self, cand, ref):
 
-        if len(alignments[0]) > 0:
+        if len(cand['alignments'][0]) > 0:
             count = 0
 
-            for index in alignments[0]:
-                word_candidate = candidate_parsed[index[0] - 1]
-                word_reference = reference_parsed[index[1] - 1]
+            for index in cand['alignments'][0]:
+                word_candidate = cand['parse'][index[0] - 1]
+                word_reference = ref['parse'][index[1] - 1]
 
                 if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Exact' and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
                     count += 1
 
-            AbstractFeature.set_value(self, count / float(len(alignments[0])))
+            AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
         else:
             AbstractFeature.set_value(self, 0)
+
+
+class CountAlignedExactExact(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'count_aligned_exact_exact')
+        AbstractFeature.set_description(self, "Count of aligned words with exact lexical match and exact POS match")
+
+    def run(self, cand, ref):
+
+        if len(cand['alignments'][0]) > 0:
+            count = 0
+
+            for index in cand['alignments'][0]:
+                word_candidate = cand['parse'][index[0] - 1]
+                word_reference = ref['parse'][index[1] - 1]
+
+                if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Exact' and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
+                    count += 1
+
+            AbstractFeature.set_value(self, count)
 
 
 class PropAlignedSynExact(AbstractFeature):
@@ -221,21 +434,43 @@ class PropAlignedSynExact(AbstractFeature):
         AbstractFeature.set_name(self, 'prop_aligned_syn_exact')
         AbstractFeature.set_description(self, "Proportion of aligned words with synonym lexical match and exact POS match")
 
-    def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
+    def run(self, cand, ref):
 
-        if len(alignments[0]) > 0:
+        if len(cand['alignments'][0]) > 0:
             count = 0
 
-            for index in alignments[0]:
-                word_candidate = candidate_parsed[index[0] - 1]
-                word_reference = reference_parsed[index[1] - 1]
+            for index in cand['alignments'][0]:
+                word_candidate = cand['parse'][index[0] - 1]
+                word_reference = ref['parse'][index[1] - 1]
 
                 if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Synonym' and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
                     count += 1
 
-            AbstractFeature.set_value(self, count / float(len(alignments[0])))
+            AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
         else:
             AbstractFeature.set_value(self, 0)
+
+
+class CountAlignedSynExact(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'count_aligned_syn_exact')
+        AbstractFeature.set_description(self, "Count of aligned words with synonym lexical match and exact POS match")
+
+    def run(self, cand, ref):
+
+        if len(cand['alignments'][0]) > 0:
+            count = 0
+
+            for index in cand['alignments'][0]:
+                word_candidate = cand['parse'][index[0] - 1]
+                word_reference = ref['parse'][index[1] - 1]
+
+                if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Synonym' and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
+                    count += 1
+
+            AbstractFeature.set_value(self, count)
 
 
 class PropAlignedParaExact(AbstractFeature):
@@ -245,21 +480,43 @@ class PropAlignedParaExact(AbstractFeature):
         AbstractFeature.set_name(self, 'prop_aligned_para_exact')
         AbstractFeature.set_description(self, "Proportion of aligned words with paraphrase lexical match and exact POS match")
 
-    def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
+    def run(self, cand, ref):
 
-        if len(alignments[0]) > 0:
+        if len(cand['alignments'][0]) > 0:
             count = 0
 
-            for index in alignments[0]:
-                word_candidate = candidate_parsed[index[0] - 1]
-                word_reference = reference_parsed[index[1] - 1]
+            for index in cand['alignments'][0]:
+                word_candidate = cand['parse'][index[0] - 1]
+                word_reference = ref['parse'][index[1] - 1]
 
                 if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Paraphrase' and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
                     count += 1
 
-            AbstractFeature.set_value(self, count / float(len(alignments[0])))
+            AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
         else:
             AbstractFeature.set_value(self, 0)
+
+
+class CountAlignedParaExact(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'count_aligned_para_exact')
+        AbstractFeature.set_description(self, "Count of aligned words with paraphrase lexical match and exact POS match")
+
+    def run(self, cand, ref):
+
+        if len(cand['alignments'][0]) > 0:
+            count = 0
+
+            for index in cand['alignments'][0]:
+                word_candidate = cand['parse'][index[0] - 1]
+                word_reference = ref['parse'][index[1] - 1]
+
+                if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Paraphrase' and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
+                    count += 1
+
+            AbstractFeature.set_value(self, count)
 
 
 class PropAlignedExactCoarse(AbstractFeature):
@@ -269,21 +526,43 @@ class PropAlignedExactCoarse(AbstractFeature):
         AbstractFeature.set_name(self, 'prop_aligned_exact_coarse')
         AbstractFeature.set_description(self, "Proportion of aligned words with exact lexical match and coarse POS match")
 
-    def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
+    def run(self, cand, ref):
 
-        if len(alignments[0]) > 0:
+        if len(cand['alignments'][0]) > 0:
             count = 0
 
-            for index in alignments[0]:
-                word_candidate = candidate_parsed[index[0] - 1]
-                word_reference = reference_parsed[index[1] - 1]
+            for index in cand['alignments'][0]:
+                word_candidate = cand['parse'][index[0] - 1]
+                word_reference = ref['parse'][index[1] - 1]
 
                 if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Exact' and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Coarse':
                     count += 1
 
-            AbstractFeature.set_value(self, count / float(len(alignments[0])))
+            AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
         else:
             AbstractFeature.set_value(self, 0)
+
+
+class CountAlignedExactCoarse(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'count_aligned_exact_coarse')
+        AbstractFeature.set_description(self, "Count of aligned words with exact lexical match and coarse POS match")
+
+    def run(self, cand, ref):
+
+        if len(cand['alignments'][0]) > 0:
+            count = 0
+
+            for index in cand['alignments'][0]:
+                word_candidate = cand['parse'][index[0] - 1]
+                word_reference = ref['parse'][index[1] - 1]
+
+                if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Exact' and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Coarse':
+                    count += 1
+
+            AbstractFeature.set_value(self, count)
 
 
 class PropAlignedSynCoarse(AbstractFeature):
@@ -293,21 +572,43 @@ class PropAlignedSynCoarse(AbstractFeature):
        AbstractFeature.set_name(self, 'prop_aligned_syn_coarse')
        AbstractFeature.set_description(self, "Proportion of aligned words with synonym lexical match and coarse POS match")
 
-    def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
+    def run(self, cand, ref):
 
-        if len(alignments[0]) > 0:
+        if len(cand['alignments'][0]) > 0:
             count = 0
 
-            for index in alignments[0]:
-                word_candidate = candidate_parsed[index[0] - 1]
-                word_reference = reference_parsed[index[1] - 1]
+            for index in cand['alignments'][0]:
+                word_candidate = cand['parse'][index[0] - 1]
+                word_reference = ref['parse'][index[1] - 1]
 
                 if word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Coarse' and word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Synonym':
                     count += 1
 
-            AbstractFeature.set_value(self, count / float(len(alignments[0])))
+            AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
         else:
             AbstractFeature.set_value(self, 0)
+
+
+class CountAlignedSynCoarse(AbstractFeature):
+
+    def __init__(self):
+       AbstractFeature.__init__(self)
+       AbstractFeature.set_name(self, 'count_aligned_syn_coarse')
+       AbstractFeature.set_description(self, "Count of aligned words with synonym lexical match and coarse POS match")
+
+    def run(self, cand, ref):
+
+        if len(cand['alignments'][0]) > 0:
+            count = 0
+
+            for index in cand['alignments'][0]:
+                word_candidate = cand['parse'][index[0] - 1]
+                word_reference = ref['parse'][index[1] - 1]
+
+                if word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Coarse' and word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Synonym':
+                    count += 1
+
+            AbstractFeature.set_value(self, count)
 
 
 class PropAlignedParaCoarse(AbstractFeature):
@@ -317,21 +618,43 @@ class PropAlignedParaCoarse(AbstractFeature):
         AbstractFeature.set_name(self, 'prop_aligned_para_coarse')
         AbstractFeature.set_description(self, "Proportion of aligned words with paraphrase lexical match and coarse POS match")
 
-    def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
+    def run(self, cand, ref):
 
-        if len(alignments[0]) > 0:
+        if len(cand['alignments'][0]) > 0:
             count = 0
 
-            for index in alignments[0]:
-                word_candidate = candidate_parsed[index[0] - 1]
-                word_reference = reference_parsed[index[1] - 1]
+            for index in cand['alignments'][0]:
+                word_candidate = cand['parse'][index[0] - 1]
+                word_reference = ref['parse'][index[1] - 1]
 
                 if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Paraphrase' and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Coarse':
                     count += 1
 
-            AbstractFeature.set_value(self, count / float(len(alignments[0])))
+            AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
         else:
             AbstractFeature.set_value(self, 0)
+
+
+class CountAlignedParaCoarse(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'count_aligned_para_coarse')
+        AbstractFeature.set_description(self, "Count of aligned words with paraphrase lexical match and coarse POS match")
+
+    def run(self, cand, ref):
+
+        if len(cand['alignments'][0]) > 0:
+            count = 0
+
+            for index in cand['alignments'][0]:
+                word_candidate = cand['parse'][index[0] - 1]
+                word_reference = ref['parse'][index[1] - 1]
+
+                if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Paraphrase' and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Coarse':
+                    count += 1
+
+            AbstractFeature.set_value(self, count)
 
 
 class PropAlignedSynDiff(AbstractFeature):
@@ -341,21 +664,43 @@ class PropAlignedSynDiff(AbstractFeature):
         AbstractFeature.set_name(self, 'prop_aligned_syn_diff')
         AbstractFeature.set_description(self, "Proportion of aligned words with synonym lexical match and different POS")
 
-    def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
+    def run(self, cand, ref):
 
-        if len(alignments[0]) > 0:
+        if len(cand['alignments'][0]) > 0:
             count = 0
 
-            for index in alignments[0]:
-                word_candidate = candidate_parsed[index[0] - 1]
-                word_reference = reference_parsed[index[1] - 1]
+            for index in cand['alignments'][0]:
+                word_candidate = cand['parse'][index[0] - 1]
+                word_reference = ref['parse'][index[1] - 1]
 
                 if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Synonym' and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'None':
                     count += 1
 
-            AbstractFeature.set_value(self, count / float(len(alignments[0])))
+            AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
         else:
             AbstractFeature.set_value(self, 0)
+
+
+class CountAlignedSynDiff(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'count_aligned_syn_diff')
+        AbstractFeature.set_description(self, "Count of aligned words with synonym lexical match and different POS")
+
+    def run(self, cand, ref):
+
+        if len(cand['alignments'][0]) > 0:
+            count = 0
+
+            for index in cand['alignments'][0]:
+                word_candidate = cand['parse'][index[0] - 1]
+                word_reference = ref['parse'][index[1] - 1]
+
+                if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Synonym' and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'None':
+                    count += 1
+
+            AbstractFeature.set_value(self, count)
 
 
 class PropAlignedParaDiff(AbstractFeature):
@@ -365,21 +710,43 @@ class PropAlignedParaDiff(AbstractFeature):
         AbstractFeature.set_name(self, 'prop_aligned_para_diff')
         AbstractFeature.set_description(self, "Proportion of aligned words with paraphrase lexical match and different POS")
 
-    def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
+    def run(self, cand, ref):
 
-        if len(alignments[0]):
+        if len(cand['alignments'][0]):
             count = 0
 
-            for index in alignments[0]:
-                word_candidate = candidate_parsed[index[0] - 1]
-                word_reference = reference_parsed[index[1] - 1]
+            for index in cand['alignments'][0]:
+                word_candidate = cand['parse'][index[0] - 1]
+                word_reference = ref['parse'][index[1] - 1]
 
                 if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Paraphrase' and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'None':
                     count += 1
 
-            AbstractFeature.set_value(self, count / float(len(alignments[0])))
+            AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
         else:
             AbstractFeature.set_value(self, 0)
+
+
+class CountAlignedParaDiff(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'count_aligned_para_diff')
+        AbstractFeature.set_description(self, "Count of aligned words with paraphrase lexical match and different POS")
+
+    def run(self, cand, ref):
+
+        if len(cand['alignments'][0]):
+            count = 0
+
+            for index in cand['alignments'][0]:
+                word_candidate = cand['parse'][index[0] - 1]
+                word_reference = ref['parse'][index[1] - 1]
+
+                if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Paraphrase' and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'None':
+                    count += 1
+
+            AbstractFeature.set_value(self, count)
 
 
 class PropAlignedDistribExact(AbstractFeature):
@@ -389,21 +756,43 @@ class PropAlignedDistribExact(AbstractFeature):
         AbstractFeature.set_name(self, 'prop_aligned_distrib_exact')
         AbstractFeature.set_description(self, "Proportion of aligned words with distributional similarity and exact POS match")
 
-    def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
+    def run(self, cand, ref):
 
-        if len(alignments[0]) > 0:
+        if len(cand['alignments'][0]) > 0:
             count = 0
 
-            for index in alignments[0]:
-                word_candidate = candidate_parsed[index[0] - 1]
-                word_reference = reference_parsed[index[1] - 1]
+            for index in cand['alignments'][0]:
+                word_candidate = cand['parse'][index[0] - 1]
+                word_reference = ref['parse'][index[1] - 1]
 
                 if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Distributional' and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
                     count += 1
 
-            AbstractFeature.set_value(self, count / float(len(alignments[0])))
+            AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
         else:
             AbstractFeature.set_value(self, 0)
+
+
+class CountAlignedDistribExact(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'count_aligned_distrib_exact')
+        AbstractFeature.set_description(self, "Count of aligned words with distributional similarity and exact POS match")
+
+    def run(self, cand, ref):
+
+        if len(cand['alignments'][0]) > 0:
+            count = 0
+
+            for index in cand['alignments'][0]:
+                word_candidate = cand['parse'][index[0] - 1]
+                word_reference = ref['parse'][index[1] - 1]
+
+                if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Distributional' and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
+                    count += 1
+
+            AbstractFeature.set_value(self, count)
 
 
 class PropAlignedDistribCoarse(AbstractFeature):
@@ -413,21 +802,43 @@ class PropAlignedDistribCoarse(AbstractFeature):
         AbstractFeature.set_name(self, 'prop_aligned_distrib_coarse')
         AbstractFeature.set_description(self, "Proportion of aligned words with distributional similarity and coarse POS match")
 
-    def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
+    def run(self, cand, ref):
 
-        if len(alignments[0]) > 0:
+        if len(cand['alignments'][0]) > 0:
             count = 0
 
-            for index in alignments[0]:
-                word_candidate = candidate_parsed[index[0] - 1]
-                word_reference = reference_parsed[index[1] - 1]
+            for index in cand['alignments'][0]:
+                word_candidate = cand['parse'][index[0] - 1]
+                word_reference = ref['parse'][index[1] - 1]
 
                 if word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Coarse' and word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Distributional':
                     count += 1
 
-            AbstractFeature.set_value(self, count / float(len(alignments[0])))
+            AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
         else:
             AbstractFeature.set_value(self, 0)
+
+
+class CountAlignedDistribCoarse(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'count_aligned_distrib_coarse')
+        AbstractFeature.set_description(self, "Count of aligned words with distributional similarity and coarse POS match")
+
+    def run(self, cand, ref):
+
+        if len(cand['alignments'][0]) > 0:
+            count = 0
+
+            for index in cand['alignments'][0]:
+                word_candidate = cand['parse'][index[0] - 1]
+                word_reference = ref['parse'][index[1] - 1]
+
+                if word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Coarse' and word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Distributional':
+                    count += 1
+
+            AbstractFeature.set_value(self, count)
 
 
 class PropAlignedDistribDiff(AbstractFeature):
@@ -437,53 +848,243 @@ class PropAlignedDistribDiff(AbstractFeature):
         AbstractFeature.set_name(self, 'prop_aligned_distrib_diff')
         AbstractFeature.set_description(self, "Proportion of aligned words with distributional similarity and different POS")
 
-    def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
+    def run(self, cand, ref):
 
-        if len(alignments[0]):
+        if len(cand['alignments'][0]):
             count = 0
 
-            for index in alignments[0]:
-                word_candidate = candidate_parsed[index[0] - 1]
-                word_reference = reference_parsed[index[1] - 1]
+            for index in cand['alignments'][0]:
+                word_candidate = cand['parse'][index[0] - 1]
+                word_reference = ref['parse'][index[1] - 1]
 
                 if word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'None' and word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Distributional':
                     count += 1
 
-            AbstractFeature.set_value(self, count / float(len(alignments[0])))
+            AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
         else:
             AbstractFeature.set_value(self, 0)
 
 
-class AvgPenExactTest(AbstractFeature):
+class CountAlignedDistribDiff(AbstractFeature):
 
     def __init__(self):
         AbstractFeature.__init__(self)
-        AbstractFeature.set_name(self, 'avg_pen_exact_test')
+        AbstractFeature.set_name(self, 'count_aligned_distrib_diff')
+        AbstractFeature.set_description(self, "Count of aligned words with distributional similarity and different POS")
+
+    def run(self, cand, ref):
+
+        if len(cand['alignments'][0]):
+            count = 0
+
+            for index in cand['alignments'][0]:
+                word_candidate = cand['parse'][index[0] - 1]
+                word_reference = ref['parse'][index[1] - 1]
+
+                if word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'None' and word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Distributional':
+                    count += 1
+
+            AbstractFeature.set_value(self, count)
+
+
+class PropAlignedPosExact(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'aligned_pos_exact')
+        AbstractFeature.set_description(self, "Proportion of aligned words with exact pos match")
+
+    def run(self, cand, ref):
+
+        if len(cand['alignments'][0]) > 0:
+            count = 0
+
+            for index in cand['alignments'][0]:
+                word_candidate = cand['parse'][index[0] - 1]
+                word_reference = ref['parse'][index[1] - 1]
+
+                if word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
+                    count += 1
+
+            AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
+        else:
+            AbstractFeature.set_value(self, 0)
+
+
+class PropAlignedPosCoarse(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'aligned_pos_coarse')
+        AbstractFeature.set_description(self, "Proportion of aligned words with coarse pos match")
+
+    def run(self, cand, ref):
+
+        if len(cand['alignments'][0]) > 0:
+            count = 0
+
+            for index in cand['alignments'][0]:
+                word_candidate = cand['parse'][index[0] - 1]
+                word_reference = ref['parse'][index[1] - 1]
+
+                if word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Coarse':
+                    count += 1
+
+            AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
+        else:
+            AbstractFeature.set_value(self, 0)
+
+
+class PropAlignedPosDiff(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'aligned_pos_diff')
+        AbstractFeature.set_description(self, "Proportion of aligned words with different pos")
+
+    def run(self, cand, ref):
+
+        if len(cand['alignments'][0]) > 0:
+            count = 0
+
+            for index in cand['alignments'][0]:
+                word_candidate = cand['parse'][index[0] - 1]
+                word_reference = ref['parse'][index[1] - 1]
+
+                if word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'None':
+                    count += 1
+
+            AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
+        else:
+            AbstractFeature.set_value(self, 0)
+
+
+class PropAlignedLexExact(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'prop_aligned_lex_exact')
+        AbstractFeature.set_description(self, "Proportion of aligned words with exact lex match")
+
+    def run(self, cand, ref):
+
+        if len(cand['alignments'][0]) > 0:
+            count = 0
+
+            for index in cand['alignments'][0]:
+                word_candidate = cand['parse'][index[0] - 1]
+                word_reference = ref['parse'][index[1] - 1]
+
+                if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Exact':
+                    count += 1
+
+            AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
+        else:
+            AbstractFeature.set_value(self, 0)
+
+
+class PropAlignedLexSyn(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'prop_aligned_lex_syn')
+        AbstractFeature.set_description(self, "Proportion of aligned words with synonym lex match")
+
+    def run(self, cand, ref):
+
+        if len(cand['alignments'][0]) > 0:
+            count = 0
+
+            for index in cand['alignments'][0]:
+                word_candidate = cand['parse'][index[0] - 1]
+                word_reference = ref['parse'][index[1] - 1]
+
+                if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Synonym':
+                    count += 1
+
+            AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
+        else:
+            AbstractFeature.set_value(self, 0)
+
+
+class PropAlignedLexPara(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'prop_aligned_lex_para')
+        AbstractFeature.set_description(self, "Proportion of aligned words with paraphrase lex match")
+
+    def run(self, cand, ref):
+
+        if len(cand['alignments'][0]) > 0:
+            count = 0
+
+            for index in cand['alignments'][0]:
+                word_candidate = cand['parse'][index[0] - 1]
+                word_reference = ref['parse'][index[1] - 1]
+
+                if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Parahrase':
+                    count += 1
+
+            AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
+        else:
+            AbstractFeature.set_value(self, 0)
+
+
+class PropAlignedLexDistrib(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'prop_aligned_lex_distrib')
+        AbstractFeature.set_description(self, "Proportion of aligned words with distrib lex match")
+
+    def run(self, cand, ref):
+
+        if len(cand['alignments'][0]) > 0:
+            count = 0
+
+            for index in cand['alignments'][0]:
+                word_candidate = cand['parse'][index[0] - 1]
+                word_reference = ref['parse'][index[1] - 1]
+
+                if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Distributional':
+                    count += 1
+
+            AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
+        else:
+            AbstractFeature.set_value(self, 0)
+
+
+class AvgPenExactTarget(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'avg_pen_exact_target')
         AbstractFeature.set_description(self, "Average CP for aligned words with exact match in the candidate (considered only for the words with CP > 0)")
 
-    def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
+    def run(self, cand, ref):
 
-        my_scorer = scorer.Scorer()
+        my_scorer = Scorer()
         difference = 0.0
         context = 0.0
         penalties = []
 
-        if len(alignments[0]) == 0:
+        if len(cand['alignments'][0]) == 0:
             AbstractFeature.set_value(self, 0)
             return
 
-        for i, index in enumerate(alignments[0]):
+        for i, index in enumerate(cand['alignments'][0]):
 
-            word_candidate = candidate_parsed[index[0] - 1]
-            word_reference = reference_parsed[index[1] - 1]
+            word_candidate = cand['parse'][index[0] - 1]
+            word_reference = ref['parse'][index[1] - 1]
 
             if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Exact' and not word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'None':
 
-                for dep_label in alignments[2][i]['srcDiff']:
+                for dep_label in cand['alignments'][2][i]['srcDiff']:
                     if not dep_label.split('_')[0] in my_scorer.noisy_types:
                         difference += 1
 
-                for dep_label in alignments[2][i]['srcCon']:
+                for dep_label in cand['alignments'][2][i]['srcCon']:
                     if not dep_label.split('_')[0] in my_scorer.noisy_types:
                         context += 1
 
@@ -507,30 +1108,29 @@ class AvgPenExactRef(AbstractFeature):
         AbstractFeature.set_name(self, 'avg_pen_exact_ref')
         AbstractFeature.set_description(self, "Average CP for aligned words with exact match in the reference (considered only for the words with CP > 0)")
 
-    # def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
-    def run(self, candidate, reference):
+    def run(self, cand, ref):
 
         my_scorer = Scorer()
         difference = 0.0
         context = 0.0
         penalties = []
 
-        if len(alignments[0]) == 0:
+        if len(cand['alignments'][0]) == 0:
             AbstractFeature.set_value(self, 0)
             return
 
-        for i, index in enumerate(alignments[0]):
+        for i, index in enumerate(cand['alignments'][0]):
 
-            word_candidate = candidate_parsed[index[0] - 1]
-            word_reference = reference_parsed[index[1] - 1]
+            word_candidate = cand['parse'][index[0] - 1]
+            word_reference = ref['parse'][index[1] - 1]
 
             if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Exact' and not word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'None':
 
-                for dep_label in alignments[2][i]['tgtDiff']:
+                for dep_label in cand['alignments'][2][i]['tgtDiff']:
                     if not dep_label.split('_')[0] in my_scorer.noisy_types:
                         difference += 1
 
-                for dep_label in alignments[2][i]['tgtCon']:
+                for dep_label in cand['alignments'][2][i]['tgtCon']:
                     if not dep_label.split('_')[0] in my_scorer.noisy_types:
                         context += 1
 
@@ -547,36 +1147,36 @@ class AvgPenExactRef(AbstractFeature):
             AbstractFeature.set_value(self, 0)
 
 
-class AvgPenNoExactTest(AbstractFeature):
+class AvgPenNonExactTarget(AbstractFeature):
 
     def __init__(self):
         AbstractFeature.__init__(self)
-        AbstractFeature.set_name(self, 'avg_pen_no_exact_test')
-        AbstractFeature.set_description(self, "Average CP for aligned words with non-exact match in the candidate (considered only for the words with CP > 0)")
+        AbstractFeature.set_name(self, 'avg_pen_non_exact_target')
+        AbstractFeature.set_description(self, "Average CP for aligned words with non exact match in the candidate (considered only for the words with CP > 0)")
 
-    def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
+    def run(self, cand, ref):
 
-        my_scorer = scorer.Scorer()
+        my_scorer = Scorer()
         difference = 0.0
         context = 0.0
         penalties = []
 
-        if len(alignments[0]) == 0:
+        if len(cand['alignments'][0]) == 0:
             AbstractFeature.set_value(self, 0)
             return
 
-        for i, index in enumerate(alignments[0]):
+        for i, index in enumerate(cand['alignments'][0]):
 
-            word_candidate = candidate_parsed[index[0] - 1]
-            word_reference = reference_parsed[index[1] - 1]
+            word_candidate = cand['parse'][index[0] - 1]
+            word_reference = ref['parse'][index[1] - 1]
 
             if not word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Exact' and not word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
 
-                for dep_label in alignments[2][i]['srcDiff']:
+                for dep_label in cand['alignments'][2][i]['srcDiff']:
                     if not dep_label.split('_')[0] in my_scorer.noisy_types:
                         difference += 1
 
-                for dep_label in alignments[2][i]['srcCon']:
+                for dep_label in cand['alignments'][2][i]['srcCon']:
                     if not dep_label.split('_')[0] in my_scorer.noisy_types:
                         context += 1
 
@@ -593,36 +1193,38 @@ class AvgPenNoExactTest(AbstractFeature):
             AbstractFeature.set_value(self, 0)
 
 
-class AvgPenNoExactRef(AbstractFeature):
+class AvgPenNonExactRef(AbstractFeature):
 
     def __init__(self):
         AbstractFeature.__init__(self)
-        AbstractFeature.set_name(self, 'avg_pen_no_exact_ref')
-        AbstractFeature.set_description(self, "Average CP for aligned words with non-exact match in the reference (considered only for the words with CP > 0)")
+        AbstractFeature.set_name(self, 'avg_pen_non_exact_ref')
+        AbstractFeature.set_description(self, "Average CP for aligned words with non exact match in the reference (considered only for the words with CP > 0)")
 
-    def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
+    def run(self, cand, ref):
 
-        my_scorer = scorer.Scorer()
+        my_scorer = Scorer()
+
+        my_scorer = Scorer()
         difference = 0.0
         context = 0.0
         penalties = []
 
-        if len(alignments[0]) == 0:
+        if len(cand['alignments'][0]) == 0:
             AbstractFeature.set_value(self, 0)
             return
 
-        for i, index in enumerate(alignments[0]):
+        for i, index in enumerate(cand['alignments'][0]):
 
-            word_candidate = candidate_parsed[index[0] - 1]
-            word_reference = reference_parsed[index[1] - 1]
+            word_candidate = cand['parse'][index[0] - 1]
+            word_reference = ref['parse'][index[1] - 1]
 
             if not word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Exact' and not word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
 
-                for dep_label in alignments[2][i]['tgtDiff']:
+                for dep_label in cand['alignments'][2][i]['tgtDiff']:
                     if not dep_label.split('_')[0] in my_scorer.noisy_types:
                         difference += 1
 
-                for dep_label in alignments[2][i]['tgtCon']:
+                for dep_label in cand['alignments'][2][i]['tgtCon']:
                     if not dep_label.split('_')[0] in my_scorer.noisy_types:
                         context += 1
 
@@ -639,32 +1241,32 @@ class AvgPenNoExactRef(AbstractFeature):
             AbstractFeature.set_value(self, 0)
 
 
-class PropExactPenTest(AbstractFeature):
+class PropPenExactTarget(AbstractFeature):
 
     def __init__(self):
         AbstractFeature.__init__(self)
-        AbstractFeature.set_name(self, 'prop_exact_pen_test')
-        AbstractFeature.set_description(self, "Proportion of exact matching words with CP in the candidate")
+        AbstractFeature.set_name(self, 'prop_pen_exact_target')
+        AbstractFeature.set_description(self, "Proportion of words with CP with exact match in the candidate (considered only for the words with CP > 0)")
 
-    def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
+    def run(self, cand, ref):
 
-        if len(alignments[0]) == 0:
+        counter_words = 0
+        counter_penalties = 0
+
+        if len(cand['alignments'][0]) == 0:
             AbstractFeature.set_value(self, 0)
             return
 
-        counter_penalties = 0.0
-        counter_words = 0.0
+        for i, index in enumerate(cand['alignments'][0]):
 
-        for i, index in enumerate(alignments[0]):
-
-            word_candidate = candidate_parsed[index[0] - 1]
-            word_reference = reference_parsed[index[1] - 1]
+            word_candidate = cand['parse'][index[0] - 1]
+            word_reference = ref['parse'][index[1] - 1]
 
             if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Exact' and not word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'None':
 
                 counter_words += 1
 
-                if len(alignments[2][i]['srcDiff']) > 0:
+                if len(cand['alignments'][2][i]['srcDiff']) > 0:
                     counter_penalties += 1
 
         if counter_words > 0:
@@ -673,32 +1275,32 @@ class PropExactPenTest(AbstractFeature):
              AbstractFeature.set_value(self, 0.0)
 
 
-class PropExactPenRef(AbstractFeature):
+class PropPenExactRef(AbstractFeature):
 
     def __init__(self):
         AbstractFeature.__init__(self)
-        AbstractFeature.set_name(self, 'prop_exact_pen_ref')
-        AbstractFeature.set_description(self, "Proportion of exact matching words with CP in the reference")
+        AbstractFeature.set_name(self, 'prop_pen_exact_ref')
+        AbstractFeature.set_description(self, "Proportion of words with CP with exact match in the reference (considered only for the words with CP > 0)")
 
-    def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
+    def run(self, cand, ref):
 
-        if len(alignments[0]) == 0:
+        counter_words = 0
+        counter_penalties = 0
+
+        if len(cand['alignments'][0]) == 0:
             AbstractFeature.set_value(self, 0)
             return
 
-        counter_penalties = 0.0
-        counter_words = 0.0
+        for i, index in enumerate(cand['alignments'][0]):
 
-        for i, index in enumerate(alignments[0]):
-
-            word_candidate = candidate_parsed[index[0] - 1]
-            word_reference = reference_parsed[index[1] - 1]
+            word_candidate = cand['parse'][index[0] - 1]
+            word_reference = ref['parse'][index[1] - 1]
 
             if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Exact' and not word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'None':
 
                 counter_words += 1
 
-                if len(alignments[2][i]['tgtDiff']) > 0:
+                if len(cand['alignments'][2][i]['tgtDiff']) > 0:
                     counter_penalties += 1
 
         if counter_words > 0:
@@ -707,383 +1309,215 @@ class PropExactPenRef(AbstractFeature):
              AbstractFeature.set_value(self, 0.0)
 
 
-class PropNoExactPenTest(AbstractFeature):
+class PropPenNonExactTarget(AbstractFeature):
 
     def __init__(self):
         AbstractFeature.__init__(self)
-        AbstractFeature.set_name(self, 'prop_no_exact_pen_test')
-        AbstractFeature.set_description(self, "Proportion of non-exact matching words with CP in the candidate")
+        AbstractFeature.set_name(self, 'prop_pen_non_exact_target')
+        AbstractFeature.set_description(self, "Proportion of words with CP with non exact match in the candidate (considered only for the words with CP > 0)")
 
-    def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
+    def run(self, cand, ref):
 
-        if len(alignments[0]) == 0:
+        counter_words = 0
+        counter_penalties = 0
+
+        if len(cand['alignments'][0]) == 0:
             AbstractFeature.set_value(self, 0)
             return
 
-        counter_penalties = 0.0
-        counter_words = 0.0
+        for i, index in enumerate(cand['alignments'][0]):
 
-        for i, index in enumerate(alignments[0]):
-
-            word_candidate = candidate_parsed[index[0] - 1]
-            word_reference = reference_parsed[index[1] - 1]
+            word_candidate = cand['parse'][index[0] - 1]
+            word_reference = ref['parse'][index[1] - 1]
 
             if not word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Exact' and not word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
 
                 counter_words += 1
 
-                if len(alignments[2][i]['srcDiff']) > 0:
+                if len(cand['alignments'][2][i]['srcDiff']) > 0:
                     counter_penalties += 1
 
         if counter_words > 0:
-            AbstractFeature.set_value(self, counter_penalties / counter_words)
+             AbstractFeature.set_value(self, counter_penalties / counter_words)
         else:
-            AbstractFeature.set_value(self, 0)
+             AbstractFeature.set_value(self, 0.0)
 
 
-class PropNoExactPenRef(AbstractFeature):
+class PropPenNonExactRef(AbstractFeature):
 
     def __init__(self):
         AbstractFeature.__init__(self)
-        AbstractFeature.set_name(self, 'prop_no_exact_pen_ref')
-        AbstractFeature.set_description(self, "Proportion of non-exact matching words with CP in the reference")
+        AbstractFeature.set_name(self, 'prop_pen_non_exact_ref')
+        AbstractFeature.set_description(self, "Proportion of words with CP with non exact match in the reference (considered only for the words with CP > 0)")
 
-    def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
+    def run(self, cand, ref):
 
-        if len(alignments[0]) == 0:
+        counter_words = 0
+        counter_penalties = 0
+
+        if len(cand['alignments'][0]) == 0:
             AbstractFeature.set_value(self, 0)
             return
 
-        counter_penalties = 0.0
-        counter_words = 0.0
+        for i, index in enumerate(cand['alignments'][0]):
 
-        for i, index in enumerate(alignments[0]):
-
-            word_candidate = candidate_parsed[index[0] - 1]
-            word_reference = reference_parsed[index[1] - 1]
+            word_candidate = cand['parse'][index[0] - 1]
+            word_reference = ref['parse'][index[1] - 1]
 
             if not word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Exact' and not word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
 
                 counter_words += 1
 
-                if len(alignments[2][i]['tgtDiff']) > 0:
-                     counter_penalties += 1
-
-        if counter_words > 0:
-            AbstractFeature.set_value(self, counter_penalties / counter_words)
-        else:
-            AbstractFeature.set_value(self, 0.0)
-
-
-class PropContentPenTest(AbstractFeature):
-
-    def __init__(self):
-        AbstractFeature.__init__(self)
-        AbstractFeature.set_name(self, 'prop_content_pen_test')
-        AbstractFeature.set_description(self, "Proportion of content words with CP in the candidate")
-
-    def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
-
-        if len(alignments[0]) == 0:
-            AbstractFeature.set_value(self, 0)
-            return
-
-        counter_penalties = 0.0
-        counter_words = 0.0
-
-        for i, index in enumerate(alignments[0]):
-
-            word_candidate = candidate_parsed[index[0] - 1]
-            word_reference = reference_parsed[index[1] - 1]
-
-            if not word_sim.functionWord(word_candidate.form):
-
-                counter_words += 1
-
-                if len(alignments[2][i]['srcDiff']) > 0:
-                     counter_penalties += 1
-
-        if counter_words > 0:
-            AbstractFeature.set_value(self, counter_penalties / counter_words)
-        else:
-            AbstractFeature.set_value(self, 0)
-
-
-class PropContentPenRef(AbstractFeature):
-
-    def __init__(self):
-        AbstractFeature.__init__(self)
-        AbstractFeature.set_name(self, 'prop_content_pen_ref')
-        AbstractFeature.set_description(self, "Proportion of content words with CP in the reference")
-
-    def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
-
-        if len(alignments[0]) == 0:
-            AbstractFeature.set_value(self, 0)
-            return
-
-        counter_penalties = 0.0
-        counter_words = 0.0
-
-        for i, index in enumerate(alignments[0]):
-
-            word_candidate = candidate_parsed[index[0] - 1]
-            word_reference = reference_parsed[index[1] - 1]
-
-            if not word_sim.functionWord(word_candidate.form):
-
-                counter_words += 1
-
-                if len(alignments[2][i]['tgtDiff']) > 0:
+                if len(cand['alignments'][2][i]['tgtDiff']) > 0:
                     counter_penalties += 1
 
         if counter_words > 0:
-            AbstractFeature.set_value(self, counter_penalties / counter_words)
+             AbstractFeature.set_value(self, counter_penalties / counter_words)
         else:
-            AbstractFeature.set_value(self, 0)
+             AbstractFeature.set_value(self, 0.0)
 
 
-class PropFunctionPenTest(AbstractFeature):
+# class PropContentPenTest(AbstractFeature):
+#
+#     def __init__(self):
+#         AbstractFeature.__init__(self)
+#         AbstractFeature.set_name(self, 'prop_content_pen_test')
+#         AbstractFeature.set_description(self, "Proportion of content words with CP in the candidate")
+#
+#     def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
+#
+#         if len(alignments[0]) == 0:
+#             AbstractFeature.set_value(self, 0)
+#             return
+#
+#         counter_penalties = 0.0
+#         counter_words = 0.0
+#
+#         for i, index in enumerate(alignments[0]):
+#
+#             word_candidate = candidate_parsed[index[0] - 1]
+#             word_reference = reference_parsed[index[1] - 1]
+#
+#             if not word_sim.functionWord(word_candidate.form):
+#
+#                 counter_words += 1
+#
+#                 if len(alignments[2][i]['srcDiff']) > 0:
+#                      counter_penalties += 1
+#
+#         if counter_words > 0:
+#             AbstractFeature.set_value(self, counter_penalties / counter_words)
+#         else:
+#             AbstractFeature.set_value(self, 0)
+#
+#
+# class PropContentPenRef(AbstractFeature):
+#
+#     def __init__(self):
+#         AbstractFeature.__init__(self)
+#         AbstractFeature.set_name(self, 'prop_content_pen_ref')
+#         AbstractFeature.set_description(self, "Proportion of content words with CP in the reference")
+#
+#     def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
+#
+#         if len(alignments[0]) == 0:
+#             AbstractFeature.set_value(self, 0)
+#             return
+#
+#         counter_penalties = 0.0
+#         counter_words = 0.0
+#
+#         for i, index in enumerate(alignments[0]):
+#
+#             word_candidate = candidate_parsed[index[0] - 1]
+#             word_reference = reference_parsed[index[1] - 1]
+#
+#             if not word_sim.functionWord(word_candidate.form):
+#
+#                 counter_words += 1
+#
+#                 if len(alignments[2][i]['tgtDiff']) > 0:
+#                     counter_penalties += 1
+#
+#         if counter_words > 0:
+#             AbstractFeature.set_value(self, counter_penalties / counter_words)
+#         else:
+#             AbstractFeature.set_value(self, 0)
+#
+#
+# class PropFunctionPenTest(AbstractFeature):
+#
+#     def __init__(self):
+#         AbstractFeature.__init__(self)
+#         AbstractFeature.set_name(self, 'prop_function_pen_test')
+#         AbstractFeature.set_description(self, "Proportion of function words with CP in the candidate")
+#
+#     def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
+#
+#         if len(alignments[0]) == 0:
+#             AbstractFeature.set_value(self, 0)
+#             return
+#
+#         counter_penalties = 0.0
+#         counter_words = 0.0
+#
+#         for i, index in enumerate(alignments[0]):
+#
+#             word_candidate = candidate_parsed[index[0] - 1]
+#             word_reference = reference_parsed[index[1] - 1]
+#
+#             if word_sim.functionWord(word_candidate.form):
+#
+#                 counter_words += 1
+#
+#                 if len(alignments[2][i]['srcDiff']) > 0:
+#                     counter_penalties += 1
+#
+#         if counter_words > 0:
+#             AbstractFeature.set_value(self, counter_penalties / counter_words)
+#         else:
+#             AbstractFeature.set_value(self, 0.0)
+#
+#
+# class PropFunctionPenRef(AbstractFeature):
+#
+#     def __init__(self):
+#         AbstractFeature.__init__(self)
+#         AbstractFeature.set_name(self, 'prop_function_pen_ref')
+#         AbstractFeature.set_description(self, "Proportion of function words with CP in the reference")
+#
+#     def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
+#
+#         if len(alignments[0]) == 0:
+#             AbstractFeature.set_value(self, 0)
+#             return
+#
+#         counter_penalties = 0.0
+#         counter_words = 0.0
+#
+#         for i, index in enumerate(alignments[0]):
+#
+#             word_candidate = candidate_parsed[index[0] - 1]
+#             word_reference = reference_parsed[index[1] - 1]
+#
+#             if word_sim.functionWord(word_reference.form):
+#
+#                 counter_words += 1
+#
+#                 if len(alignments[2][i]['tgtDiff']) > 0:
+#                     counter_penalties += 1
+#
+#         if counter_words > 0:
+#             AbstractFeature.set_value(self, counter_penalties / counter_words)
+#         else:
+#             AbstractFeature.set_value(self, 0.0)
+
+
+class AvgPenTarget(AbstractFeature):
 
     def __init__(self):
         AbstractFeature.__init__(self)
-        AbstractFeature.set_name(self, 'prop_function_pen_test')
-        AbstractFeature.set_description(self, "Proportion of function words with CP in the candidate")
-
-    def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
-
-        if len(alignments[0]) == 0:
-            AbstractFeature.set_value(self, 0)
-            return
-
-        counter_penalties = 0.0
-        counter_words = 0.0
-
-        for i, index in enumerate(alignments[0]):
-
-            word_candidate = candidate_parsed[index[0] - 1]
-            word_reference = reference_parsed[index[1] - 1]
-
-            if word_sim.functionWord(word_candidate.form):
-
-                counter_words += 1
-
-                if len(alignments[2][i]['srcDiff']) > 0:
-                    counter_penalties += 1
-
-        if counter_words > 0:
-            AbstractFeature.set_value(self, counter_penalties / counter_words)
-        else:
-            AbstractFeature.set_value(self, 0.0)
-
-
-class PropFunctionPenRef(AbstractFeature):
-
-    def __init__(self):
-        AbstractFeature.__init__(self)
-        AbstractFeature.set_name(self, 'prop_function_pen_ref')
-        AbstractFeature.set_description(self, "Proportion of function words with CP in the reference")
-
-    def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
-
-        if len(alignments[0]) == 0:
-            AbstractFeature.set_value(self, 0)
-            return
-
-        counter_penalties = 0.0
-        counter_words = 0.0
-
-        for i, index in enumerate(alignments[0]):
-
-            word_candidate = candidate_parsed[index[0] - 1]
-            word_reference = reference_parsed[index[1] - 1]
-
-            if word_sim.functionWord(word_reference.form):
-
-                counter_words += 1
-
-                if len(alignments[2][i]['tgtDiff']) > 0:
-                    counter_penalties += 1
-
-        if counter_words > 0:
-            AbstractFeature.set_value(self, counter_penalties / counter_words)
-        else:
-            AbstractFeature.set_value(self, 0.0)
-
-
-class PropAlignedPosExact(AbstractFeature):
-
-    def __init__(self):
-        AbstractFeature.__init__(self)
-        AbstractFeature.set_name(self, 'aligned_pos_exact')
-        AbstractFeature.set_description(self, "Proportion of aligned words with exact pos match")
-
-    def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
-
-        if len(alignments[0]) > 0:
-            count = 0
-
-            for index in alignments[0]:
-                word_candidate = candidate_parsed[index[0] - 1]
-                word_reference = reference_parsed[index[1] - 1]
-
-                if word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
-                    count += 1
-
-            AbstractFeature.set_value(self, count / float(len(alignments[0])))
-        else:
-            AbstractFeature.set_value(self, 0)
-
-
-class PropAlignedPosCoarse(AbstractFeature):
-
-    def __init__(self):
-        AbstractFeature.__init__(self)
-        AbstractFeature.set_name(self, 'aligned_pos_coarse')
-        AbstractFeature.set_description(self, "Proportion of aligned words with coarse pos match")
-
-    def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
-
-        if len(alignments[0]) > 0:
-            count = 0
-
-            for index in alignments[0]:
-                word_candidate = candidate_parsed[index[0] - 1]
-                word_reference = reference_parsed[index[1] - 1]
-
-                if word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Coarse':
-                    count += 1
-
-            AbstractFeature.set_value(self, count / float(len(alignments[0])))
-        else:
-            AbstractFeature.set_value(self, 0)
-
-
-class PropAlignedPosDiff(AbstractFeature):
-
-    def __init__(self):
-        AbstractFeature.__init__(self)
-        AbstractFeature.set_name(self, 'aligned_pos_diff')
-        AbstractFeature.set_description(self, "Proportion of aligned words with different pos")
-
-    def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
-
-        if len(alignments[0]) > 0:
-            count = 0
-
-            for index in alignments[0]:
-                word_candidate = candidate_parsed[index[0] - 1]
-                word_reference = reference_parsed[index[1] - 1]
-
-                if word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'None':
-                    count += 1
-
-            AbstractFeature.set_value(self, count / float(len(alignments[0])))
-        else:
-            AbstractFeature.set_value(self, 0)
-
-
-class PropAlignedLexExact(AbstractFeature):
-
-    def __init__(self):
-        AbstractFeature.__init__(self)
-        AbstractFeature.set_name(self, 'prop_aligned_lex_exact')
-        AbstractFeature.set_description(self, "Proportion of aligned words with exact lex match")
-
-    def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
-
-        if len(alignments[0]) > 0:
-            count = 0
-
-            for index in alignments[0]:
-                word_candidate = candidate_parsed[index[0] - 1]
-                word_reference = reference_parsed[index[1] - 1]
-
-                if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Exact':
-                    count += 1
-
-            AbstractFeature.set_value(self, count / float(len(alignments[0])))
-        else:
-            AbstractFeature.set_value(self, 0)
-
-
-class PropAlignedLexSyn(AbstractFeature):
-
-    def __init__(self):
-        AbstractFeature.__init__(self)
-        AbstractFeature.set_name(self, 'prop_aligned_lex_syn')
-        AbstractFeature.set_description(self, "Proportion of aligned words with synonym lex match")
-
-    def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
-
-        if len(alignments[0]) > 0:
-            count = 0
-
-            for index in alignments[0]:
-                word_candidate = candidate_parsed[index[0] - 1]
-                word_reference = reference_parsed[index[1] - 1]
-
-                if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Synonym':
-                    count += 1
-
-            AbstractFeature.set_value(self, count / float(len(alignments[0])))
-        else:
-            AbstractFeature.set_value(self, 0)
-
-
-class PropAlignedLexPara(AbstractFeature):
-
-    def __init__(self):
-        AbstractFeature.__init__(self)
-        AbstractFeature.set_name(self, 'prop_aligned_lex_para')
-        AbstractFeature.set_description(self, "Proportion of aligned words with paraphrase lex match")
-
-    def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
-
-        if len(alignments[0]) > 0:
-            count = 0
-
-            for index in alignments[0]:
-                word_candidate = candidate_parsed[index[0] - 1]
-                word_reference = reference_parsed[index[1] - 1]
-
-                if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Parahrase':
-                    count += 1
-
-            AbstractFeature.set_value(self, count / float(len(alignments[0])))
-        else:
-            AbstractFeature.set_value(self, 0)
-
-
-class PropAlignedLexDistrib(AbstractFeature):
-
-    def __init__(self):
-        AbstractFeature.__init__(self)
-        AbstractFeature.set_name(self, 'prop_aligned_lex_distrib')
-        AbstractFeature.set_description(self, "Proportion of aligned words with distrib lex match")
-
-    def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
-
-        if len(alignments[0]) > 0:
-            count = 0
-
-            for index in alignments[0]:
-                word_candidate = candidate_parsed[index[0] - 1]
-                word_reference = reference_parsed[index[1] - 1]
-
-                if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Distributional':
-                    count += 1
-
-            AbstractFeature.set_value(self, count / float(len(alignments[0])))
-        else:
-            AbstractFeature.set_value(self, 0)
-
-
-class AvgPenTest(AbstractFeature):
-
-    def __init__(self):
-        AbstractFeature.__init__(self)
-        AbstractFeature.set_name(self, 'avg_pen_test')
+        AbstractFeature.set_name(self, 'avg_pen_target')
         AbstractFeature.set_description(self, "Average CP for the candidate translation (considered only for the words with CP > 0)")
 
     def run(self, cand, ref):
@@ -1093,17 +1527,17 @@ class AvgPenTest(AbstractFeature):
         context = 0.0
         penalties = []
 
-        if len(cand.alignments[0]) == 0:
+        if len(cand['alignments'][0]) == 0:
             AbstractFeature.set_value(self, 0)
             return
 
-        for i, index in enumerate(cand.alignments[0]):
+        for i, index in enumerate(cand['alignments'][0]):
 
-            for dep_label in cand.alignments[2][i]['srcDiff']:
+            for dep_label in cand['alignments'][2][i]['srcDiff']:
                 if not dep_label.split('_')[0] in my_scorer.noisy_types:
                     difference += 1
 
-            for dep_label in cand.alignments[2][i]['srcCon']:
+            for dep_label in cand['alignments'][2][i]['srcCon']:
                 if not dep_label.split('_')[0] in my_scorer.noisy_types:
                     context += 1
 
@@ -1134,17 +1568,17 @@ class AvgPentRef(AbstractFeature):
         context = 0.0
         penalties = []
 
-        if len(cand.alignments[0]) == 0:
+        if len(cand['alignments'][0]) == 0:
             AbstractFeature.set_value(self, 0)
             return
 
-        for i, index in enumerate(cand.alignments[0]):
+        for i, index in enumerate(cand['alignments'][0]):
 
-            for dep_label in cand.alignments[2][i]['tgtDiff']:
+            for dep_label in cand['alignments'][2][i]['tgtDiff']:
                 if not dep_label.split('_')[0] in my_scorer.noisy_types:
                     difference += 1
 
-            for dep_label in cand.alignments[2][i]['tgtCon']:
+            for dep_label in cand['alignments'][2][i]['tgtCon']:
                 if not dep_label.split('_')[0] in my_scorer.noisy_types:
                     context += 1
 
@@ -1161,6 +1595,169 @@ class AvgPentRef(AbstractFeature):
             AbstractFeature.set_value(self, 0)
 
 
+class MinPenTarget(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'min_pen_target')
+        AbstractFeature.set_description(self, "Minimum CP for the candidate translation (considered only for the words with CP > 0)")
+
+    def run(self, cand, ref):
+
+        my_scorer = Scorer()
+        difference = 0.0
+        context = 0.0
+        penalties = []
+
+        if len(cand['alignments'][0]) == 0:
+            AbstractFeature.set_value(self, 0)
+            return
+
+        for i, index in enumerate(cand['alignments'][0]):
+
+            for dep_label in cand['alignments'][2][i]['srcDiff']:
+                if not dep_label.split('_')[0] in my_scorer.noisy_types:
+                    difference += 1
+
+            for dep_label in cand['alignments'][2][i]['srcCon']:
+                if not dep_label.split('_')[0] in my_scorer.noisy_types:
+                    context += 1
+
+            penalty = 0.0
+            if context != 0:
+                penalty = difference / context * math.log(context + 1.0)
+
+            if penalty > 0:
+                penalties.append(penalty)
+
+        if len(penalties) > 0:
+            AbstractFeature.set_value(self, min(penalties))
+        else:
+            AbstractFeature.set_value(self, 0)
+
+
+class MinPentRef(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'min_pen_ref')
+        AbstractFeature.set_description(self, "Minimum CP for aligned words in the reference translation (considered only for the words with CP > 0)")
+
+    def run(self, cand, ref):
+
+        my_scorer = Scorer()
+        difference = 0.0
+        context = 0.0
+        penalties = []
+
+        if len(cand['alignments'][0]) == 0:
+            AbstractFeature.set_value(self, 0)
+            return
+
+        for i, index in enumerate(cand['alignments'][0]):
+
+            for dep_label in cand['alignments'][2][i]['tgtDiff']:
+                if not dep_label.split('_')[0] in my_scorer.noisy_types:
+                    difference += 1
+
+            for dep_label in cand['alignments'][2][i]['tgtCon']:
+                if not dep_label.split('_')[0] in my_scorer.noisy_types:
+                    context += 1
+
+            penalty = 0.0
+            if context != 0:
+                penalty = difference / context * math.log(context + 1.0)
+
+            if penalty > 0:
+                penalties.append(penalty)
+
+        if len(penalties) > 0:
+            AbstractFeature.set_value(self, min(penalties))
+        else:
+            AbstractFeature.set_value(self, 0)
+
+
+class MaxPenTarget(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'max_pen_target')
+        AbstractFeature.set_description(self, "Max CP for the candidate translation (considered only for the words with CP > 0)")
+
+    def run(self, cand, ref):
+
+        my_scorer = Scorer()
+        difference = 0.0
+        context = 0.0
+        penalties = []
+
+        if len(cand['alignments'][0]) == 0:
+            AbstractFeature.set_value(self, 0)
+            return
+
+        for i, index in enumerate(cand['alignments'][0]):
+
+            for dep_label in cand['alignments'][2][i]['srcDiff']:
+                if not dep_label.split('_')[0] in my_scorer.noisy_types:
+                    difference += 1
+
+            for dep_label in cand['alignments'][2][i]['srcCon']:
+                if not dep_label.split('_')[0] in my_scorer.noisy_types:
+                    context += 1
+
+            penalty = 0.0
+            if context != 0:
+                penalty = difference / context * math.log(context + 1.0)
+
+            if penalty > 0:
+                penalties.append(penalty)
+
+        if len(penalties) > 0:
+            AbstractFeature.set_value(self, max(penalties))
+        else:
+            AbstractFeature.set_value(self, 0)
+
+
+class MaxPentRef(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'max_pen_ref')
+        AbstractFeature.set_description(self, "Max CP for aligned words in the reference translation (considered only for the words with CP > 0)")
+
+    def run(self, cand, ref):
+
+        my_scorer = Scorer()
+        difference = 0.0
+        context = 0.0
+        penalties = []
+
+        if len(cand['alignments'][0]) == 0:
+            AbstractFeature.set_value(self, 0)
+            return
+
+        for i, index in enumerate(cand['alignments'][0]):
+
+            for dep_label in cand['alignments'][2][i]['tgtDiff']:
+                if not dep_label.split('_')[0] in my_scorer.noisy_types:
+                    difference += 1
+
+            for dep_label in cand['alignments'][2][i]['tgtCon']:
+                if not dep_label.split('_')[0] in my_scorer.noisy_types:
+                    context += 1
+
+            penalty = 0.0
+            if context != 0:
+                penalty = difference / context * math.log(context + 1.0)
+
+            if penalty > 0:
+                penalties.append(penalty)
+
+        if len(penalties) > 0:
+            AbstractFeature.set_value(self, max(penalties))
+        else:
+            AbstractFeature.set_value(self, 0)
+
 class PropPen(AbstractFeature):
 
     def __init__(self):
@@ -1170,24 +1767,95 @@ class PropPen(AbstractFeature):
 
     def run(self, cand, ref):
 
-        if len(cand.alignments[0]) == 0:
+        if len(cand['alignments'][0]) == 0:
             AbstractFeature.set_value(self, 0)
             return
 
         counter_penalties = 0.0
         counter_words = 0.0
 
-        for i, index in enumerate(cand.alignments[0]):
+        for i, index in enumerate(cand['alignments'][0]):
 
             counter_words += 1
 
-            if len(cand.alignments[2][i]['srcDiff']) > 0 or len(cand.alignments[2][i]['tgtDiff']) > 0:
+            if len(cand['alignments'][2][i]['srcDiff']) > 0 or len(cand['alignments'][2][i]['tgtDiff']) > 0:
                 counter_penalties += 1
 
         if counter_words > 0:
              AbstractFeature.set_value(self, counter_penalties / counter_words)
         else:
              AbstractFeature.set_value(self, 0.0)
+
+
+class CountPen(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'count_pen')
+        AbstractFeature.set_description(self, "Count of words with penalty over the number of aligned words")
+
+    def run(self, cand, ref):
+
+        if len(cand['alignments'][0]) == 0:
+            AbstractFeature.set_value(self, 0)
+            return
+
+        counter_penalties = 0.0
+        counter_words = 0.0
+
+        for i, index in enumerate(cand['alignments'][0]):
+
+            counter_words += 1
+
+            if len(cand['alignments'][2][i]['srcDiff']) > 0 or len(cand['alignments'][2][i]['tgtDiff']) > 0:
+                counter_penalties += 1
+
+        AbstractFeature.set_value(self, counter_penalties)
+
+
+class PropPenHigh(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'prop_pen_high')
+        AbstractFeature.set_description(self, "Prop of words with penalty higher than avg over the number of aligned words")
+
+    def run(self, cand, ref):
+
+        my_scorer = Scorer()
+        difference = 0.0
+        context = 0.0
+        penalties = []
+
+        if len(cand['alignments'][0]) == 0:
+            AbstractFeature.set_value(self, 0)
+            return
+
+        for i, index in enumerate(cand['alignments'][0]):
+
+            for dep_label in cand['alignments'][2][i]['tgtDiff']:
+                if not dep_label.split('_')[0] in my_scorer.noisy_types:
+                    difference += 1
+
+            for dep_label in cand['alignments'][2][i]['tgtCon']:
+                if not dep_label.split('_')[0] in my_scorer.noisy_types:
+                    context += 1
+
+            penalty = 0.0
+            if context != 0:
+                penalty = difference / context * math.log(context + 1.0)
+
+            if penalty > 0:
+                penalties.append(penalty)
+
+        avg_pen = numpy.mean(penalties)
+        count_high = 0
+
+        for pen in penalties:
+            if pen > avg_pen:
+                count_high += 1
+
+        AbstractFeature.set_value(self, count_high / float(len(cand['tokens'])))
 
 
 class ContextMatch(AbstractFeature):
@@ -1201,11 +1869,11 @@ class ContextMatch(AbstractFeature):
 
         align_dict = {}
 
-        for wpair in cand.alignments[0]:
+        for wpair in cand['alignments'][0]:
             align_dict[wpair[0] - 1] = wpair[1] - 1
 
         count = 0
-        for i, word in enumerate(cand.parse):
+        for i, word in enumerate(cand['parse']):
 
             if word.form.lower() not in config.stopwords:
                 continue
@@ -1214,7 +1882,7 @@ class ContextMatch(AbstractFeature):
 
             wd_size = 3
             bwd = range(max(i - wd_size, 0), i)
-            fwd = range(i + 1, min(i + 1 + wd_size, len(cand.parse)))
+            fwd = range(i + 1, min(i + 1 + wd_size, len(cand['parse'])))
             match_bwd = []
             match_fwd = []
 
@@ -1240,6 +1908,41 @@ class ContextMatch(AbstractFeature):
         AbstractFeature.set_value(self, count)
 
 
+class FragPenalty(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'frag_penalty')
+        AbstractFeature.set_description(self, "Fragmentation penalty from Meteor")
+
+    def run(self, cand, ref):
+
+        beta = 1.30 # parameters from Meteor rank task for Spanish
+        gamma = 0.50
+
+        chunckNumber = self.calculateChuncks(cand['alignments'][0])
+        fragPenalty = 0.0
+
+        if chunckNumber > 1:
+            fragPenalty = gamma * pow(float(chunckNumber) / len(cand['alignments'][0]), beta)
+
+        AbstractFeature.set_value(self, fragPenalty)
+
+    def calculateChuncks(self, alignments):
+
+        sortedAlignments = sorted(alignments, key=lambda alignment: alignment[0])
+
+        chunks = 0
+        previousPair = None
+
+        for pair in sortedAlignments:
+            if previousPair == None or previousPair[0] != pair[0] - 1 or previousPair[1] != pair[1] - 1:
+                chunks += 1
+            previousPair = pair
+
+        return chunks
+
+
 class AvgWordQuest(AbstractFeature):
 
     def __init__(self):
@@ -1251,13 +1954,13 @@ class AvgWordQuest(AbstractFeature):
 
         back_props = []
         cnt = 0
-        for i, word in enumerate(cand.tokens):
+        for i, word in enumerate(cand['tokens']):
             if word in config.punctuations:
                 continue
 
-            if i + 1 not in [x[0] for x in cand.alignments[0]]:
+            if i + 1 not in [x[0] for x in cand['alignments'][0]]:
                 cnt += 1
-                back_props.append(cand.quest_word[i]['WCE1015'])
+                back_props.append(cand['quest_word'][i]['WCE1015'])
 
         if cnt > 0:
              AbstractFeature.set_value(self, numpy.mean(back_props))
@@ -1275,13 +1978,13 @@ class MinWordQuest(AbstractFeature):
 
         back_props = []
         cnt = 0
-        for i, word in enumerate(cand.tokens):
+        for i, word in enumerate(cand['tokens']):
             if word in config.punctuations:
                 continue
 
-            if i + 1 not in [x[0] for x in cand.alignments[0]]:
+            if i + 1 not in [x[0] for x in cand['alignments'][0]]:
                 cnt += 1
-                back_props.append(cand.quest_word[i]['WCE1015'])
+                back_props.append(cand['quest_word'][i]['WCE1015'])
 
         if cnt > 0:
              AbstractFeature.set_value(self, min(back_props))
@@ -1300,13 +2003,161 @@ class MaxWordQuest(AbstractFeature):
 
         back_props = []
         cnt = 0
-        for i, word in enumerate(cand.tokens):
+        for i, word in enumerate(cand['tokens']):
             if word in config.punctuations:
                 continue
 
-            if i + 1 not in [x[0] for x in cand.alignments[0]]:
+            if i + 1 not in [x[0] for x in cand['alignments'][0]]:
                 cnt += 1
-                back_props.append(cand.quest_word[i]['WCE1015'])
+                back_props.append(cand['quest_word'][i]['WCE1015'])
+
+        if cnt > 0:
+             AbstractFeature.set_value(self, max(back_props))
+        else:
+             AbstractFeature.set_value(self, 0.0)
+
+
+class AvgWordQuestAlign(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'avg_word_quest_align')
+        AbstractFeature.set_description(self, "Average on back-propagation behaviour for aligned words")
+
+    def run(self, cand, ref):
+
+        back_props = []
+        cnt = 0
+        for i, word in enumerate(cand['tokens']):
+            if word in config.punctuations:
+                continue
+
+            if i + 1 in [x[0] for x in cand['alignments'][0]]:
+                cnt += 1
+                back_props.append(cand['quest_word'][i]['WCE1015'])
+
+        if cnt > 0:
+             AbstractFeature.set_value(self, numpy.mean(back_props))
+        else:
+             AbstractFeature.set_value(self, 0.0)
+
+class MinWordQuestAlign(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'min_word_quest_align')
+        AbstractFeature.set_description(self, "Minimum on back-propagation behaviour for aligned words")
+
+    def run(self, cand, ref):
+
+        back_props = []
+        cnt = 0
+        for i, word in enumerate(cand['tokens']):
+            if word in config.punctuations:
+                continue
+
+            if i + 1 in [x[0] for x in cand['alignments'][0]]:
+                cnt += 1
+                back_props.append(cand['quest_word'][i]['WCE1015'])
+
+        if cnt > 0:
+             AbstractFeature.set_value(self, min(back_props))
+        else:
+             AbstractFeature.set_value(self, 0.0)
+
+
+class MaxWordQuestAlign(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'max_word_quest_align')
+        AbstractFeature.set_description(self, "Maximum on back-propagation behaviour for aligned words")
+
+    def run(self, cand, ref):
+
+        back_props = []
+        cnt = 0
+        for i, word in enumerate(cand['tokens']):
+            if word in config.punctuations:
+                continue
+
+            if i + 1 in [x[0] for x in cand['alignments'][0]]:
+                cnt += 1
+                back_props.append(cand['quest_word'][i]['WCE1015'])
+
+        if cnt > 0:
+             AbstractFeature.set_value(self, max(back_props))
+        else:
+             AbstractFeature.set_value(self, 0.0)
+
+
+class AvgWordQuestBack(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'avg_word_quest_back')
+        AbstractFeature.set_description(self, "Average on back-propagation behaviour of backward lm for non-aligned words")
+
+    def run(self, cand, ref):
+
+        back_props = []
+        cnt = 0
+        for i, word in enumerate(cand['tokens']):
+            if word in config.punctuations:
+                continue
+
+            if i + 1 not in [x[0] for x in cand['alignments'][0]]:
+                cnt += 1
+                back_props.append(cand['quest_word'][i]['WCE1041'])
+
+        if cnt > 0:
+             AbstractFeature.set_value(self, numpy.mean(back_props))
+        else:
+             AbstractFeature.set_value(self, 0.0)
+
+class MinWordQuestBack(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'min_word_quest_back')
+        AbstractFeature.set_description(self, "Minimum on back-propagation behaviour of backward lm for non-aligned words")
+
+    def run(self, cand, ref):
+
+        back_props = []
+        cnt = 0
+        for i, word in enumerate(cand['tokens']):
+            if word in config.punctuations:
+                continue
+
+            if i + 1 not in [x[0] for x in cand['alignments'][0]]:
+                cnt += 1
+                back_props.append(cand['quest_word'][i]['WCE1041'])
+
+        if cnt > 0:
+             AbstractFeature.set_value(self, min(back_props))
+        else:
+             AbstractFeature.set_value(self, 0.0)
+
+
+class MaxWordQuestBack(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'max_word_quest_back')
+        AbstractFeature.set_description(self, "Maximum on back-propagation of backward lm behaviour for non-aligned words")
+
+    def run(self, cand, ref):
+
+        back_props = []
+        cnt = 0
+        for i, word in enumerate(cand['tokens']):
+            if word in config.punctuations:
+                continue
+
+            if i + 1 not in [x[0] for x in cand['alignments'][0]]:
+                cnt += 1
+                back_props.append(cand['quest_word'][i]['WCE1041'])
 
         if cnt > 0:
              AbstractFeature.set_value(self, max(back_props))
@@ -1325,13 +2176,13 @@ class AvgWordQuestLen(AbstractFeature):
 
         back_props = []
         cnt = 0
-        for i, word in enumerate(cand.tokens):
+        for i, word in enumerate(cand['tokens']):
             if word in config.punctuations:
                 continue
 
-            if i + 1 not in [x[0] for x in cand.alignments[0]]:
+            if i + 1 not in [x[0] for x in cand['alignments'][0]]:
                 cnt += 1
-                back_props.append(cand.quest_word[i]['WCE1037'])
+                back_props.append(cand['quest_word'][i]['WCE1037'])
 
         if cnt > 0:
              AbstractFeature.set_value(self, numpy.mean(back_props))
@@ -1349,13 +2200,13 @@ class MinWordQuestLen(AbstractFeature):
 
         back_props = []
         cnt = 0
-        for i, word in enumerate(cand.tokens):
+        for i, word in enumerate(cand['tokens']):
             if word in config.punctuations:
                 continue
 
-            if i + 1 not in [x[0] for x in cand.alignments[0]]:
+            if i + 1 not in [x[0] for x in cand['alignments'][0]]:
                 cnt += 1
-                back_props.append(cand.quest_word[i]['WCE1037'])
+                back_props.append(cand['quest_word'][i]['WCE1037'])
 
         if cnt > 0:
              AbstractFeature.set_value(self, min(back_props))
@@ -1374,13 +2225,13 @@ class MaxWordQuestLen(AbstractFeature):
 
         back_props = []
         cnt = 0
-        for i, word in enumerate(cand.tokens):
+        for i, word in enumerate(cand['tokens']):
             if word in config.punctuations:
                 continue
 
-            if i + 1 not in [x[0] for x in cand.alignments[0]]:
+            if i + 1 not in [x[0] for x in cand['alignments'][0]]:
                 cnt += 1
-                back_props.append(cand.quest_word[i]['WCE1037'])
+                back_props.append(cand['quest_word'][i]['WCE1037'])
 
         if cnt > 0:
              AbstractFeature.set_value(self, max(back_props))
@@ -1396,7 +2247,7 @@ class LangModProb(AbstractFeature):
         AbstractFeature.set_description(self, "Language model log-probability")
 
     def run(self, cand, ref):
-        AbstractFeature.set_value(self, cand.quest_sent['1012'])
+        AbstractFeature.set_value(self, cand['quest_sentence']['1012'])
 
 
 class LangModPerlex(AbstractFeature):
@@ -1407,7 +2258,7 @@ class LangModPerlex(AbstractFeature):
         AbstractFeature.set_description(self, "Language model perplexity")
 
     def run(self, cand, ref):
-        AbstractFeature.set_value(self, cand.quest_sent['1013'])
+        AbstractFeature.set_value(self, cand['quest_sentence']['1013'])
 
 
 class LangModPerlex2(AbstractFeature):
@@ -1418,7 +2269,284 @@ class LangModPerlex2(AbstractFeature):
         AbstractFeature.set_description(self, "Language model perplexity with no end sentence marker")
 
     def run(self, cand, ref):
-        AbstractFeature.set_value(self, cand.quest_sent['1014'])
+        AbstractFeature.set_value(self, cand['quest_sentence']['1014'])
+
+
+class CountFluencyErrors0(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'count_fluency_errors_0')
+        AbstractFeature.set_description(self, "Count of non-aligned words with back-off behavior < 5 but > 1")
+
+    def run(self, cand, ref):
+
+        errors = 0
+        for i, word in enumerate(cand['tokens']):
+            if word in config.punctuations:
+                continue
+
+            if i + 1 not in [x[0] for x in cand['alignments'][0]]:
+                # if i not in [x[0] for x in cand['alignments'][0]]:
+                #     continue
+                if (cand['quest_word'][i]['WCE1015'] < 5 and cand['quest_word'][i]['WCE1015'] > 1) or\
+                    (cand['quest_word'][i]['WCE1041'] < 5 and cand['quest_word'][i]['WCE1041'] > 1):
+
+                    if i + 2 in [x[0] for x in cand['alignments'][0]] and cand['quest_word'][i + 1]['WCE1015'] == 1:
+                        continue
+
+                    if i in [x[0] for x in cand['alignments'][0]] and cand['quest_word'][i - 1]['WCE1015'] == 1:
+                        continue
+
+                    errors += 1
+
+        AbstractFeature.set_value(self, errors)
+
+
+class CountFluencyErrors0Avg(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'count_fluency_errors_0_avg')
+        AbstractFeature.set_description(self, "Count of non-aligned words with back-off behavior < 5 but > 1")
+
+    def run(self, cand, ref):
+
+        errors = 0
+        for i, word in enumerate(cand['tokens']):
+            if word in config.punctuations:
+                continue
+
+            if i + 1 not in [x[0] for x in cand['alignments'][0]]:
+                # if i not in [x[0] for x in cand['alignments'][0]]:
+                #     continue
+                avg = (cand['quest_word'][i]['WCE1015'] + cand['quest_word'][i]['WCE1041']) / 2
+
+                if avg > 1 and avg <= 4:
+
+                    if i + 2 in [x[0] for x in cand['alignments'][0]] and cand['quest_word'][i + 1]['WCE1015'] == 1:
+                        continue
+
+                    if i in [x[0] for x in cand['alignments'][0]] and cand['quest_word'][i - 1]['WCE1015'] == 1:
+                        continue
+
+                    errors += 1
+
+        AbstractFeature.set_value(self, errors)
+
+
+class PropFluencyErrors0(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'prop_fluency_errors_0')
+        AbstractFeature.set_description(self, "Proportion of non-aligned words with back-off behavior < 5 but > 1")
+
+    def run(self, cand, ref):
+
+        errors = 0
+        for i, word in enumerate(cand['tokens']):
+            if word in config.punctuations:
+                continue
+
+            if i + 1 not in [x[0] for x in cand['alignments'][0]]:
+                # if i not in [x[0] for x in cand['alignments'][0]]:
+                #     continue
+                if (cand['quest_word'][i]['WCE1015'] < 5 and cand['quest_word'][i]['WCE1015'] > 1) or\
+                    (cand['quest_word'][i]['WCE1041'] < 5 and cand['quest_word'][i]['WCE1041'] > 1):
+
+                    if i + 2 in [x[0] for x in cand['alignments'][0]] and cand['quest_word'][i + 1]['WCE1015'] == 1:
+                        continue
+
+                    if i in [x[0] for x in cand['alignments'][0]] and cand['quest_word'][i - 1]['WCE1015'] == 1:
+                        continue
+
+                    errors += 1
+
+        result = errors/float(len(cand['tokens']))
+        AbstractFeature.set_value(self, result)
+
+
+class PropFluencyErrors0Avg(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'prop_fluency_errors_0_avg')
+        AbstractFeature.set_description(self, "Proportion of non-aligned words with back-off behavior < 5 but > 1")
+
+    def run(self, cand, ref):
+
+        errors = 0
+        for i, word in enumerate(cand['tokens']):
+            if word in config.punctuations:
+                continue
+
+            if i + 1 not in [x[0] for x in cand['alignments'][0]]:
+                # if i not in [x[0] for x in cand['alignments'][0]]:
+                #     continue
+
+                avg = (cand['quest_word'][i]['WCE1015'] + cand['quest_word'][i]['WCE1041']) / 2
+
+                if avg > 1 and avg <= 4:
+
+                    if i + 2 in [x[0] for x in cand['alignments'][0]] and cand['quest_word'][i + 1]['WCE1015'] == 1:
+                        continue
+
+                    if i in [x[0] for x in cand['alignments'][0]] and cand['quest_word'][i - 1]['WCE1015'] == 1:
+                        continue
+
+                    errors += 1
+
+        result = errors/float(len(cand['tokens']))
+        AbstractFeature.set_value(self, result)
+
+
+class CountFluencyErrors1(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'count_fluency_errors_1')
+        AbstractFeature.set_description(self, "Count of non-aligned words with back-off behavior >= 5 but < 7")
+
+    def run(self, cand, ref):
+
+        errors = 0
+        for i, word in enumerate(cand['tokens']):
+            if word in config.punctuations:
+                continue
+
+            if i + 1 not in [x[0] for x in cand['alignments'][0]]:
+                # if i not in [x[0] for x in cand['alignments'][0]]:
+                #     continue
+                if (cand['quest_word'][i]['WCE1015'] >= 5 and cand['quest_word'][i]['WCE1015'] < 7) or\
+                    (cand['quest_word'][i]['WCE1041'] >= 5 and cand['quest_word'][i]['WCE1041'] < 7):
+
+                    if i + 2 in [x[0] for x in cand['alignments'][0]] and cand['quest_word'][i + 1]['WCE1015'] == 1:
+                        continue
+
+                    if i in [x[0] for x in cand['alignments'][0]] and cand['quest_word'][i - 1]['WCE1015'] == 1:
+                        continue
+
+                    errors += 1
+
+        AbstractFeature.set_value(self, errors)
+
+
+class CountFluencyErrors1Avg(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'count_fluency_errors_1_avg')
+        AbstractFeature.set_description(self, "Count of non-aligned words with back-off behavior >= 5 but < 7")
+
+    def run(self, cand, ref):
+
+        errors = 0
+        for i, word in enumerate(cand['tokens']):
+            if word in config.punctuations:
+                continue
+
+            if i + 1 not in [x[0] for x in cand['alignments'][0]]:
+                # if i not in [x[0] for x in cand['alignments'][0]]:
+                #     continue
+
+                avg = (cand['quest_word'][i]['WCE1015'] + cand['quest_word'][i]['WCE1041']) / 2
+                if avg > 4 and avg < 7:
+
+                    if i + 2 in [x[0] for x in cand['alignments'][0]] and cand['quest_word'][i + 1]['WCE1015'] == 1:
+                        continue
+
+                    if i in [x[0] for x in cand['alignments'][0]] and cand['quest_word'][i - 1]['WCE1015'] == 1:
+                        continue
+
+                    errors += 1
+
+        AbstractFeature.set_value(self, errors)
+
+
+class PropFluencyErrors1(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'prop_fluency_errors_1')
+        AbstractFeature.set_description(self, "Proportion of non-aligned words with back-off behavior >= 5 but < 7")
+
+    def run(self, cand, ref):
+
+        errors = 0
+        for i, word in enumerate(cand['tokens']):
+            if word in config.punctuations:
+                continue
+
+            if i + 1 not in [x[0] for x in cand['alignments'][0]]:
+                # if i not in [x[0] for x in cand['alignments'][0]]:
+                #     continue
+                if (cand['quest_word'][i]['WCE1015'] >= 5 and cand['quest_word'][i]['WCE1015'] < 7) or\
+                    (cand['quest_word'][i]['WCE1041'] >= 5 and cand['quest_word'][i]['WCE1041'] < 7):
+
+                    if i + 2 in [x[0] for x in cand['alignments'][0]] and cand['quest_word'][i + 1]['WCE1015'] == 1:
+                        continue
+
+                    if i in [x[0] for x in cand['alignments'][0]] and cand['quest_word'][i - 1]['WCE1015'] == 1:
+                        continue
+
+                    errors += 1
+
+        result = errors/float(len(cand['tokens']))
+        AbstractFeature.set_value(self, result)
+
+
+class PropFluencyErrors1Avg(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'prop_fluency_errors_1_avg')
+        AbstractFeature.set_description(self, "Proportion of non-aligned words with back-off behavior >= 5 but < 7")
+
+    def run(self, cand, ref):
+
+        errors = 0
+        for i, word in enumerate(cand['tokens']):
+            if word in config.punctuations:
+                continue
+
+            if i + 1 not in [x[0] for x in cand['alignments'][0]]:
+                # if i not in [x[0] for x in cand['alignments'][0]]:
+                #     continue
+                avg = (cand['quest_word'][i]['WCE1015'] + cand['quest_word'][i]['WCE1041']) / 2
+                if avg > 4 and avg < 7:
+
+                    if i + 2 in [x[0] for x in cand['alignments'][0]] and cand['quest_word'][i + 1]['WCE1015'] == 1:
+                        continue
+
+                    if i in [x[0] for x in cand['alignments'][0]] and cand['quest_word'][i - 1]['WCE1015'] == 1:
+                        continue
+
+                    errors += 1
+
+        result = errors/float(len(cand['tokens']))
+        AbstractFeature.set_value(self, result)
+
+
+class CountNonAlignedOOV(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'count_non_aligned_oov')
+        AbstractFeature.set_description(self, "Count of non-aligned out-of-vocabulary words (lm back-prop = 1)")
+
+    def run(self, cand, ref):
+
+        oov = 0
+        for i, word in enumerate(cand['tokens']):
+            if word in config.punctuations:
+                continue
+
+            if i + 1 not in [x[0] for x in cand['alignments'][0]]:
+                if cand['quest_word'][i]['WCE1015'] == 1:
+                    oov += 1
+
+        AbstractFeature.set_value(self, oov)
 
 
 class PropNonAlignedOOV(AbstractFeature):
@@ -1426,21 +2554,43 @@ class PropNonAlignedOOV(AbstractFeature):
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_non_aligned_oov')
-        AbstractFeature.set_description(self, "Proportion of non-aligned out-of-vocabulary words (lm back-prop = 1)")
+        AbstractFeature.set_description(self, "Prop of non-aligned out-of-vocabulary words (lm back-prop = 1)")
 
     def run(self, cand, ref):
 
         oov = 0
-        for i, word in enumerate(cand.tokens):
+        for i, word in enumerate(cand['tokens']):
             if word in config.punctuations:
                 continue
 
-            if i + 1 not in [x[0] for x in cand.alignments[0]]:
-                if cand.quest_word[i]['WCE1015'] == 1:
+            if i + 1 not in [x[0] for x in cand['alignments'][0]]:
+                if cand['quest_word'][i]['WCE1015'] == 1:
                     oov += 1
 
-        result = oov/float(len(cand.tokens))
-        AbstractFeature.set_value(self, result)
+        if len(cand['alignments'][0]) != len(cand['tokens']):
+            AbstractFeature.set_value(self, oov/float(len(cand['tokens']) - len(cand['alignments'][0])))
+        else:
+            AbstractFeature.set_value(self, 0)
+
+class CountAllOOV(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'count_all_oov')
+        AbstractFeature.set_description(self, "Count of out-of-vocabulary words (lm back-prop = 1)")
+
+    def run(self, cand, ref):
+
+        oov = 0
+        for i, word in enumerate(cand['tokens']):
+            if word in config.punctuations:
+                continue
+
+            if cand['quest_word'][i]['WCE1015'] == 1:
+                oov += 1
+
+        AbstractFeature.set_value(self, oov)
+
 
 class PropAllOOV(AbstractFeature):
 
@@ -1452,14 +2602,14 @@ class PropAllOOV(AbstractFeature):
     def run(self, cand, ref):
 
         oov = 0
-        for i, word in enumerate(cand.tokens):
+        for i, word in enumerate(cand['tokens']):
             if word in config.punctuations:
                 continue
 
-            if cand.quest_word[i]['WCE1015'] == 1:
+            if cand['quest_word'][i]['WCE1015'] == 1:
                 oov += 1
 
-        result = oov/float(len(cand.tokens))
+        result = oov/float(len(cand['tokens']))
         AbstractFeature.set_value(self, result)
 
 
@@ -1471,7 +2621,7 @@ class Bleu(AbstractFeature):
         AbstractFeature.set_description(self, "Bleu score")
 
     def run(self, cand, ref):
-        AbstractFeature.set_value(self, cand.bleu)
+        AbstractFeature.set_value(self, cand['bleu'])
 
 
 class Meteor(AbstractFeature):
@@ -1482,7 +2632,7 @@ class Meteor(AbstractFeature):
         AbstractFeature.set_description(self, "Meteor score")
 
     def run(self, cand, ref):
-        AbstractFeature.set_value(self, cand.meteor)
+        AbstractFeature.set_value(self, cand['meteor'])
 
 
 class Cobalt(AbstractFeature):
@@ -1495,8 +2645,8 @@ class Cobalt(AbstractFeature):
     def run(self, cand, ref):
 
         my_scorer = Scorer()
-        word_level_scores = my_scorer.word_scores(cand.parse, ref.parse, cand.alignments)
-        score = my_scorer.sentence_score_cobalt(cand.parse, ref.parse, cand.alignments, word_level_scores)
+        word_level_scores = my_scorer.word_scores(cand['parse'], ref['parse'], cand['alignments'])
+        score = my_scorer.sentence_score_cobalt(cand['parse'], ref['parse'], cand['alignments'], word_level_scores)
         AbstractFeature.set_value(self, score)
 
 
@@ -1509,28 +2659,18 @@ class VizWordQuest(AbstractFeature):
 
     def run(self, cand, ref):
 
-        print ' '.join([x.form for x in ref.parse])
-        print ' '.join([x.form for x in cand.parse])
+        print ' '.join([x.form for x in ref['parse']])
+        print ' '.join([x.form for x in cand['parse']])
 
-        if len(cand.parse) != len(cand.quest_word):
-            print "Sentence lengths quest - cobalt do not match!"
+        if len(cand['tokens']) != len(cand['quest_word']):
+            print "Sentence lengths do not match!"
             return
 
-        for i, word in enumerate(cand.parse):
-            print word + '\t' + str(cand.quest_word[i]['WCE1015'])
+        for i, word in enumerate(cand['tokens']):
+            print word + '\t' + str(cand['quest_word'][i]['WCE1015']) + '\t' + str(cand['quest_word'][i]['WCE1041']) +\
+            '\t' + str((cand['quest_word'][i]['WCE1015'] + cand['quest_word'][i]['WCE1041'])/float(2))
 
         AbstractFeature.set_value(self, 'NaN')
-
-
-class LenRatio(AbstractFeature):
-
-    def __init__(self):
-        AbstractFeature.__init__(self)
-        AbstractFeature.set_name(self, 'len_ratio')
-        AbstractFeature.set_description(self, "Ratio of test to reference lengths")
-
-    def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
-        AbstractFeature.set_value(self, len(candidate_parsed)/len(reference_parsed))
 
 
 class AvgDistanceNonAlignedTest(AbstractFeature):
@@ -1540,14 +2680,14 @@ class AvgDistanceNonAlignedTest(AbstractFeature):
         AbstractFeature.set_name(self, 'avg_distance_non_aligned_test')
         AbstractFeature.set_description(self, "Avg distance between non-aligned words in candidate translation")
 
-    def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
+    def run(self, cand, ref):
 
         non_aligned = []
         distances = []
 
-        for i, word in enumerate(candidate_parsed, start=1):
+        for i, word in enumerate(cand['tokens'], start=1):
 
-            if i not in [x[0] for x in alignments[0]]:
+            if i not in [x[0] for x in cand['alignments'][0]]:
 
                 non_aligned.append(i)
 
@@ -1572,14 +2712,14 @@ class AvgDistanceNonAlignedRef(AbstractFeature):
         AbstractFeature.set_name(self, 'avg_distance_non_aligned_ref')
         AbstractFeature.set_description(self, "Avg distance between non-aligned words in candidate translation")
 
-    def run(self, candidate, reference, candidate_parsed, reference_parsed, alignments):
+    def run(self, cand, ref):
 
         non_aligned = []
         distances = []
 
-        for i, word in enumerate(reference_parsed, start=1):
+        for i, word in enumerate(ref['tokens'], start=1):
 
-            if i not in [x[0] for x in alignments[0]]:
+            if i not in [x[0] for x in cand['alignments'][0]]:
 
                 non_aligned.append(i)
 
@@ -1595,4 +2735,45 @@ class AvgDistanceNonAlignedRef(AbstractFeature):
                 break
 
         AbstractFeature.set_value(self, numpy.sum(distances)/len(distances))
+
+
+class CosineSimilarity(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'cosine_similarity')
+        AbstractFeature.set_description(self, "Cosine similarity between candidate and reference sentence vectors")
+
+    def run(self, cand, ref):
+
+        AbstractFeature.set_value(self, dot(matutils.unitvec(cand['sent_vector']), matutils.unitvec(ref['sent_vector'])))
+
+
+class EuclidDistance(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'euclid_distance')
+        AbstractFeature.set_description(self, "Euclidean distance (L2) between candidate and reference sentence vectors")
+
+    def run(self, cand, ref):
+
+        AbstractFeature.set_value(self, distance.euclidean(cand['sent_vector'], ref['sent_vector']))
+
+
+class L1Distance(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'l1_distance')
+        AbstractFeature.set_description(self, "L1 distance between candidate and reference sentence vectors")
+
+    def run(self, cand, ref):
+
+        distances = []
+
+        for i, val in enumerate(cand['sent_vector']):
+            distances.append(math.fabs(val - ref['sent_vector'][i]))
+
+        AbstractFeature.set_value(self, numpy.sum(distances))
 
