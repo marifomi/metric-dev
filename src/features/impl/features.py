@@ -1055,6 +1055,94 @@ class PropAlignedLexDistrib(AbstractFeature):
             AbstractFeature.set_value(self, 0)
 
 
+class PropAlignedLexExactMeteor(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'prop_aligned_exact_meteor')
+        AbstractFeature.set_description(self, "Proportion of aligned words with exact lex match for Meteor")
+
+    def run(self, cand, ref):
+
+        if len(cand['alignments'][0]) > 0:
+            count = 0
+
+            for i in range(len(cand['alignments'][0])):
+
+                if cand['alignments'][2][i] == 0:
+                    count += 1
+
+            AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
+        else:
+            AbstractFeature.set_value(self, 0)
+
+
+class PropAlignedLexStemMeteor(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'prop_aligned_stem_meteor')
+        AbstractFeature.set_description(self, "Proportion of aligned words with stem lex match for Meteor")
+
+    def run(self, cand, ref):
+
+        if len(cand['alignments'][0]) > 0:
+            count = 0
+
+            for i in range(len(cand['alignments'][0])):
+
+                if cand['alignments'][2][i] == 1:
+                    count += 1
+
+            AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
+        else:
+            AbstractFeature.set_value(self, 0)
+
+
+class PropAlignedLexSynMeteor(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'prop_aligned_syn_meteor')
+        AbstractFeature.set_description(self, "Proportion of aligned words with synonym lex match for Meteor")
+
+    def run(self, cand, ref):
+
+        if len(cand['alignments'][0]) > 0:
+            count = 0
+
+            for i in range(len(cand['alignments'][0])):
+
+                if cand['alignments'][2][i] == 2:
+                    count += 1
+
+            AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
+        else:
+            AbstractFeature.set_value(self, 0)
+
+
+class PropAlignedLexParaMeteor(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'prop_aligned_para_meteor')
+        AbstractFeature.set_description(self, "Proportion of aligned words with paraphrase lex match for Meteor")
+
+    def run(self, cand, ref):
+
+        if len(cand['alignments'][0]) > 0:
+            count = 0
+
+            for i in range(len(cand['alignments'][0])):
+
+                if cand['alignments'][2][i] == 3:
+                    count += 1
+
+            AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
+        else:
+            AbstractFeature.set_value(self, 0)
+
+
 class AvgPenExactTarget(AbstractFeature):
 
     def __init__(self):
