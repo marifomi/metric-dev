@@ -9,3 +9,5 @@ config/
 test_wmt/
 baselines/
 results/
+analysis/
+models/
