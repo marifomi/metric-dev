@@ -22,19 +22,21 @@ class MeteorAlignReader(object):
                 phrase = int(re.sub(r'^Alignment\t([0-9]+).+$', r'\1', line.strip()))
 
                 if phrase > 1:
-                    alignments.append([self.add_one(indexes), words])
+                    alignments.append([self.add_one(indexes), words, matchers])
 
                 indexes = []
                 words = []
+                matchers = []
 
             elif re.match('^[0-9]+:', line):
-                aligned_inds = MeteorAlignReader.read_alignment_idx(line)
+                aligned_inds, modules = MeteorAlignReader.read_alignment_idx(line)
                 indexes += aligned_inds
+                matchers += modules
                 for pair in aligned_inds:
                     wpair = [words_test[pair[0]], words_ref[pair[1]]]
                     words.append(wpair)
 
-        alignments.append([self.add_one(indexes), words])
+        alignments.append([self.add_one(indexes), words, matchers])
 
         return alignments
 
@@ -61,6 +63,8 @@ class MeteorAlignReader(object):
         len_test = int(elem[1].split(':')[1])
         len_ref = int(elem[0].split(':')[1])
 
+        module = int(elem[2])
+
         for num in range(len_test):
             inds_test.append(ind_test + num)
 
@@ -68,6 +72,7 @@ class MeteorAlignReader(object):
             inds_ref.append(ind_ref + num)
 
         result = []
+        modules = []
         if len_ref > len_test:
             for i, ind in enumerate(inds_ref):
                 if i >= len_test:
@@ -87,8 +92,11 @@ class MeteorAlignReader(object):
                 pair = [ind, inds_ref[i]]
                 result.append(pair)
 
+        for val in result:
+            modules.append(module)
 
-        return result
+
+        return [result, modules]
 
 def main():
 
