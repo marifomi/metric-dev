@@ -1051,8 +1051,8 @@ class Aligner(object):
 
     def align_documents(self, tgt, ref):
 
-        tst_phrases = read_sentences(codecs.open(tgt, 'r', encoding='UTF-8'))
-        ref_phrases = read_sentences(codecs.open(ref, 'r', encoding='UTF-8'))
+        tst_phrases = read_parsed_sentences(codecs.open(tgt, 'r', encoding='UTF-8'))
+        ref_phrases = read_parsed_sentences(codecs.open(ref, 'r', encoding='UTF-8'))
 
         load_resources.load_ppdb(self.config.path_to_ppdb)
         load_resources.load_word_vectors(self.config.path_to_vectors)
