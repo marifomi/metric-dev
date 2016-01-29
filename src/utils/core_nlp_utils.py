@@ -333,7 +333,7 @@ def findChildren(dependencyParse, wordIndex, word):
 
 ##############################################################################################################################
 
-def read_sentences(sentence_file):
+def read_parsed_sentences(sentence_file):
 
     sentence_structure = ''
     sentences = []
