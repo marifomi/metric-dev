@@ -31,12 +31,12 @@ class FeatureExtractor(defaultdict):
         aligner = Aligner('english')
 
         ref_file_name = self.norm_ref_file_name(reference_dir, dataset, direction)
-        ref_data = read_sentences(codecs.open(ref_file_name, encoding='UTF-8'))
+        ref_data = read_parsed_sentences(codecs.open(ref_file_name, encoding='UTF-8'))
         testFiles = [f for f in listdir(test_dir + '/' + dataset + '/' + direction) if isfile(join(test_dir + '/' + dataset + '/' + direction, f))]
 
         for t in testFiles:
             system = self.get_system_name(t, dataset, direction)
-            test_data = read_sentences(codecs.open(test_dir + '/' + dataset + '/' + direction + '/' + t, encoding='UTF-8'))
+            test_data = read_parsed_sentences(codecs.open(test_dir + '/' + dataset + '/' + direction + '/' + t, encoding='UTF-8'))
 
             for i, phrase_ref in enumerate(ref_data):
                 num_phrase = i + 1
