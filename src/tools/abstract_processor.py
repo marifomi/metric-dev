@@ -5,6 +5,8 @@ class AbstractProcessor(object):
 
     def __init__(self):
         self.name = str
+        self.result_tgt = []
+        self.result_ref = []
 
     def set_name(self, name):
         self.name = name
@@ -12,8 +14,14 @@ class AbstractProcessor(object):
     def get_name(self):
         return self.name
 
-    def set_result(self, result):
-        self.result = result
+    def set_result_tgt(self, result_tgt):
+        self.result_tgt = result_tgt
 
-    def get_result(self):
-        return self.result
+    def set_result_ref(self, result_ref):
+        self.result_ref = result_ref
+
+    def get_result_tgt(self):
+        return self.result_tgt
+
+    def get_result_ref(self):
+        return self.result_ref
