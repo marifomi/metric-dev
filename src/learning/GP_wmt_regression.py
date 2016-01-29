@@ -7,15 +7,10 @@ import GPy
 pb.ion()
 pb.close('all')
 
-#X = np.genfromtxt('../corrected_encod_v2/train-79-features.qe.tsv')
-#test_X = np.genfromtxt('../corrected_encod_v2/test-79-features.qe.tsv')
-#Y = np.genfromtxt('../corrected_encod_v2/qe_reference_en-es.train.effort').reshape(-1, 1)
-#test_Y = np.genfromtxt('../corrected_encod_v2/qe_reference_en-es.test.effort').reshape(-1, 1)
-
-X = np.genfromtxt('/Users/kashif/Documents/projects/quest-master/learning/mtc/features/wmt2012_qe_baseline/train-17-features.qe.tsv')
-test_X = np.genfromtxt('/Users/kashif/Documents/projects/quest-master/learning/mtc/features/wmt2012_qe_baseline/test-17-features.qe.tsv')
-Y = np.genfromtxt('/Users/kashif/Documents/projects/quest-master/learning/mtc/features/wmt2012_qe_baseline/training.effort').reshape(-1, 1)
-test_Y = np.genfromtxt('/Users/kashif/Documents/projects/quest-master/learning/mtc/features/wmt2012_qe_baseline/test.effort').reshape(-1, 1)
+X = np.genfromtxt('/Users/MarinaFomicheva/workspace/upf-cobalt/results/wmt13_graham/cobalt_word_features.train.tsv')
+test_X = np.genfromtxt('/Users/MarinaFomicheva/workspace/upf-cobalt/results/wmt13_graham/cobalt_word_features.test.tsv')
+Y = np.genfromtxt('/Users/MarinaFomicheva/workspace/upf-cobalt/data/wmt13_graham/human.train').reshape(-1, 1)
+test_Y = np.genfromtxt('/Users/MarinaFomicheva/workspace/upf-cobalt/data/wmt13_graham/human.test').reshape(-1, 1)
 
 
 
@@ -31,8 +26,8 @@ sx, mx = sx[ok], mx[ok]
 X = (X - mx) / sx
 test_X = (test_X - mx) / sx
 
-print 'Dropped features with constant values:'
-print np.nonzero(ok == False)[0]
+print('Dropped features with constant values:')
+print(np.nonzero(ok == False)[0])
 
 # we could centre Y too?
 
@@ -44,36 +39,37 @@ if False:
     Y = Y[:1200,:]
 
 # construct kernel
-rbf = GPy.kern.rbf(D, ARD=True)
-noise = GPy.kern.white(D)
+rbf = GPy.kern.RBF(D, ARD=True)
+noise = GPy.kern.White(D)
 kernel = rbf + noise
 
 # create simple GP model
-m = GPy.models.GP_regression(X,Y, kernel = kernel)
-m.tie_params('lengthscale')
+m = GPy.models.GPRegression(X,Y, kernel = kernel)
+
+ls = m['.*lengthscale']
+m['.*lengthscale'] = ls
+
 m.constrain_positive('')
 m.optimize(max_f_eval = 50, messages = True)
-print m
+print(m)
 
-mu, s2, lb, ub = m.predict(test_X)
+mu, s2 = m.predict(test_X)
 mae = np.mean(np.abs(mu - test_Y))
 rmse = np.mean((mu - test_Y) ** 2) ** 0.5
 
-print 'SEiso -- mae', mae, 'rmse', rmse
+print('SEiso -- mae', mae, 'rmse', rmse)
 
 # the iso kernel initialises the ARD one to avoid local minima
-m.untie_everything()
 m.optimize(max_f_eval = 100, messages = True)
-print m
+print(m)
 
-mu, s2, lb, ub = m.predict(test_X)
+mu, s2 = m.predict(test_X)
 mae = np.mean(np.abs(mu - test_Y))
 rmse = np.mean((mu - test_Y) ** 2) ** 0.5
 
-print 'SEard -- mae', mae, 'rmse', rmse
+print('SEard -- mae', mae, 'rmse', rmse)
 
-length_scales = m.get('lengthscale')
-sort_ls = np.argsort(length_scales)
+sorted_ls = np.argsort(m['.*lengthscale'])
 
-print 'Feature ranking by length scale'
-print sort_ls
+print('Feature ranking by length scale')
+print(sorted_ls)
