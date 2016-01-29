@@ -2,8 +2,12 @@ __author__ = 'MarinaFomicheva'
 
 from collections import defaultdict
 from collections import namedtuple
+from collections import Counter
 from csv import DictReader
 import re
+import numpy as np
+import itertools
+from json import loads
 
 
 class HumanRank(defaultdict):
@@ -11,7 +15,7 @@ class HumanRank(defaultdict):
     def __init__(self):
         defaultdict.__init__(self, list)
 
-    def add_human_data(self, f_judgments, directions, max_segments=None):
+    def add_human_data(self, f_judgments, config, max_segments=None):
 
         counter = 1
 
@@ -24,7 +28,7 @@ class HumanRank(defaultdict):
 
             direction = self.get_direction(line)
 
-            if direction not in directions:
+            if not config.get('WMT', 'directions') == 'None' and direction not in loads(config.get('WMT', 'directions')):
                 continue
 
             dataset = self.get_dataset(line)
@@ -36,7 +40,6 @@ class HumanRank(defaultdict):
             # Also the extracted relation '<' means "is better than"
             compare = lambda x, y: '<' if x < y else '>' if x > y else '='
             extracted_comparisons = [
-                    #(segment, sys1.id, sys2.id, compare(sys1.rank, sys2.rank))
                     HumanComparison(segment, sys1.id, sys2.id, compare(sys1.rank, sys2.rank))
                     for idx1, sys1 in enumerate(systems_ranks)
                     for idx2, sys2 in enumerate(systems_ranks)
@@ -47,6 +50,52 @@ class HumanRank(defaultdict):
 
             self[direction] += extracted_comparisons
             counter += 1
+
+    def clean_data(self, directions):
+
+        comparisons = defaultdict(list)
+
+        systems_signs = defaultdict(list)
+
+        for direction in directions:
+
+            for comp in self[direction]:
+                systems_signs[comp.phrase, comp.sys1, comp.sys2].append(comp.sign)
+
+            ties = 0
+
+            for sign in itertools.chain.from_iterable(systems_signs.values()):
+                if sign == '=':
+                    ties += 1
+
+            counts = [len(x) for x in systems_signs.values()]
+            max_count = max(counts)
+            avg_count = np.mean(counts)
+            all_counts = np.sum(counts)
+
+            for dpoint in systems_signs.keys():
+
+                c = Counter(systems_signs[dpoint])
+
+                if len(c) == 1:
+                    comparisons[direction].append(HumanComparison(dpoint[0], dpoint[1], dpoint[2], systems_signs[dpoint][0]))
+                else:
+                    competing = False
+                    for i, (sign, count) in enumerate(sorted(c.items(), key=lambda x: x[1], reverse=True)):
+                        if count == c.items()[i + 1][1]:
+                            competing = True
+                        break
+                    if competing is True:
+                        continue
+
+                    counts = c.items()
+                    idx = np.argmax([x[1] for x in counts])
+                    my_sign = counts[idx][0]
+                    comparisons[direction].append(HumanComparison(dpoint[0], dpoint[1], dpoint[2], my_sign))
+
+            print direction + ' ' + str(max_count) + ' ' + str(avg_count) + ' ' + str(all_counts) + ' ' + str(ties/float(all_counts)) + ' ' + str(len(comparisons[direction]))
+
+        return comparisons
 
     def get_direction(self, line):
 
@@ -99,3 +148,19 @@ class HumanComparison(object):
         self.sys1 = sys1
         self.sys2 = sys2
         self.sign = sign
+
+
+def main():
+    import os
+    from ConfigParser import ConfigParser
+    cfg = ConfigParser()
+    cfg.readfp(open(os.getcwd() + '/config/system.cfg'))
+    lps = ['cs-en', 'es-en', 'de-en', 'fr-en', 'ru-en']
+
+    fjudge = cfg.get('Data', 'human')
+    human_ranks = HumanRank()
+    human_ranks.add_human_data(fjudge, lps)
+    clean_data = human_ranks.clean_data(['cs-en', 'es-en', 'de-en', 'fr-en', 'ru-en'])
+
+if __name__ == '__main__':
+    main()
