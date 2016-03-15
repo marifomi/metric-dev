@@ -1,5 +1,7 @@
 __author__ = 'MarinaFomicheva'
 
+from collections import defaultdict
+from ConfigParser import ConfigParser
 from src.tools.abstract_processor import AbstractProcessor
 from src.alignment.aligner import Aligner
 from src.alignment.aligner import stopwords
@@ -19,6 +21,203 @@ import src.utils.txt_xml as xml
 from gensim.models.word2vec import Word2Vec
 from numpy import array
 from numpy import zeros
+from src.tools.lang_model_tools import LangModelTools
+from src.utils.load_resources import load_ppdb, load_word_vectors
+from src.alignment.aligner_config import AlignerConfig
+from src.lex_resources.config import *
+
+
+class PosLangModel(AbstractProcessor):
+
+    def __init__(self):
+        AbstractProcessor.__init__(self)
+        AbstractProcessor.set_name(self, 'pos_lang_model')
+
+    def run(self, config, sample):
+
+        tagger = PosTagger()
+        tagger.run(config, sample)
+
+        f_in = config.get('Data', 'tgt') + '.pos.join' + sample
+        f_lm = config.get('LangModels', 'pos')
+        f_out = config.get('Data', 'tgt') + '.pos.join' + '.ppl' + sample
+        lm = LangModelTools()
+        lm.set_path_to_tools('/Users/MarinaFomicheva/workspace/srilm-1.7.1/bin/macosx/')
+        lm.produce_ppl(f_in, f_out, f_lm, 3)
+
+    def get(self, config, sample):
+
+        f_token = open(config.get('Data', 'tgt') + '.token' + sample, 'r')
+        f_probs = open(config.get('Data', 'tgt') + '.pos.join' + '.ppl' + sample, 'r')
+        lines_probs = []
+
+        for line in f_probs:
+            if '</s>' in line:
+                continue
+            if line.startswith('\t'):
+                lines_probs.append(line)
+
+        number_tokens = {}
+        sentence_probs = defaultdict(list)
+
+        for i, line in enumerate(f_token):
+            number_tokens[i] = len(line.strip().split(' '))
+
+        count_pos = 0
+        count_sent = 0
+        for pos in lines_probs:
+            if count_sent == len(number_tokens):
+                break
+            sentence_probs[count_sent].append(pos)
+            count_pos += 1
+            if count_pos == number_tokens[count_sent]:
+                count_pos = 0
+                count_sent += 1
+
+        result = []
+        for sent in sorted(sentence_probs.keys()):
+            if len(sentence_probs[sent]) > 0:
+                probs = []
+                for pos in sentence_probs[sent]:
+
+                    if 'OOV' in pos or '-inf' in pos:
+                        probs.append(0.0)
+                        continue
+
+                    grs = re.match(r'^.+([0-9])gram] ([0-9]\..+) \[.+$', pos)
+                    ngram = int(grs.group(1))
+                    prob = float(grs.group(2))
+                    probs.append(ngram * prob)
+
+                result.append(probs)
+
+        AbstractProcessor.set_result_tgt(self, result)
+        AbstractProcessor.set_result_ref(self, result)
+
+class PosTagger(AbstractProcessor):
+
+    def __init__(self):
+        AbstractProcessor.__init__(self)
+        AbstractProcessor.set_name(self, 'pos_tagger')
+
+    def run(self, config, sample):
+
+        self.split_token(config, sample)
+        tagger = config.get('PosTagger', 'path')
+
+        f_in = config.get('Data', 'tgt') + '.' + 'token' + '.' + 'split' + sample
+        f_out = open(config.get('Data', 'tgt') + '.pos' + sample, 'w')
+
+        subprocess.call([tagger, f_in], stdout=f_out)
+        f_out.close()
+        os.remove(f_in)
+
+        self.join_pos(config, sample)
+
+    @staticmethod
+    def tokenize_for_pos(config, sample):
+
+        Tokenizer.tokenize_quest(config, sample)
+        f_in = config.get('Data', 'tgt') + '.' + 'token' + sample
+        lines = codecs.open(f_in, 'r', 'utf-8').readlines()
+        f_out = open(f_in, 'w')
+
+        for line in lines:
+            n_line = re.sub(r'(\')([a-zA-Z])', r'\1 \2', line)
+            nn_line = re.sub(r'([a-zA-Z])(\')', r'\1 \2', n_line)
+            f_out.write(nn_line)
+
+        f_out.close()
+
+    def split_token(self, config, sample):
+
+        Tokenizer.tokenize_quest(config, sample)
+
+        f_in = codecs.open(config.get('Data', 'tgt') + '.' + 'token' + sample, 'r', 'utf-8')
+        f_out = codecs.open(config.get('Data', 'tgt') + '.' + 'token' + '.' + 'split' + sample, 'w', 'utf-8')
+
+        for line in f_in:
+            f_out.write('\n'.join(line.split(' ')))
+
+        f_in.close()
+        f_out.close()
+
+    def join_pos(self, config, sample):
+
+        f_pos = config.get('Data', 'tgt') + '.pos' + sample
+        pos_lines = open(f_pos, 'r').readlines()
+        f_token = open(config.get('Data', 'tgt') + '.token' + sample, 'r')
+        f_out = open(config.get('Data', 'tgt') + '.pos' + '.' + 'join' + sample, 'w')
+
+        number_tokens = {}
+        sentence_tags = defaultdict(list)
+
+        for i, line in enumerate(f_token):
+            number_tokens[i] = len(line.strip().split(' '))
+
+        count_pos = 0
+        count_sent = 0
+        for pos in pos_lines:
+            if count_sent == len(number_tokens):
+                break
+            sentence_tags[count_sent].append(pos)
+            count_pos += 1
+            if count_pos == number_tokens[count_sent]:
+                count_pos = 0
+                count_sent += 1
+
+        for sent in sorted(sentence_tags.keys()):
+            if len(sentence_tags[sent]) > 0:
+                f_out.write(' '.join([x.split('\t')[1] for x in sentence_tags[sent]]) + '\n')
+
+        os.remove(f_pos)
+
+class WordVectors(AbstractProcessor):
+
+    def __init__(self):
+        AbstractProcessor.__init__(self)
+        AbstractProcessor.set_name(self, 'word_vectors')
+
+    def run(self, config, sample):
+        print "Loading word vectors"
+
+    def get(self, config, sample):
+
+        print "Getting word vectors for sentences"
+
+        lines_ref = codecs.open(config.get('Data', 'ref') + '.' + 'token' + sample, 'r', 'utf-8').readlines()
+        lines_tgt = codecs.open(config.get('Data', 'tgt') + '.' + 'token' + sample, 'r', 'utf-8').readlines()
+
+        fvectors = config.get('Vectors', 'path')
+        wv = Word2Vec.load_word2vec_format(fvectors, binary=False)
+
+        AbstractProcessor.set_result_tgt(self, self.words2vec(lines_tgt, wv))
+        AbstractProcessor.set_result_ref(self, self.words2vec(lines_ref, wv))
+
+        wv = None
+        print "Finished getting word vectors"
+
+
+    @staticmethod
+    def words2vec(sents, model):
+
+        # Here vectors are added for all the words to preserve sentence length
+
+        result = []
+        for line in sents:
+
+            tokens = [t.lower() for t in line.strip().split(' ')]
+            vecs = []
+
+            for token in tokens:
+                if token in model.index2word:
+                    vecs.append(model[token])
+                else:
+                    vecs.append(zeros(model.vector_size))
+
+            result.append(array(vecs))
+
+        return result
 
 
 class SentVector(AbstractProcessor):
@@ -34,8 +233,8 @@ class SentVector(AbstractProcessor):
 
         print "Getting sentence vectors"
 
-        lines_ref = codecs.open(config.get('Data', 'ref') + '.' + 'token' + '.' + sample, 'r', 'utf-8').readlines()
-        lines_tgt = codecs.open(config.get('Data', 'tgt') + '.' + 'token' + '.' + sample, 'r', 'utf-8').readlines()
+        lines_ref = codecs.open(config.get('Data', 'ref') + '.' + 'token' + sample, 'r', 'utf-8').readlines()
+        lines_tgt = codecs.open(config.get('Data', 'tgt') + '.' + 'token' + sample, 'r', 'utf-8').readlines()
 
         fvectors = config.get('Vectors', 'path')
         wv = Word2Vec.load_word2vec_format(fvectors, binary=False)
@@ -53,11 +252,10 @@ class SentVector(AbstractProcessor):
         result = []
         for line in sents:
 
-            tokens = line.strip().split(' ')
+            tokens = [t.lower() for t in line.strip().split(' ')]
             vecs = []
 
             for token in tokens:
-                #if token in punctuations or token in stopwords:
                 if token in punctuations:
                     continue
                 if token in model.index2word:
@@ -82,11 +280,20 @@ class Parse(AbstractProcessor):
 
     def get(self, config, sample):
 
-        result_tgt = read_parsed_sentences(codecs.open(config.get('Data', 'tgt') + '.' + 'parse' + '.' + sample, 'r', 'utf-8'))
-        result_ref = read_parsed_sentences(codecs.open(config.get('Data', 'ref') + '.' + 'parse' + '.' + sample, 'r', 'utf-8'))
+        result_tgt = read_parsed_sentences(codecs.open(config.get('Data', 'tgt') + '.' + 'parse' + sample, 'r', 'utf-8'))
+        result_ref = read_parsed_sentences(codecs.open(config.get('Data', 'ref') + '.' + 'parse' + sample, 'r', 'utf-8'))
 
-        AbstractProcessor.set_result_tgt(self, result_tgt)
-        AbstractProcessor.set_result_ref(self, result_ref)
+        sents_tgt = []
+        sents_ref = []
+
+        for sent in result_tgt:
+            sents_tgt.append(prepareSentence2(sent))
+
+        for sent in result_ref:
+            sents_ref.append(prepareSentence2(sent))
+
+        AbstractProcessor.set_result_tgt(self, sents_tgt)
+        AbstractProcessor.set_result_ref(self, sents_ref)
 
 
 class Bleu(AbstractProcessor):
@@ -97,16 +304,16 @@ class Bleu(AbstractProcessor):
 
     def run(self, config, sample):
 
-        src_path = config.get('Data', 'src') + '.' + sample
-        tgt_path = config.get('Data', 'tgt') + '.' + sample
-        ref_path = config.get('Data', 'ref') + '.' + sample
+        src_path = config.get('Data', 'src') + sample
+        tgt_path = config.get('Data', 'tgt') + sample
+        ref_path = config.get('Data', 'ref') + sample
 
         if os.path.exists(config.get('Metrics', 'dir') + '/' + tgt_path.split('/')[-1] + '.bleu.scores'):
             print "Bleu scores already exist!"
             return
 
-        if not os.path.exists(src_path + '.xml'):
-            xml.run(src_path, tgt_path, ref_path)
+        if not os.path.exists(ref_path + '.xml'):
+            xml.run(src_path, ref_path, tgt_path)
 
         bleu_path = config.get('Metrics', 'bleu')
         my_file = config.get('Metrics', 'dir') + '/' + tgt_path.split('/')[-1] + '.bleu.scores'
@@ -119,7 +326,7 @@ class Bleu(AbstractProcessor):
     def get(self, config, sample):
 
         result = []
-        tgt_path = config.get('Data', 'tgt') + '.' + sample
+        tgt_path = config.get('Data', 'tgt') + sample
         scores_file = config.get('Metrics', 'dir') + '/' + tgt_path.split('/')[-1] + '.bleu.scores'
         for line in open(scores_file).readlines():
             if not line.startswith('  BLEU'):
@@ -138,8 +345,8 @@ class MeteorScorer(AbstractProcessor):
 
     def run(self, config, sample):
 
-        tgt_path = config.get('Data', 'tgt') + '.' + sample
-        ref_path = config.get('Data', 'ref') + '.' + sample
+        tgt_path = config.get('Data', 'tgt') + sample
+        ref_path = config.get('Data', 'ref') + sample
 
         if os.path.exists(config.get('Metrics', 'dir') + '/' + tgt_path.split('/')[-1] + '.meteor.scores'):
             print "Meteor scores already exist!"
@@ -156,7 +363,7 @@ class MeteorScorer(AbstractProcessor):
     def get(self, config, sample):
 
         result = []
-        tgt_path = config.get('Data', 'tgt') + '.' + sample
+        tgt_path = config.get('Data', 'tgt') + sample
         scores_file = config.get('Metrics', 'dir') + '/' + tgt_path.split('/')[-1] + '.meteor.scores'
 
         for line in open(scores_file).readlines():
@@ -176,8 +383,8 @@ class MeteorAligner(AbstractProcessor):
 
     def run(self, config, sample):
 
-        tgt_path = config.get('Data', 'tgt') + '.' + sample
-        ref_path = config.get('Data', 'ref') + '.' + sample
+        tgt_path = config.get('Data', 'tgt') + sample
+        ref_path = config.get('Data', 'ref') + sample
         tgt_file_name = tgt_path.split('/')[-1]
         name = ''
         if len(config.get('Alignment', 'name')) > 0:
@@ -197,7 +404,7 @@ class MeteorAligner(AbstractProcessor):
 
     def get(self, config, sample):
 
-        tgt_path = config.get('Data', 'tgt') + '.' + sample
+        tgt_path = config.get('Data', 'tgt') + sample
         align_dir = config.get('Alignment', 'dir')
         aligner = config.get('Alignment', 'aligner')
         name = ''
@@ -218,25 +425,34 @@ class CobaltAligner(AbstractProcessor):
 
     def run(self, config, sample):
 
-        tgt_path = config.get('Data', 'tgt') + '.parse' + '.' + sample
-        ref_path = config.get('Data', 'ref') + '.parse' + '.' + sample
+        tgt_path = config.get('Data', 'tgt') + '.parse' + sample
+        ref_path = config.get('Data', 'ref') + '.parse' + sample
         align_dir = config.get('Alignment', 'dir')
 
-        if os.path.exists(align_dir + '/' + tgt_path.split('/')[-1] + '.cobalt-align.out'):
+        align_cfg = AlignerConfig('english')
+
+        if os.path.exists(align_dir + '/' + tgt_path.split('/')[-1] + '.' + ref_path.split('/')[-1] + '.cobalt-align.out'):
             print("Alignments already exist.\n Aligner will not run.")
             return
 
+        if 'paraphrases' in align_cfg.selected_lexical_resources:
+            load_ppdb(align_cfg.path_to_ppdb)
+
+        if 'distributional' in align_cfg.selected_lexical_resources:
+            load_word_vectors(align_cfg.path_to_vectors)
+
         aligner = Aligner('english')
         aligner.align_documents(tgt_path, ref_path)
-        aligner.write_alignments(align_dir + '/' + tgt_path.split('/')[-1] + '.cobalt-align.out')
+        aligner.write_alignments(align_dir + '/' + tgt_path.split('/')[-1] + '.' + ref_path.split('/')[-1] + '.cobalt-align.out')
 
     def get(self, config, sample):
 
-        tgt_path = config.get('Data', 'tgt') + '.parse' + '.' + sample
+        tgt_path = config.get('Data', 'tgt') + '.parse' + sample
+        ref_path = config.get('Data', 'ref') + '.parse' + sample
         align_dir = config.get('Alignment', 'dir')
         reader = CobaltAlignReader()
 
-        result = reader.read(align_dir + '/' + tgt_path.split('/')[-1] + '.' + 'cobalt' + '-align.out')
+        result = reader.read(align_dir + '/' + tgt_path.split('/')[-1] + '.' + ref_path.split('/')[-1] + '.cobalt-align.out')
         AbstractProcessor.set_result_tgt(self, result)
         AbstractProcessor.set_result_ref(self, result)
 
@@ -276,11 +492,11 @@ class Tokenizer(AbstractProcessor):
         # src_path = config.get('Data', 'src') + '.' + sample
         # ref_path = config.get('Data', 'ref') + '.' + sample
 
-        tgt_path = config.get('Data', 'tgt') + '.' + sample
+        tgt_path = config.get('Data', 'tgt') + sample
         input_file = align_dir + '/' + tgt_path.split('/')[-1] + '.' + aligner + '-align.out'
-        output_file_src = config.get('Data', 'src') + '.token.' + sample
-        output_file_tgt = config.get('Data', 'tgt') + '.token.' + sample
-        output_file_ref = config.get('Data', 'ref') + '.token.' + sample
+        output_file_src = config.get('Data', 'src') + '.token' + sample
+        output_file_tgt = config.get('Data', 'tgt') + '.token' + sample
+        output_file_ref = config.get('Data', 'ref') + '.token' + sample
 
         # if os.path.exists(output_file_tgt):
         #     print("The file " + output_file_tgt + " is already tokenized.\n Tokenizer will not run.")
@@ -308,11 +524,11 @@ class Tokenizer(AbstractProcessor):
 
     def tokenize_from_parse(self, config, sample):
 
-        input_file_tgt = config.get('Data', 'tgt') + '.parse' + '.' + sample
-        input_file_ref = config.get('Data', 'ref') + '.parse' + '.' + sample
-        out_tgt = config.get('Data', 'tgt') + '.' + 'token' + '.' + sample
-        out_ref = config.get('Data', 'ref') + '.' + 'token' + '.' + sample
-        out_src = config.get('Data', 'src') + '.' + 'token' + '.' + sample
+        input_file_tgt = config.get('Data', 'tgt') + '.parse' + sample
+        input_file_ref = config.get('Data', 'ref') + '.parse' + sample
+        out_tgt = config.get('Data', 'tgt') + '.' + 'token' + sample
+        out_ref = config.get('Data', 'ref') + '.' + 'token' + sample
+        out_src = config.get('Data', 'src') + '.' + 'token' + sample
 
         if os.path.exists(out_tgt):
             print("The file " + out_tgt + " is already tokenized.\n Tokenizer will not run.")
@@ -363,16 +579,18 @@ class Tokenizer(AbstractProcessor):
         o_tgt.close()
         o_src.close()
 
-    def tokenize_quest(self, config, sample):
+    @staticmethod
+    def tokenize_quest(config, sample):
 
         # Using quest tokenizer
 
-        tokenizer = config.get('Tokenizer', 'tool_path')
-        input_file = config.get('Data', 'tgt') + '.' + sample
+        tokenizer = config.get('Tokenizer', 'path')
+        input_file = config.get('Data', 'tgt') + sample
         myinput = open(input_file, 'r')
+        language = config.get('Settings', 'tgt_lang')
 
-        myoutput = open(config.get('Data', 'tgt') + '.' + sample + '.token', 'w')
-        p = subprocess.Popen(['perl', tokenizer], stdin=myinput, stdout=myoutput)
+        myoutput = open(config.get('Data', 'tgt') + '.token' + sample, 'w')
+        p = subprocess.Popen(['perl', tokenizer, '-q', '-l', language], stdin=myinput, stdout=myoutput)
         p.wait()
         myoutput.flush()
 
@@ -389,8 +607,8 @@ class Tokenizer(AbstractProcessor):
 
     @staticmethod
     def rewrite(fname, sample):
-        myinput = open(fname + '.' + sample, 'r')
-        myoutput = open(fname + '.token' + '.' + sample, 'w')
+        myinput = open(fname + sample, 'r')
+        myoutput = open(fname + '.token' + sample, 'w')
         for line in myinput:
             myoutput.write(line)
         myinput.close()
@@ -401,8 +619,8 @@ class Tokenizer(AbstractProcessor):
         sents_tokens_ref = []
         sents_tokens_tgt = []
 
-        lines_ref = codecs.open(config.get('Data', 'ref') + '.' + 'token' + '.' + sample, 'r', 'utf-8').readlines()
-        lines_tgt = codecs.open(config.get('Data', 'tgt') + '.' + 'token' + '.' + sample, 'r', 'utf-8').readlines()
+        lines_ref = codecs.open(config.get('Data', 'ref') + '.' + 'token' + sample, 'r', 'utf-8').readlines()
+        lines_tgt = codecs.open(config.get('Data', 'tgt') + '.' + 'token' + sample, 'r', 'utf-8').readlines()
         for i, line in enumerate(lines_tgt):
             sents_tokens_tgt.append(line.strip().split(' '))
             sents_tokens_ref.append(lines_ref[i].strip().split(' '))
@@ -424,10 +642,10 @@ class QuestSentence(AbstractProcessor):
         quest_dir = config.get('Quest', 'path')
         src_lang = config.get('Settings', 'src_lang')
         tgt_lang = config.get('Settings', 'tgt_lang')
-        src_path = config.get('Data', 'src') + '.' + sample
-        tgt_path = config.get('Data', 'tgt') + '.' + sample
+        src_path = config.get('Data', 'src') + sample
+        tgt_path = config.get('Data', 'tgt') + sample
         quest_config = config.get('Quest', 'config') + '/' + 'config.' + 'sl.' + tgt_lang + '.properties'
-        out_file = config.get('Quest', 'output') + '/' + 'quest.sl.' + sample + '.out'
+        out_file = config.get('Quest', 'output') + '/' + 'quest.sl' + sample + '.out'
 
         subprocess.call(['java',
                          '-cp',
@@ -450,10 +668,9 @@ class QuestSentence(AbstractProcessor):
     def get(self, config, sample):
 
         # Make sure feature file is the same as stated in quest config file
-        # Later change to read features from config file
 
         features_file = config.get('Quest', 'features_sent')
-        output_quest = config.get('Quest', 'output') + '/' + 'quest.sl.' + sample + '.out'
+        output_quest = config.get('Quest', 'output') + '/' + 'quest.sl' + sample + '.out'
         reader = FeaturesReader()
         features = reader.read_features(features_file)
 
@@ -486,10 +703,10 @@ class QuestWord(AbstractProcessor):
         quest_dir = config.get('Quest', 'path')
         src_lang = config.get('Settings', 'src_lang')
         tgt_lang = config.get('Settings', 'tgt_lang')
-        src_path = config.get('Data', 'src') + '.' + 'token' + '.' + sample
-        tgt_path = config.get('Data', 'tgt') + '.' + 'token' + '.' + sample
+        src_path = config.get('Data', 'src') + '.' + 'token' + sample
+        tgt_path = config.get('Data', 'tgt') + '.' + 'token' + sample
         quest_config = config.get('Quest', 'config') + '/' + 'config.' + 'wl.' + tgt_lang + '.properties'
-        out_file = config.get('Quest', 'output') + '/' + 'quest.wl.' + sample + '.out'
+        out_file = config.get('Quest', 'output') + '/' + 'quest.wl' + sample + '.out'
 
         subprocess.call(['java',
                          '-cp',
@@ -512,12 +729,14 @@ class QuestWord(AbstractProcessor):
 
     def get(self, config, sample):
 
-        # Make sure feature file is the same as stated in quest config file
-        # Later change to read features from config file
+        # Word-level quest features
+        # WCE1015 - Language model backoff behavior value
+        # WCE1037 - Longest target n-gram length
+        # WCE1041 - Backward language model backoff behavior value
 
         features_file = config.get('Quest', 'features_word')
-        output_quest = config.get('Quest', 'output') + '/' + 'quest.wl.' + sample + '.out'
-        input_token = config.get('Data', 'tgt') + '.' + 'token' + '.' + sample
+        output_quest = config.get('Quest', 'output') + '/' + 'quest.wl' + sample + '.out'
+        input_token = config.get('Data', 'tgt') + '.' + 'token' + sample
 
         reader = FeaturesReader()
         features = reader.read_features(features_file)
@@ -533,7 +752,14 @@ class QuestWord(AbstractProcessor):
 
             word_feats = {}
             for i, val in enumerate(word.strip().split('\t')):
-                word_feats[features[i]] = int(val.split('=')[1])
+
+                val = int(val.split('=')[1])
+                transform = val
+
+                if features[i] == 'WCE1015' or features[i] == 'WCE1041':
+                    transform = self.map_backoff(val)
+
+                word_feats[features[i]] = transform
 
             if cnt_words >= np.sum(lengths[:cnt_sentences + 1]):
                 result.append(sent_words)
@@ -548,6 +774,19 @@ class QuestWord(AbstractProcessor):
         AbstractProcessor.set_result_ref(self, result)
 
     @staticmethod
+    def map_backoff(val):
+
+        if val == 7:
+            return 4
+        elif 4 < val < 7:
+            return 3
+        elif 1 < val <= 4:
+            return 2
+        else:
+            return 1
+
+
+    @staticmethod
     def sent_length(file_):
 
         lengths = []
@@ -556,3 +795,15 @@ class QuestWord(AbstractProcessor):
             lengths.append(len(sent.split(' ')))
 
         return lengths
+
+
+def main():
+    cfg = ConfigParser()
+    cfg.readfp(open(os.getcwd() + '/config/absolute.cfg'))
+
+    lm = PosLangModel()
+    lm.run(cfg, 'train')
+    lm.get(cfg, 'train')
+
+if __name__ == '__main__':
+    main()

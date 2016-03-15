@@ -12,7 +12,7 @@ class Sentence(defaultdict):
     def add_data(self, method, sent_data):
         if 'aligner' in method:
             self['alignments'] = sent_data
-        if 'tokenizer' in method:
+        elif 'tokenizer' in method:
             self['tokens'] = sent_data
         else:
             self[method] = sent_data

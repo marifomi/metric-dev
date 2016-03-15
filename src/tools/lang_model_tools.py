@@ -2,7 +2,7 @@ __author__ = 'MarinaFomicheva'
 
 import subprocess
 import codecs
-import os.path
+import os
 from collections import OrderedDict
 from collections import defaultdict
 from math import floor
@@ -13,7 +13,7 @@ import re
 # Produce lm from corpus
 
 
-class LangModelGenerator(object):
+class LangModelTools(object):
 
     def __init__(self):
         self.ngram_tools_path = ''
@@ -38,7 +38,7 @@ class LangModelGenerator(object):
         SRILM = [self.ngram_tools_path + '/' + 'ngram-count', '-order', str(ngram_size), '-text', corpus_file_name, '-write', corpus_file_name + '.ngram']
         subprocess.check_call(SRILM)
 
-    def produce_ppl(self, input_file, output_file, lm_file, ngram_size):
+    def produce_ppl(self, input_file, output_file, lm_file, ngram_size, debug=2):
 
         if os.path.exists(output_file):
             print 'File with lm perplexities already exist'
@@ -46,7 +46,7 @@ class LangModelGenerator(object):
 
         my_output = open(output_file, 'w')
 
-        SRILM = [self.ngram_tools_path + '/' + 'ngram', '-lm', lm_file, '-order', str(ngram_size), '-debug', '1', '-ppl', input_file]
+        SRILM = [self.ngram_tools_path + '/' + 'ngram', '-lm', lm_file, '-order', str(ngram_size), '-debug', str(debug), '-ppl', input_file]
         subprocess.check_call(SRILM, stdout=my_output)
 
     def sort_ngram_counts(self, min_freq, raw_count_file_name):
@@ -117,3 +117,16 @@ class LangModelGenerator(object):
                 print line.strip()
 
         return lm_features
+
+
+def main():
+
+    f_in = os.getcwd() + '/' + 'data' + '/' + 'wmt13_graham' + '/' + 'system.pos.join.train'
+    f_lm = os.path.expanduser('~/Dropbox/workspace/questplusplus/lang_resources/english/wmt15_baseline/nc.pos.1.en.lm')
+    lm = LangModelTools()
+    lm.set_path_to_tools('/Users/MarinaFomicheva/workspace/srilm-1.7.1/bin/macosx/')
+    lm.produce_ppl(f_in, f_in + '.ppl', f_lm, 3)
+
+
+if __name__ == '__main__':
+    main()

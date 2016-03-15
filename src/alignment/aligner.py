@@ -1070,7 +1070,7 @@ class Aligner(object):
 
             for j, widx in enumerate(self.alignments[i][0]):
 
-                my_output.write(str(widx) + ' : ' + '[' + self.alignments[i][1][j][0] + ', ' + self.alignments[i][1][j][0] + ']' + ' : ')
+                my_output.write(str(widx) + ' : ' + '[' + self.alignments[i][1][j][0] + ', ' + self.alignments[i][1][j][1] + ']' + ' : ')
                 my_output.write('srcDiff=' + ','.join(self.alignments[i][2][j]['srcDiff']) + ';')
                 my_output.write('srcCon=' + ','.join(self.alignments[i][2][j]['srcCon']) + ';')
                 my_output.write('tgtDiff=' + ','.join(self.alignments[i][2][j]['tgtDiff']) + ';')

@@ -7,8 +7,10 @@ from src.features.feature_extractor import FeatureExtractor
 from src.tools.run_tools import RunTools
 from sklearn import cross_validation as cv
 from src.learning import learn_model
-import numpy as np
-
+import scipy
+from src.tools.wmt_data import WmtData
+from collections import defaultdict
+# from src.learning.gaussian_processes import regression
 
 class PredictorAbsoluteScores():
 
@@ -19,16 +21,40 @@ class PredictorAbsoluteScores():
     def set_data_size(self, size):
         self.data_size = size
 
-    def run(self, prefix, config, features_to_extract):
+    def feature_analysis(self, prefix, config, features_to_extract):
 
-        for sample_name in ['train', 'test']:
-            my_prefix = ''
-            if len(prefix) > 0:
-                my_prefix = prefix + '_'
+        x_train_path=config.get('Data', 'output') + '/' + prefix + '_' + 'features' + '.' + 'train' + '.tsv',
+        x_test_path=config.get('Data', 'output') + '/' + prefix + '_' + 'features' + '.' + 'test' + '.tsv',
+        y_train_path=config.get('Data', 'human') + '.' + 'train',
+        y_test_path=config.get('Data', 'human') + '.' + 'test'
 
-            output_path = config.get('Data', 'output') + '/' + my_prefix + 'features' + '.' + sample_name + '.tsv'
+        # regression(x_train_path, x_test_path, y_train_path, y_test_path, features_to_extract)
+        # Does not work! Python version problem
+
+    def evaluate_feature(self, config, lp, size, system, sample):
+
+        tools = RunTools(config)
+        sents_tgt, sents_ref = tools.assign_data(sample)
+
+        features_to_extract = config.get('Features', 'single_feature')
+        extractor = FeatureExtractor(config)
+        extractor.extract_features(features_to_extract, sents_tgt, sents_ref)
+        scores = [x[0] for x in extractor.vals]
+        lp_sizes = {}
+        lp_sizes[lp] = size
+
+        lp_systems = defaultdict(list)
+        lp_systems[lp].append(system)
+
+        WmtData.wmt_format(config, scores, lp_sizes, lp_systems, sample)
+
+    def prepare_data(self, my_prefix, config, features_to_extract):
+
+        for sample_name in ['.train', '.test']:
+
+            output_path = config.get('Data', 'output') + '/' + my_prefix + '_' + 'features' + sample_name + '.tsv'
             if os.path.exists(output_path):
-                print "Feature files already exist!"
+                print("Feature files already exist!")
                 break
 
             tools = RunTools(config)
@@ -44,17 +70,18 @@ class PredictorAbsoluteScores():
 
             output.close()
 
-        # Learn model
+
+    def learn_model(self, prefix, config):
 
         predicted = learn_model.run(config.get('Learner', 'path'),
-                                x_train_path=config.get('Data', 'output') + '/' + my_prefix + 'features' + '.' + 'train' + '.tsv',
-                                x_test_path=config.get('Data', 'output') + '/' + my_prefix + 'features' + '.' + 'test' + '.tsv',
+                                x_train_path=config.get('Data', 'output') + '/' + prefix + '_' + 'features' + '.' + 'train' + '.tsv',
+                                x_test_path=config.get('Data', 'output') + '/' + prefix + '_' + 'features' + '.' + 'test' + '.tsv',
                                 y_train_path=config.get('Data', 'human') + '.' + 'train',
                                 y_test_path=config.get('Data', 'human') + '.' + 'test'
                                 )
 
-        os.remove(config.get('Data', 'output') + '/' + my_prefix + 'features' + '.' + 'train' + '.tsv')
-        os.remove(config.get('Data', 'output') + '/' + my_prefix + 'features' + '.' + 'test' + '.tsv')
+        os.remove(config.get('Data', 'output') + '/' + prefix + '_' + 'features' + '.' + 'train' + '.tsv')
+        os.remove(config.get('Data', 'output') + '/' + prefix + '_' + 'features' + '.' + 'test' + '.tsv')
 
         return predicted
 
@@ -88,7 +115,7 @@ class PredictorAbsoluteScores():
         file_ = open(config.get('Features', 'feature_set'), 'r')
         for line in file_:
             features_to_extract.append(line.strip())
-        return features_to_extract
+        return sorted(features_to_extract)
 
 def corr_feature_set(features_to_extract, set_name):
 
@@ -98,31 +125,42 @@ def corr_feature_set(features_to_extract, set_name):
     predictor = PredictorAbsoluteScores()
     prefix = set_name
     human_scores = predictor.get_human_scores(cfg)
-    predicted = predictor.run(prefix, cfg, features_to_extract)
-    corr = np.corrcoef(human_scores, predicted)[1][0]
+    predicted = predictor.prepare_data(prefix, cfg, features_to_extract)
+    corr = scipy.stats.pearsonr(human_scores, predicted)[1][0]
 
     return corr
 
-def main():
 
+def main():
     cfg = ConfigParser()
-    cfg.readfp(open(os.getcwd() + '/config/multi_ref.cfg'))
+    cfg.readfp(open(os.getcwd() + '/config/absolute.cfg'))
 
     predictor = PredictorAbsoluteScores()
-    prefix = 'bleu_quest'
-    human_scores = predictor.get_human_scores(cfg)
-    features_to_extract = predictor.get_features_to_extract(cfg)
-    predicted = predictor.run(prefix, cfg, features_to_extract)
-    corr = np.corrcoef(human_scores, predicted)[1][0]
-    print str(corr)
+    predictor.evaluate_feature(cfg, 'ch-en', 5514, 'system', '')
 
-    o_pred = open(cfg.get('Data', 'output') + '/' + prefix + '_' + 'predictions' + '.tsv', 'w')
-    for i, pred in enumerate(predicted):
-        print str(i + 1) + '\t' + str(pred) + '\t' + str(human_scores[i])
-        o_pred.write(str(i + 1) + '\t' + str(pred) + '\t' + str(human_scores[i]) + '\n')
 
-    o_pred.write(str(np.corrcoef(predicted, human_scores)) + '\n')
-    o_pred.close()
+# def main():
+#
+#     cfg = ConfigParser()
+#     cfg.readfp(open(os.getcwd() + '/config/multi_ref.cfg'))
+#
+#     predictor = PredictorAbsoluteScores()
+#     features_to_extract = predictor.get_features_to_extract(cfg)
+#     prefix = 'quest_svm_human'
+#     predictor.prepare_data(prefix, cfg, features_to_extract)
+#     predicted = predictor.learn_model(prefix, cfg)
+#
+#     human_scores = predictor.get_human_scores(cfg)
+#     corr = scipy.stats.pearsonr(human_scores, predicted)
+#     print(str(corr))
+#
+#     o_pred = open(cfg.get('Data', 'output') + '/' + prefix + '_' + 'predictions' + '.tsv', 'w')
+#     for i, pred in enumerate(predicted):
+#         print(str(i + 1) + '\t' + str(pred) + '\t' + str(human_scores[i]))
+#         o_pred.write(str(i + 1) + '\t' + str(pred) + '\t' + str(human_scores[i]) + '\n')
+#
+#     o_pred.write(str(scipy.stats.pearsonr(predicted, human_scores)) + '\n')
+#     o_pred.close()
 
 if __name__ == '__main__':
     main()

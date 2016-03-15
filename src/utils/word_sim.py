@@ -2,7 +2,6 @@ import math
 
 from src.lex_resources.config import *
 
-
 def wordRelatednessAlignment(word1, word2, config):
 
     global stemmer

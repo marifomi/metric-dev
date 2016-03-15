@@ -24,8 +24,6 @@ file which has a similar layout to the Java properties file.
 '''
 
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
-from evaluation_measures import root_mean_squared_error, mean_absolute_error
-from sklearn.ensemble.forest import ExtraTreesClassifier
 from sklearn.grid_search import GridSearchCV
 from sklearn.linear_model.coordinate_descent import LassoCV
 from sklearn.linear_model.least_angle import LassoLarsCV, LassoLars
@@ -40,6 +38,7 @@ import numpy as np
 import os
 import sys
 import yaml
+from evaluation_measures import mean_absolute_error, root_mean_squared_error
 
 from customize_scorer import pearson_corrcoef, binary_precision, classify_report_bin, classify_report_bin_regression, classify_report_regression
 
@@ -155,7 +154,7 @@ def set_optimization_params(opt):
             params[key] = np.linspace(item[0], item[1], num=item[2], endpoint=True)
             
         elif isinstance(item, list) and assert_string(item):
-            print key, item
+            print(key, item)
             params[key] = item
     
     return params
@@ -365,11 +364,11 @@ def fit_predict(config, X_train, y_train, X_test=None, y_test=None, ref_thd=None
             pass
         try:
             res = classify_report_bin(y_test, y_hat)
-            if "N/A" <> res:
+            if "N/A" != res:
                 log.info("Classify report bin: = %s" % res)
             else:
                 res = classify_report_bin_regression(y_test, y_hat)
-                if "N/A" <> res:
+                if "N/A" != res:
                     log.info("Classify report bin regression: = %s" % res)
                 else:
                     if ref_thd is None:
@@ -378,8 +377,8 @@ def fit_predict(config, X_train, y_train, X_test=None, y_test=None, ref_thd=None
                         refthd = float(ref_thd)
                         res = classify_report_regression(y_test, y_hat, refthd)
                         log.info("Classify report regression: = %s" % res)
-        except Exception, e:
-            print e
+        except Exception as e:
+            print(e)
 
         predictions = []
         with open("predicted.csv", 'w') as _fout:

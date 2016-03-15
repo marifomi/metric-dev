@@ -10,7 +10,7 @@ import codecs
 def save_sampled_phrs(sampled_phrs, file1, file2):
 
     if os.path.exists(file1) or os.path.exists(file2):
-        print "Samples already exist"
+        print("Samples already exist")
         return
 
     out_train = open(file1, 'w')

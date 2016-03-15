@@ -125,7 +125,7 @@ class FeatureExtractor(defaultdict):
             if len(selected_features) > 0 and instance.get_name() not in selected_features:
                 continue
 
-            instance.run(candidate, reference, candidate_parsed, reference_parsed, alignments)
+            instance.prepare_data(candidate, reference, candidate_parsed, reference_parsed, alignments)
             feature_vector.append((instance.get_name(), instance.get_value()))
 
         return feature_vector

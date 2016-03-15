@@ -7,6 +7,8 @@ from src.learning import learn_model
 from sklearn.linear_model import LogisticRegression
 import os
 from sklearn.externals import joblib
+from sklearn.metrics import f1_score
+from ConfigParser import ConfigParser
 
 class LearnToRank(object):
 
@@ -34,6 +36,47 @@ class LearnToRank(object):
         return temp_sum + wmt_data.lp_sizes[lps[lp_idx]] * sys_idx + phrase
 
 
+    def rank(self, wmt_data, ranks, fx, fy):
+
+        features = open(fx, 'w')
+        objective = open(fy, 'w')
+
+        for lp_idx, lp in enumerate(sorted(ranks.keys())):
+
+            systems = sorted(wmt_data.lp_systems[lp])
+
+            for comp in ranks[lp]:
+
+                if comp.sign == '<':
+                    objective.write('1' + '\n')
+                elif comp.sign == '>':
+                    objective.write('0' + '\n')
+                else:
+                    continue
+
+                idx_sys1 = self.get_idx_simple(comp.sys1, systems)
+                idx_sys2 = self.get_idx_simple(comp.sys2, systems)
+                phr_sys1 = self.get_idx_complex(wmt_data, lp_idx, idx_sys1, comp.phrase)
+                phr_sys2 = self.get_idx_complex(wmt_data, lp_idx, idx_sys2, comp.phrase)
+
+                features_sys1 = wmt_data.features[phr_sys1]
+                features_sys2 = wmt_data.features[phr_sys2]
+
+                differences = self.combine_as_difference(features_sys1, features_sys2)
+                features.write('\t'.join([str(diff) for diff in differences]) + '\n')
+
+        features.close()
+        objective.close()
+
+
+    def combine_as_difference(self, features1, features2):
+
+        differences = []
+        for i in range(len(features1)):
+            differences.append(features1[i] - features2[i])
+
+        return differences
+
     def learn_to_rank(self, wmt_data, ranks, fx, fy):
 
         features = open(fx, 'w')
@@ -44,7 +87,6 @@ class LearnToRank(object):
         for i, lp in enumerate(lps):
 
             systems = sorted(wmt_data.lp_systems[lp])
-
 
             print str(len([rank for rank in ranks[lp] if rank.sign is not '=']))
 
@@ -84,7 +126,7 @@ class LearnToRank(object):
         estimator = joblib.load(config.get('Learner', 'models') + '/' + 'logistic.pkl')
         return estimator.coef_
 
-    def logistic_run(self, config, x_train_path, y_train_path):
+    def logistic_fit(self, config, x_train_path, y_train_path):
 
         x_train = read_features_file(x_train_path, '\t')
         y_train = read_reference_file(y_train_path, '\t')
@@ -106,14 +148,35 @@ class LearnToRank(object):
         estimator.fit(x_train, y_train)
         joblib.dump(estimator, config.get('Learner', 'models') + '/' + 'logistic.pkl')
 
-    def svc(self):
+    def svc(self, xtrain, xtest, ytrain, ytest):
         predicted = learn_model.run(os.getcwd() + '/' + 'config' + '/' + 'learner' + '/' + 'svc.cfg',
-                                x_train_path='/Users/MarinaFomicheva/workspace/upf-cobalt/test/newstest2015.features_ltr.tsv',
-                                x_test_path='/Users/MarinaFomicheva/workspace/upf-cobalt/test/newstest2014.features.tsv',
-                                y_train_path='/Users/MarinaFomicheva/workspace/upf-cobalt/test/newstest2015.objective_ltr.tsv',
-                                y_test_path='/Users/MarinaFomicheva/workspace/upf-cobalt/test/newstest2014.objective_dummy.tsv'
+                                x_train_path=xtrain,
+                                x_test_path=xtest,
+                                y_train_path=ytrain,
+                                y_test_path=ytest
                                 )
 
+        return predicted
+
+    def logistic(self, xtrain, xtest, ytrain, ytest):
+
+        estimator = LogisticRegression(penalty='l2',
+                                       dual=False,
+                                       tol=0.0001,
+                                       C=1.0,
+                                       fit_intercept=True,
+                                       intercept_scaling=1,
+                                       class_weight=None,
+                                       random_state=None,
+                                       solver='liblinear',
+                                       max_iter=100,
+                                       multi_class='ovr',
+                                       verbose=0,
+                                       warm_start=False,
+                                       n_jobs=1)
+
+        estimator.fit(xtrain, ytrain)
+        return estimator.predict(xtest)
 
     def find_winner(self, case, systems):
 
@@ -192,4 +255,30 @@ def get_sys_name(sys_id, dataset):
     return sys_name
 
 if __name__ == '__main__':
-    main()
+    config = ConfigParser()
+    config.readfp(open(os.getcwd() + '/config/wmt.cfg'))
+    learner = LearnToRank()
+    prefix = 'meteor'
+
+    xtr = read_features_file(config.get('Data', 'output') + '/' + prefix + '_' + 'features_rank' + '.' + 'train', '\t')
+    xte = read_features_file(config.get('Data', 'output') + '/' + prefix + '_' + 'features_rank' + '.' + 'test', '\t')
+    ytr = read_reference_file(config.get('Data', 'output') + '/' + prefix + '_' + 'objective_rank' + '.' + 'train', '\t')
+    yte = read_reference_file(config.get('Data', 'output') + '/' + prefix + '_' + 'objective_rank' + '.' + 'test', '\t')
+
+    predicted = learner.logistic(xtr, xte, ytr, yte)
+
+    result = f1_score(yte, predicted)
+
+    count = 0
+    total = 0.0
+    for i, pred in enumerate(predicted):
+        total += 1.0
+        if pred == yte[i]:
+            count += 1
+        else:
+            count -=1
+
+    print str(count/total)
+
+    print str(result)
+

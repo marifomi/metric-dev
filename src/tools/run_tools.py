@@ -4,7 +4,6 @@ from json import loads
 import inspect
 from src.tools import processors
 from src.utils.sentence import Sentence
-from src.features.feature_extractor import FeatureExtractor as FE
 
 class RunTools(object):
 
@@ -40,10 +39,11 @@ class RunTools(object):
 
         self.run_tools(sample)
 
-        sample_length = FE.get_len(self.config.get('Data', 'tgt') + '.' + sample)
+        sample_length = get_len(self.config.get('Data', 'tgt') + sample)
 
         sentences_tgt = []
         sentences_ref = []
+
         for i, sentence in enumerate(range(sample_length)):
 
             my_sentence_tgt = Sentence()
@@ -58,3 +58,6 @@ class RunTools(object):
 
         self.outputs = {}
         return [sentences_tgt, sentences_ref]
+
+def get_len(my_file):
+    return sum(1 for line in open(my_file))

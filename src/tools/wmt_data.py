@@ -23,22 +23,29 @@ class WmtData(object):
     def add_features(self, features):
         self.features = features
 
-    def wmt_format(self, config, scores, sample='test'):
+    def get_lp_sizes(self):
+        return self.lp_sizes
+
+    def get_lp_systems(self):
+        return self.lp_systems
+
+    @staticmethod
+    def wmt_format(config, scores, lp_sizes, lp_systems, sample='.test'):
 
         o = open(config.get('WMT', 'wmt_output'), 'w')
 
-        for lp in sorted(self.lp_systems.keys()):
+        for lp in sorted(lp_systems.keys()):
 
-            for i, sys in enumerate(sorted(self.lp_systems[lp])):
+            for i, sys in enumerate(sorted(lp_systems[lp])):
 
-                for k in range(self.lp_sizes[lp]):
+                for k in range(lp_sizes[lp]):
 
-                    idx = self.lp_sizes[lp] * i + k
-                    dataset = config.get('WMT', 'dataset' + '_' + sample)
+                    idx = lp_sizes[lp] * i + k
+                    dataset = config.get('WMT', 'dataset' + '_' + sample.replace('.', ''))
                     phr = str(k + 1)
                     score = str(scores[idx])
 
-                    print >>o, config.get('WMT', 'wmt_name') + '\t' + lp + '\t' + dataset + '\t' + sys + '\t' + phr +\
+                    print >>o, config.get('WMT', 'wmt_name') + '\t' + dataset + '\t' + lp + '\t' + sys + '\t' + phr +\
                             '\t' + str(score)
 
         o.close()
@@ -46,15 +53,15 @@ class WmtData(object):
     def preprocess(self, config, sample, data_type):
 
         if data_type == 'parse':
-            dtype_name = 'parse.'
+            dtype_name = 'parse'
         else:
             dtype_name = ''
 
-        o_ref = codecs.open(config.get('Data', 'ref') + '.' + dtype_name + sample, 'w', 'utf-8')
-        o_tgt = codecs.open(config.get('Data', 'tgt') + '.' + dtype_name + sample, 'w', 'utf-8')
+        o_ref = codecs.open(config.get('WMT', 'ref') + '.' + dtype_name + sample, 'w', 'utf-8')
+        o_tgt = codecs.open(config.get('WMT', 'tgt') + '.' + dtype_name + sample, 'w', 'utf-8')
 
-        wmt_dir = config.get('WMT', sample)
-        dataset = config.get('WMT', 'dataset' + '_' + sample)
+        wmt_dir = config.get('WMT', sample.replace('.', ''))
+        dataset = config.get('WMT', 'dataset' + '_' + sample.replace('.', ''))
 
         self.features = []
         self.lp_sizes = {}
