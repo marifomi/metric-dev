@@ -1,10 +1,7 @@
-from src.scorer.scorer import Scorer
-from src.lex_resources import config
-import codecs
-import os
-
 __author__ = 'u88591'
 
+from src.scorer.scorer import Scorer
+from src.lex_resources import config
 import numpy
 from src.utils import word_sim
 from src.features.impl.abstract_feature import *
@@ -44,7 +41,7 @@ class LengthsRatio(AbstractFeature):
         AbstractFeature.set_description(self, "Ratio of candidate and reference sentence lengths")
 
     def run(self, cand, ref):
-        AbstractFeature.set_value(self, len(cand['tokens'])/len(ref['tokens']))
+        AbstractFeature.set_value(self, len(cand['tokens'])/float(len(ref['tokens'])))
 
 
 class CountContentTarget(AbstractFeature):
@@ -1069,6 +1066,28 @@ class PropAlignedLexExactMeteor(AbstractFeature):
             for i in range(len(cand['alignments'][0])):
 
                 if cand['alignments'][2][i] == 0:
+                    count += 1
+
+            AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
+        else:
+            AbstractFeature.set_value(self, 0)
+
+
+class PropAlignedLexNonExactMeteor(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'prop_aligned_non_exact_meteor')
+        AbstractFeature.set_description(self, "Proportion of aligned words with non-exact lex match for Meteor")
+
+    def run(self, cand, ref):
+
+        if len(cand['alignments'][0]) > 0:
+            count = 0
+
+            for i in range(len(cand['alignments'][0])):
+
+                if cand['alignments'][2][i] != 0:
                     count += 1
 
             AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
@@ -2713,6 +2732,18 @@ class PropNonAlignedOOV(AbstractFeature):
             AbstractFeature.set_value(self, oov/float(len(cand['tokens']) - len(cand['alignments'][0])))
         else:
             AbstractFeature.set_value(self, 0)
+
+
+class CountOOV(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'count_oov')
+        AbstractFeature.set_description(self, "Count of out-of-vocabulary words using srilm")
+
+    def run(self, cand, ref):
+        AbstractFeature.set_value(self, cand['oov'])
+
 
 class CountAllOOV(AbstractFeature):
 
