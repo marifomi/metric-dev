@@ -28,6 +28,7 @@ from sklearn.grid_search import GridSearchCV
 from sklearn.linear_model.coordinate_descent import LassoCV
 from sklearn.linear_model.least_angle import LassoLarsCV, LassoLars
 from sklearn.linear_model.randomized_l1 import RandomizedLasso
+from sklearn.linear_model.logistic import LogisticRegression
 from sklearn.metrics.metrics import mean_squared_error, f1_score, \
     precision_score, recall_score
 from sklearn.svm.classes import SVR, SVC
@@ -240,7 +241,7 @@ def set_learning_method(config, X_train, y_train):
                                 verbose=p.get('verbose', False))
             else:
                 estimator = SVC()
-                    
+
         elif method_name == "LassoCV":
             if p:
                 estimator = LassoCV(eps=p.get('eps', 1e-3),
@@ -284,6 +285,25 @@ def set_learning_method(config, X_train, y_train):
                                         verbose=False)
             else:
                 estimator = LassoLarsCV()
+
+        elif method_name == "LogisticRegression":
+            if p:
+                estimator = LogisticRegression(penalty=p.get('penalty', 'l2'),
+                                               dual=p.get('dual', False),
+                                               tol=p.get('tolerance', 0.0001),
+                                               C=('C', 1.0),
+                                               fit_intercept=p.get('fit_intercept', True),
+                                               intercept_scaling=p.get('intercept_scaling', 1),
+                                               class_weight=p.get('class_weight', None),
+                                               random_state=p.get('random_state', None),
+                                               solver=p.get('solver', 'liblinear'),
+                                               max_iter=p.get('max_iter', 100),
+                                               multi_class=p.get('multi_class', 'ovr'),
+                                               warm_start=p.get('warm_start', False),
+                                               n_jobs=p.get('n_jobs', 1),
+                                               verbose=False)
+            else:
+                estimator = LogisticRegression()
                 
     return estimator, scorers
 
