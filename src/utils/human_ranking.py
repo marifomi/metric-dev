@@ -10,7 +10,7 @@ import itertools
 from json import loads
 
 
-class HumanRank(defaultdict):
+class HumanRanking(defaultdict):
 
     def __init__(self):
         defaultdict.__init__(self, list)
@@ -158,7 +158,7 @@ def main():
     lps = ['cs-en', 'es-en', 'de-en', 'fr-en', 'ru-en']
 
     fjudge = cfg.get('Data', 'human')
-    human_ranks = HumanRank()
+    human_ranks = HumanRanking()
     human_ranks.add_human_data(fjudge, lps)
     clean_data = human_ranks.clean_data(['cs-en', 'es-en', 'de-en', 'fr-en', 'ru-en'])
 
