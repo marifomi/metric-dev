@@ -12,6 +12,7 @@ from ConfigParser import ConfigParser
 
 class LearnToRank(object):
 
+
     def get_idx_simple(self, elem, my_list):
 
         result = None
