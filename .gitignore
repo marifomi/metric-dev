@@ -1,13 +1,12 @@
 .idea/*
-tmp/
 test/
 data/
 output/
 quest/
 alignments/
 config/
-test_wmt/
 baselines/
 results/
 analysis/
 models/
+src/learning/logistic_temp.py
