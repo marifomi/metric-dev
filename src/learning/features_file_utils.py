@@ -6,6 +6,7 @@ Created on Aug 29, 2012
 import codecs
 import numpy as np
 import logging as log
+from sklearn.cross_validation import train_test_split
 
 def read_labels_file(path, delim, encoding='utf-8'):
     '''Reads the labels of each column in the training and test files (features 
@@ -92,6 +93,23 @@ def read_features_file(path, delim, encoding='utf-8', tostring=False):
     feats = np.asarray(feats_lines)
     
     return feats
+
+def split_dataset(self, input_path_x, input_path_y, output_dir):
+
+    with open(input_path_x, 'r') as f:
+        read_data_x = f.readlines()
+    f.close()
+
+    with open(input_path_y, 'r') as f:
+        read_data_y = f.readlines()
+    f.close()
+
+    x_train, x_test, y_train, y_test = train_test_split(read_data_x, read_data_y)
+
+    self.write_lines_to_file(output_dir + '/' + 'x_train', x_train)
+    self.write_lines_to_file(output_dir + '/' + 'y_train', y_train)
+    self.write_lines_to_file(output_dir + '/' + 'x_test', x_test)
+    self.write_lines_to_file(output_dir + '/' + 'y_test', y_test)
 
 
 if __name__ == '__main__':
