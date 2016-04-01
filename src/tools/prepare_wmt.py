@@ -77,8 +77,8 @@ class PrepareWmt(object):
 
     def run_processor(self, processor, data_structure, output_dir, data_set):
 
-        # Receives a processor object, runs the commands on the whole wmt dataset,
-        # writes file with the output in wmt format
+        """ Receives a processor object, runs the commands on the whole wmt dataset,
+        writes file with the output in wmt format """
 
         result = []
 
@@ -143,6 +143,8 @@ class PrepareWmt(object):
 
     def get_data_structure(self, data_dir):
 
+        # Extracts data structure with the information on the paths to reference and system files
+
         data_to_process = []
         data_sets = self.get_data_sets(data_dir)
 
@@ -166,6 +168,8 @@ class PrepareWmt(object):
         return data_to_process
 
     def get_data_structure2(self, data_dir):
+
+        # Extracts data structure without the information on the paths to reference and system files
 
         data_to_process = []
         data_sets = self.get_data_sets(data_dir)
