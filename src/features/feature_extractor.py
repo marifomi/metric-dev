@@ -1,12 +1,8 @@
 __author__ = 'MarinaFomicheva'
 
 import inspect
-from src.features.impl import features
-from ConfigParser import ConfigParser
-import os
-from src.tools.wmt_data import WmtData
-from src.tools.human_rank import HumanRank
-from src.tools.run_tools import RunTools
+import numpy as np
+from src.features.impl import features as feature_module
 
 class FeatureExtractor(object):
 
@@ -19,34 +15,37 @@ class FeatureExtractor(object):
 
         print("Validating feature names...")
 
-        validate_feature_names(features_to_extract)
+        existing_features = self.get_feature_names(feature_module)
+        self.validate_feature_names(features_to_extract, existing_features)
 
         print("Extracting features...")
 
-        for i, sent_tgt in enumerate(sents_tgt):
+        feature_vectors = []
 
-            sent_feats = []
+        for name, my_class in sorted(inspect.getmembers(feature_module)):
 
-            for name, my_class in sorted(inspect.getmembers(features)):
+            if not inspect.isclass(my_class):
+                continue
 
-                # if 'Abstract' in name or 'Scorer' in name:
-                #     continue
+            if not my_class.__module__ == feature_module.__name__:
+                continue
 
-                if not inspect.isclass(my_class):
-                    continue
+            instance = my_class()
 
-                if not my_class.__module__ == 'src.features.impl.features':
-                    continue
+            if instance.get_name() not in features_to_extract:
+                continue
 
-                instance = my_class()
+            feature_vector = []
 
-                if instance.get_name() not in features_to_extract:
-                    continue
+            for i, sent_tgt in enumerate(sents_tgt):
 
                 instance.run(sent_tgt, sents_ref[i])
-                sent_feats.append(instance.get_value())
+                feature_vector.append(instance.get_value())
 
-            self.vals.append(sent_feats)
+            feature_vectors.append(feature_vector)
+
+            result = np.array(feature_vectors)
+            self.vals = np.transpose(result)
 
         print("Finished extracting features")
 
@@ -55,12 +54,14 @@ class FeatureExtractor(object):
         return sum(1 for line in open(my_file))
 
     @staticmethod
-    def get_features_to_test(config):
-        features_to_extract = []
-        file_ = open(config.get('Features', 'feature_set'), 'r')
-        for line in file_:
-            features_to_extract.append(line.strip())
-        return features_to_extract
+    def get_features_from_config_file(config):
+
+        config_features = []
+        f_features = open(config.get('Features', 'feature_set'), 'r')
+        for line in f_features:
+            config_features.append(line.strip())
+
+        return config_features
 
     @staticmethod
     def get_features_group_name(config):
@@ -68,68 +69,31 @@ class FeatureExtractor(object):
         return file_name.split('/')[-1]
 
 
-def write_feature_names():
+    @staticmethod
+    def write_feature_names(feature_names):
+        print('\n'.join(feature_names))
 
-    features = get_feature_names()
-    print('\n'.join(features))
+    @staticmethod
+    def get_feature_names(module):
 
+        my_features = []
+        for name, my_class in sorted(inspect.getmembers(module)):
 
-def get_feature_names():
+            if not inspect.isclass(my_class):
+                continue
 
-    my_features = []
-    for name, my_class in sorted(inspect.getmembers(features)):
+            if not my_class.__module__ == module.__name__:
+                continue
 
-        if not inspect.isclass(my_class):
-            continue
+            instance = my_class()
+            my_features.append(instance.get_name())
 
-        if not my_class.__module__ == 'src.features.impl.features':
-            continue
+        return my_features
 
-        # if 'Abstract' in name or 'Scorer' in name:
-        #     continue
-        #
+    @staticmethod
+    def validate_feature_names(features_to_extract, feature_module_names):
 
-        instance = my_class()
-        my_features.append(instance.get_name())
+        for f in features_to_extract:
+            if f not in feature_module_names:
+                print "Warning! Feature " + f + "does not fecking exist!"
 
-    return my_features
-
-def validate_feature_names(features_to_extract):
-
-    existing_features = get_feature_names()
-
-    for f in features_to_extract:
-        if f not in existing_features:
-            print "Warning! Feature " + f + "does not fecking exist!"
-
-
-def main():
-
-    config = ConfigParser()
-    config.readfp(open(os.getcwd() + '/config/system.cfg'))
-    sample = 'test'
-    wmt_data = WmtData()
-
-    features_to_extract = FeatureExtractor.get_features_to_test(config)
-
-    fjudge = config.get('WMT', 'ranks' + '_' + sample)
-    human_ranks = HumanRank()
-    human_ranks.add_human_data(fjudge, config)
-
-    wmt_data.preprocess(config, sample, 'plain')
-    wmt_data.preprocess(config, sample, 'parse')
-
-    tools = RunTools(config)
-    sents_tgt, sents_ref = tools.assign_data(sample)
-
-    extractor = FeatureExtractor(config)
-    extractor.extract_features(features_to_extract, sents_tgt, sents_ref)
-    wmt_data.add_features(extractor.vals)
-
-    wmt_data.wmt_format(config, [x[0] for x in extractor.vals], wmt_data.get_lp_sizes(), wmt_data.get_lp_systems())
-
-if __name__ == '__main__':
-    config = ConfigParser()
-    config.readfp(open(os.getcwd() + '/config/absolute.cfg'))
-    features_to_extract = FeatureExtractor.get_features_to_test(config)
-    validate_feature_names(features_to_extract)
