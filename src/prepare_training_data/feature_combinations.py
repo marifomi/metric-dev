@@ -2,7 +2,7 @@ __author__ = 'MarinaFomicheva'
 
 from ConfigParser import ConfigParser
 import os
-from src.predictor.absolute_scores import corr_feature_set
+from src.prepare_training_data.absolute_scores import corr_feature_set
 from src.features.feature_extractor import FeatureExtractor as FE
 
 
@@ -12,7 +12,7 @@ def test_feature_sets():
     cfg.readfp(open(os.getcwd() + '/config/system.cfg'))
 
     group_name = FE.get_features_group_name(cfg)
-    features_to_test = FE.get_features_to_test(cfg)
+    features_to_test = FE.get_features_from_config_file(cfg)
 
     if os.path.exists(cfg.get('Data', 'output') + '/' + group_name + '.' + 'summary'):
         "Path exists!"
