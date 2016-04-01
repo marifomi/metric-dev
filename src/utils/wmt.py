@@ -3,7 +3,7 @@ __author__ = 'MarinaFomicheva'
 import os
 from src.tools.run_tools import RunTools
 from src.features.feature_extractor import FeatureExtractor
-from src.tools.human_rank import HumanRank
+from src.tools.human_rank import HumanRanking
 from src.learning import learn_model
 from sklearn.linear_model import LogisticRegression
 from src.learning.features_file_utils import read_features_file
@@ -54,7 +54,7 @@ class WMT(object):
 
     def learn_to_rank(self, f_features, f_meta_data, f_judgements, f_out_feats, f_out_obj):
 
-        human_ranks = HumanRank()
+        human_ranks = HumanRanking()
         human_ranks.add_human_data(f_judgements, self.lps)
 
         features = read_tsv(f_features)
