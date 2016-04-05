@@ -2,12 +2,12 @@ __author__ = 'MarinaFomicheva'
 
 import numpy as np
 
-from src.tools.prepare_wmt import PrepareWmt
-from src.tools.human_ranking import HumanRanking
-from src.tools.run_processors import RunProcessors
+from src.utils.prepare_wmt import PrepareWmt
+from src.utils.human_ranking import HumanRanking
+from src.processors.run_processors import RunProcessors
 from src.features.feature_extractor import FeatureExtractor
 from src.learning import learn_model
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, cohen_kappa_score
 from ConfigParser import ConfigParser
 
 
@@ -20,8 +20,9 @@ class RankingTask(object):
     def get_data(self):
 
         process_wmt = PrepareWmt()
-        data_structure = process_wmt.get_data_structure2(self.config.get('WMT', 'input_dir'))
-        process_wmt.print_data_set(self.config, data_structure)
+        data_structure1 = process_wmt.get_data_structure(self.config.get('WMT', 'input_dir'))
+        data_structure2 = process_wmt.get_data_structure2(self.config.get('WMT', 'input_dir'))
+        process_wmt.print_data_set(self.config, data_structure1)
 
         f_judgements = self.config.get('WMT', 'human_ranking')
         human_rankings = HumanRanking()
@@ -34,7 +35,7 @@ class RankingTask(object):
         features_to_extract = FeatureExtractor.get_features_from_config_file(self.config)
         extractor.extract_features(features_to_extract, sents_tgt, sents_ref)
 
-        return data_structure, human_rankings, extractor.vals
+        return data_structure2, human_rankings, extractor.vals
 
     def training_set_for_rank_direct(self, data_structure, human_rankings, feature_values, ignore_ties=True):
 
@@ -52,10 +53,12 @@ class RankingTask(object):
 
                 f_objective.write(label + '\n')
 
-                idx_sys1 = self.get_sentence_idx(data_set, lang_pair, data_structure, human_comparison.sys1)
-                idx_sys2 = self.get_sentence_idx(data_set, lang_pair, data_structure, human_comparison.sys2)
+                seg_id = human_comparison.phrase
+                sys1 = human_comparison.sys1
+                sys2 = human_comparison.sys2
+                idx_sys1, idx_sys2 = self.get_sentence_idx(data_set, lang_pair, data_structure, seg_id, sys1, sys2)
 
-                difference_vector = np.fabs(np.subtract(feature_values[idx_sys1], feature_values[idx_sys2]))
+                difference_vector = np.subtract(feature_values[idx_sys1], feature_values[idx_sys2])
 
                 f_features.write('\t'.join([str(diff) for diff in difference_vector]) + '\n')
 
@@ -75,10 +78,9 @@ class RankingTask(object):
                 if human_comparison.sign == '=':
                     continue
 
+                seg_id = human_comparison.phrase
                 winner, loser = self.find_winner_loser(human_comparison)
-
-                idx_winner = self.get_sentence_idx(data_set, lang_pair, data_structure, winner)
-                idx_loser = self.get_sentence_idx(data_set, lang_pair, data_structure, loser)
+                idx_winner, idx_loser = self.get_sentence_idx(data_set, lang_pair, data_structure, seg_id, winner, loser)
 
                 positive_instance, negative_instance = self.get_instance(feature_values[idx_winner],
                                                                          feature_values[idx_loser])
@@ -101,6 +103,7 @@ class RankingTask(object):
     def evaluate_predicted(predicted, gold_class_labels, score='accuracy'):
         if score == 'accuracy':
             print("The accuracy score is " + str(accuracy_score(gold_class_labels, predicted)))
+            print("The kappa is " + str(cohen_kappa_score(gold_class_labels, predicted)))
         else:
             print("Error! Unknown type of error metric!")
 
@@ -121,10 +124,10 @@ class RankingTask(object):
             return human_comparison.sys2, human_comparison.sys1
 
     @staticmethod
-    def get_sentence_idx(data_set, lang_pair, data_structure, human_comparison):
+    def get_sentence_idx(data_set, lang_pair, data_structure, seg_id, sys1, sys2):
 
-        return data_structure.index([data_set, lang_pair, human_comparison.sys1, human_comparison.phrase]),\
-               data_structure.index([data_set, lang_pair, human_comparison.sys2, human_comparison.phrase])
+        return data_structure.index([data_set, lang_pair, sys1, seg_id]),\
+               data_structure.index([data_set, lang_pair, sys2, seg_id])
 
     @staticmethod
     def signs_to_labels(sign, ignore_ties):

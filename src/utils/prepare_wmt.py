@@ -6,6 +6,7 @@ from collections import defaultdict
 from src.utils.language_codes import *
 from ConfigParser import ConfigParser
 import re
+from json import loads
 
 """ This class processes and prepares the data
     from WMT datasets.
@@ -108,13 +109,25 @@ class PrepareWmt(object):
 
         # Writes wmt data set into a single file, ordered by language pair, system, segment
 
-        f_out_tgt = codecs.open(config.get('WMT', 'output_dir') + '/' + 'tgt', 'w', 'utf-8')
-        f_out_ref = codecs.open(config.get('WMT', 'output_dir') + '/' + 'ref', 'w', 'utf-8')
+        path_out_tgt = config.get('WMT', 'output_dir') + '/' + 'tgt'
+        path_out_ref = config.get('WMT', 'output_dir') + '/' + 'ref'
+
+        if os.path.exists(path_out_tgt) and os.path.exists(path_out_ref):
+            print("Data files already exist.\nWMT printer will not run.")
+            return
+
+        print("Printing WMT dataset to " + path_out_tgt + " and " + path_out_ref)
+
+        f_out_tgt = codecs.open(path_out_tgt, 'w', 'utf-8')
+        f_out_ref = codecs.open(path_out_ref, 'w', 'utf-8')
 
         counter_tgt = 0
         counter_ref = 0
 
         for data_dir, data_set, lang_pair, system_path, system_name, reference_path, counter_start, counter_end in data_structure:
+
+            if not config.get('WMT', 'directions') == 'None' and lang_pair not in loads(config.get('WMT', 'directions')):
+                continue
 
             f_input_tgt = codecs.open(system_path, 'r', 'utf-8')
             f_input_ref = codecs.open(reference_path, 'r', 'utf-8')

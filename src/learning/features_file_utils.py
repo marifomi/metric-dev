@@ -94,7 +94,7 @@ def read_features_file(path, delim, encoding='utf-8', tostring=False):
     
     return feats
 
-def split_dataset(self, input_path_x, input_path_y, output_dir):
+def split_dataset(input_path_x, input_path_y, output_dir):
 
     with open(input_path_x, 'r') as f:
         read_data_x = f.readlines()
@@ -106,10 +106,18 @@ def split_dataset(self, input_path_x, input_path_y, output_dir):
 
     x_train, x_test, y_train, y_test = train_test_split(read_data_x, read_data_y)
 
-    self.write_lines_to_file(output_dir + '/' + 'x_train', x_train)
-    self.write_lines_to_file(output_dir + '/' + 'y_train', y_train)
-    self.write_lines_to_file(output_dir + '/' + 'x_test', x_test)
-    self.write_lines_to_file(output_dir + '/' + 'y_test', y_test)
+    write_lines_to_file(output_dir + '/' + 'x_train', x_train)
+    write_lines_to_file(output_dir + '/' + 'y_train', y_train)
+    write_lines_to_file(output_dir + '/' + 'x_test', x_test)
+    write_lines_to_file(output_dir + '/' + 'y_test', y_test)
+
+
+def write_lines_to_file(file_path, lines):
+
+    with open(file_path, 'w') as f:
+        for line in lines:
+            f.write(line)
+    f.close()
 
 
 if __name__ == '__main__':

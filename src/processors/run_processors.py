@@ -2,7 +2,7 @@ __author__ = 'MarinaFomicheva'
 
 from json import loads
 import inspect
-from src.tools import processors
+from src.processors import processors
 from src.utils.sentence import Sentence
 
 class RunProcessors(object):

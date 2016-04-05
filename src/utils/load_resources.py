@@ -2,6 +2,7 @@ __author__ = 'MarinaFomicheva'
 
 import re
 from src.lex_resources.config import *
+import numpy as np
 
 
 def load_ppdb(ppdbFileName):
@@ -19,20 +20,15 @@ def load_ppdb(ppdbFileName):
         ppdb_dict[(tokens[0], tokens[1])] = 0.6
         count += 1
 
-def load_word_vectors(vectorsFileName):
+def load_word_vectors(vectorsFileName, delimiter=' '):
 
-    global wordVector
-    vectorFile = open (vectorsFileName, 'r')
+    vector_file = open(vectorsFileName, 'r')
 
-    for line in vectorFile:
+    for line in vector_file:
         if line == '\n':
             continue
 
-        match = re.match(r'^([^ ]+) (.+)',line)
-        if type(match) is None:
-            continue
-
-        word = match.group(1)
-        vector = match.group(2)
+        word = line.strip().split(delimiter)[0]
+        vector = np.asfarray(line.strip().split(delimiter)[1:])
 
         word_vector[word] = vector

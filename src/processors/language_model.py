@@ -8,12 +8,12 @@ from collections import defaultdict
 from math import floor
 import re
 
-# Produce n-gram counts from corpus
-# Clean n-gram counts from corpus
-# Produce lm from corpus
+""" Produce n-gram counts from corpus
+    Clean n-gram counts from corpus
+    Produce lm from corpus """
 
 
-class LangModelTools(object):
+class LanguageModel(object):
 
     def __init__(self):
         self.ngram_tools_path = ''
@@ -123,7 +123,7 @@ def main():
 
     f_in = os.getcwd() + '/' + 'data' + '/' + 'wmt13_graham' + '/' + 'system.pos.join.train'
     f_lm = os.path.expanduser('~/Dropbox/workspace/questplusplus/lang_resources/english/wmt15_baseline/nc.pos.1.en.lm')
-    lm = LangModelTools()
+    lm = LanguageModel()
     lm.set_path_to_tools('/Users/MarinaFomicheva/workspace/srilm-1.7.1/bin/macosx/')
     lm.produce_ppl(f_in, f_in + '.ppl', f_lm, 3)
 

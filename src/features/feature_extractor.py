@@ -24,6 +24,8 @@ class FeatureExtractor(object):
 
         for name, my_class in sorted(inspect.getmembers(feature_module)):
 
+            print(name)
+
             if not inspect.isclass(my_class):
                 continue
 
@@ -57,9 +59,19 @@ class FeatureExtractor(object):
     def get_features_from_config_file(config):
 
         config_features = []
-        f_features = open(config.get('Features', 'feature_set'), 'r')
-        for line in f_features:
-            config_features.append(line.strip())
+        f_features = open(config.get('Features', 'feature_set'), 'r').readlines()
+        for line in sorted(f_features):
+            config_features.append(line.strip().split(':')[0])
+
+        return config_features
+
+    @staticmethod
+    def get_combinations_from_config_file(config):
+
+        config_features = []
+        f_features = open(config.get('Features', 'feature_set'), 'r').readlines()
+        for line in sorted(f_features):
+            config_features.append(line.strip().split(':')[1])
 
         return config_features
 
@@ -95,5 +107,5 @@ class FeatureExtractor(object):
 
         for f in features_to_extract:
             if f not in feature_module_names:
-                print "Warning! Feature " + f + "does not fecking exist!"
+                print "Warning! Feature " + f + "does not exist!"
 

@@ -116,7 +116,7 @@ class HumanRanking(defaultdict):
             return line['system1Id'].split('.')[0]
 
     def get_segment(self, line):
-        return int(line['srcIndex']) - 1
+        return int(line['srcIndex'])
 
     def get_system_ranks(self, line, dataset, direction):
         systems_ranks = []

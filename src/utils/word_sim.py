@@ -1,6 +1,8 @@
 import math
 
 from src.lex_resources.config import *
+from numpy import dot
+from gensim import matutils
 
 def wordRelatednessAlignment(word1, word2, config):
 
@@ -42,7 +44,7 @@ def wordRelatednessAlignment(word1, word2, config):
     elif presentInPPDB(canonical_word1, canonical_word2) and 'paraphrases' in config.selected_lexical_resources:
         lexSim = config.paraphrase
 
-    elif ((not functionWord(word1.form) and not functionWord(word2.form)) or word1.pos[0] == word2.pos[0]) and cosineSimilarity(word1.form, word2.form) > config.related_threshold and 'distributional' in config.selected_lexical_resources:
+    elif ((not functionWord(word1.form) and not functionWord(word2.form)) or word1.pos[0] == word2.pos[0]) and cosine_similarity(word1.form, word2.form) > config.related_threshold and 'distributional' in config.selected_lexical_resources:
 
         if word1.form not in punctuations and word2.form not in punctuations:
             lexSim = config.related
@@ -116,22 +118,12 @@ def wordRelatednessFeature(word1, word2):
 
     return lexSim
 
-def cosineSimilarity(word1, word2):
+def cosine_similarity(word1, word2):
 
     global word_vector
 
-    if word1.lower() in word_vector and word2.lower() in word_vector:
-        vector1 = word_vector[word1.lower()].split( )
-        vector2 = word_vector[word2.lower()].split( )
-        sumxx, sumxy, sumyy = 0, 0, 0
-
-        for i in range(len(vector1)):
-            x = float(vector1[i])
-            y = float(vector2[i])
-            sumxx += x * x
-            sumyy += y * y
-            sumxy += x * y
-        return sumxy/math.sqrt(sumxx * sumyy)
+    if word1.lower() in word_vector.keys() and word2.lower() in word_vector.keys():
+        return dot(matutils.unitvec(word_vector[word1.lower()]), matutils.unitvec(word_vector[word2.lower()]))
     else:
         return 0
 

@@ -2,7 +2,7 @@ __author__ = 'MarinaFomicheva'
 
 from collections import defaultdict
 from ConfigParser import ConfigParser
-from src.tools.abstract_processor import AbstractProcessor
+from src.processors.abstract_processor import AbstractProcessor
 from src.alignment.aligner import Aligner
 from src.alignment.aligner import stopwords
 from src.alignment.aligner import punctuations
@@ -21,7 +21,7 @@ import src.utils.txt_xml as xml
 from gensim.models.word2vec import Word2Vec
 from numpy import array
 from numpy import zeros
-from src.tools.lang_model_tools import LangModelTools
+from src.processors.language_model import LanguageModel
 from src.utils.load_resources import load_ppdb, load_word_vectors
 from src.alignment.aligner_config import AlignerConfig
 from src.lex_resources.config import *
@@ -42,7 +42,7 @@ class PosLangModel(AbstractProcessor):
         f_in = config.get('Data', 'tgt') + '.pos.join' + sample
         f_lm = config.get('LangModels', 'pos')
         f_out = config.get('Data', 'tgt') + '.pos.join' + '.ppl' + sample
-        lm = LangModelTools()
+        lm = LanguageModel()
         lm.set_path_to_tools('/Users/MarinaFomicheva/workspace/srilm-1.7.1/bin/macosx/')
         lm.produce_ppl(f_in, f_out, f_lm, 3)
 
@@ -179,21 +179,27 @@ class WordVectors(AbstractProcessor):
         AbstractProcessor.__init__(self)
         AbstractProcessor.set_name(self, 'word_vectors')
 
-    def run(self, config, sample):
+    def run(self, config):
         print "Loading word vectors"
 
-    def get(self, config, sample):
+    def get(self, config):
 
-        print "Getting word vectors for sentences"
-
-        lines_ref = codecs.open(config.get('Data', 'ref') + '.' + 'token' + sample, 'r', 'utf-8').readlines()
-        lines_tgt = codecs.open(config.get('Data', 'tgt') + '.' + 'token' + sample, 'r', 'utf-8').readlines()
+        lines_ref = codecs.open(config.get('Data', 'ref') + '.' + 'token', 'r', 'utf-8').readlines()
+        lines_tgt = codecs.open(config.get('Data', 'tgt') + '.' + 'token', 'r', 'utf-8').readlines()
 
         fvectors = config.get('Vectors', 'path')
+
+        print "Loading word vectors from " + fvectors
         wv = Word2Vec.load_word2vec_format(fvectors, binary=False)
 
+        print "Finished loading word vectors from " + fvectors
+
+        print "Building sentence vectors for target..."
         AbstractProcessor.set_result_tgt(self, self.words2vec(lines_tgt, wv))
+        print "Finished building sentence vectors for target"
+        print "Building sentence vectors for reference..."
         AbstractProcessor.set_result_ref(self, self.words2vec(lines_ref, wv))
+        print "Finished building sentence vectors for reference"
 
         wv = None
         print "Finished getting word vectors"
@@ -205,7 +211,13 @@ class WordVectors(AbstractProcessor):
         # Here vectors are added for all the words to preserve sentence length
 
         result = []
+
+        cnt = 0
         for line in sents:
+
+            cnt += 1
+
+            print str(cnt)
 
             tokens = [t.lower() for t in line.strip().split(' ')]
             vecs = []
@@ -220,6 +232,20 @@ class WordVectors(AbstractProcessor):
 
         return result
 
+    @staticmethod
+    def word2vec_format(input_path, vocab_size, vector_size, delimiter):
+
+        lines = open(input_path, 'r').readlines()
+        output_path = input_path + '.' + 'word2vec'
+        if os.path.exists(output_path):
+            print("Already exists!")
+            return
+
+        output_f = open(output_path, 'w')
+        output_f.write(str(vocab_size) + ' ' + str(vector_size) + '\n')
+        for line in lines:
+            output_f.write(line.replace('\t', ' '))
+
 
 class SentVector(AbstractProcessor):
 
@@ -227,15 +253,15 @@ class SentVector(AbstractProcessor):
         AbstractProcessor.__init__(self)
         AbstractProcessor.set_name(self, 'sent_vector')
 
-    def run(self, config, sample):
+    def run(self, config):
         print "Loading word vectors"
 
-    def get(self, config, sample):
+    def get(self, config):
 
         print "Getting sentence vectors"
 
-        lines_ref = codecs.open(config.get('Data', 'ref') + '.' + 'token' + sample, 'r', 'utf-8').readlines()
-        lines_tgt = codecs.open(config.get('Data', 'tgt') + '.' + 'token' + sample, 'r', 'utf-8').readlines()
+        lines_ref = codecs.open(config.get('Data', 'ref') + '.' + 'token', 'r', 'utf-8').readlines()
+        lines_tgt = codecs.open(config.get('Data', 'tgt') + '.' + 'token', 'r', 'utf-8').readlines()
 
         fvectors = config.get('Vectors', 'path')
         wv = Word2Vec.load_word2vec_format(fvectors, binary=False)
@@ -586,21 +612,31 @@ class Tokenizer(AbstractProcessor):
         tokenizer = config.get('Tokenizer', 'path')
         language = config.get('Settings', 'tgt_lang')
 
+        path_output_tgt = config.get('Data', 'tgt') + '.token'
+        path_output_ref = config.get('Data', 'ref') + '.token'
+
+        if os.path.exists(path_output_tgt) and os.path.exists(path_output_ref):
+            print "The file " + path_output_tgt + "already exists\nTokenizer will not run."
+            return
+
+        f_output_tgt = open(config.get('Data', 'tgt') + '.token', 'w')
+        f_output_ref = open(config.get('Data', 'ref') + '.token', 'w')
+
         # Process target
 
         input_tgt = open(config.get('Data', 'tgt'), 'r')
-        output_tgt = open(config.get('Data', 'tgt') + '.token', 'w')
-        p = subprocess.Popen(['perl', tokenizer, '-q', '-l', language], stdin=input_tgt, stdout=output_tgt)
+
+        p = subprocess.Popen(['perl', tokenizer, '-q', '-l', language], stdin=input_tgt, stdout=f_output_tgt)
         p.wait()
-        output_tgt.flush()
+        f_output_tgt.flush()
 
         # Process reference
 
         input_ref = open(config.get('Data', 'ref'), 'r')
-        output_ref = open(config.get('Data', 'ref') + '.token', 'w')
-        p = subprocess.Popen(['perl', tokenizer, '-q', '-l', language], stdin=input_ref, stdout=output_ref)
+
+        p = subprocess.Popen(['perl', tokenizer, '-q', '-l', language], stdin=input_ref, stdout=f_output_ref)
         p.wait()
-        output_ref.flush()
+        f_output_ref.flush()
 
         # Copy source (for quest)
         shutil.copyfile(config.get('Data', 'tgt') + '.' + 'token', config.get('Data', 'src') + '.' + 'token')
@@ -755,7 +791,7 @@ class LangModelWordFeatures(AbstractProcessor):
         AbstractProcessor.set_result_ref(self, result)
 
 
-class LangModelSentenceFeatures(AbstractProcessor):
+class LanguageModelSentenceFeatures(AbstractProcessor):
 
     # Language model sentence features extracted using SRILM: oov, probability, perplexity
 
