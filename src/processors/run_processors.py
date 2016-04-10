@@ -52,8 +52,10 @@ class RunProcessors(object):
 
             for k, (name, my_class) in enumerate(select_procs):
                 instance = my_class()
-                my_sentence_tgt.add_data(instance.get_name(), results_target[k][i])
-                my_sentence_ref.add_data(instance.get_name(), results_reference[k][i])
+
+                if instance.get_output() is not None:
+                    my_sentence_tgt.add_data(instance.get_name(), results_target[k][i])
+                    my_sentence_ref.add_data(instance.get_name(), results_reference[k][i])
 
             sentences_target.append(my_sentence_tgt)
             sentences_reference.append(my_sentence_ref)

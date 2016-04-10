@@ -155,7 +155,7 @@ class PropNonAlignedTarget(AbstractFeature):
     def run(self, cand, ref):
 
         if len(cand['tokens']) > 0:
-            AbstractFeature.set_value(self, len(cand['tokens']) - len(cand['alignments'][0]) / float(len(cand['tokens'])))
+            AbstractFeature.set_value(self, (len(cand['tokens']) - len(cand['alignments'][0])) / float(len(cand['tokens'])))
         else:
             AbstractFeature.set_value(self, 0)
 
@@ -170,7 +170,7 @@ class PropNonAlignedRef(AbstractFeature):
     def run(self, cand, ref):
 
         if len(ref['tokens']) > 0:
-            AbstractFeature.set_value(self, len(ref['tokens']) - len(cand['alignments'][0]) / float(len(ref['tokens'])))
+            AbstractFeature.set_value(self, (len(ref['tokens']) - len(cand['alignments'][0])) / float(len(ref['tokens'])))
         else:
             AbstractFeature.set_value(self, 0)
 
@@ -199,7 +199,7 @@ class PropAlignedRef(AbstractFeature):
     def run(self, cand, ref):
 
         if len(ref['parse']) > 0:
-            AbstractFeature.set_value(self, len(cand['alignments'][0]) / float(len(ref['parse'])))
+            AbstractFeature.set_value(self, len(cand['alignments'][0]) / float(len(ref['tokens'])))
         else:
             AbstractFeature.set_value(self, 0)
 
@@ -219,10 +219,13 @@ class CountAlignedContent(AbstractFeature):
             count = 0
 
             for word in cand['alignments'][1]:
-                if word[0] not in config.stopwords and word[0] not in config.punctuations:
+                if not word_sim.functionWord(word[0]):
                     count += 1
 
             AbstractFeature.set_value(self, count)
+
+        else:
+            AbstractFeature.set_value(self, -1)
 
 
 class CountAlignedFunction(AbstractFeature):
@@ -238,48 +241,60 @@ class CountAlignedFunction(AbstractFeature):
 
         if len(cand['alignments'][0]) > 0:
             count = 0
+
             for word in cand['alignments'][1]:
-                if word[0] in config.stopwords or word[0] in config.punctuations:
+                if word_sim.functionWord(word[0]):
                     count += 1
 
             AbstractFeature.set_value(self, count)
 
+        else:
+            AbstractFeature.set_value(self, -1)
 
-class CountNonAlignedContent(AbstractFeature):
+
+class CountNonAlignedContentTarget(AbstractFeature):
 
     # Supposing content words can only be aligned to content words
 
     def __init__(self):
         AbstractFeature.__init__(self)
-        AbstractFeature.set_name(self, 'count_non_aligned_content')
-        AbstractFeature.set_description(self, "Count of non aligned content words")
+        AbstractFeature.set_name(self, 'count_non_aligned_content_target')
+        AbstractFeature.set_description(self, "Count of non aligned content words in the target translation")
 
     def run(self, cand, ref):
+
+        if len(cand['alignments'][0]) == len(cand['tokens']):
+            AbstractFeature.set_value(self, -1)
+            return
 
         count = 0
         for i, word in enumerate(cand['tokens']):
             if i + 1 not in [x[0] for x in cand['alignments'][0]]:
-                if word.lower() not in config.stopwords and word.lower() not in config.punctuations:
+                if not word_sim.functionWord(word):
                     count += 1
 
             AbstractFeature.set_value(self, count)
 
 
-class CountNonAlignedFunction(AbstractFeature):
+class CountNonAlignedFunctionTarget(AbstractFeature):
 
     # Supposing content words can only be aligned to content words
 
     def __init__(self):
         AbstractFeature.__init__(self)
-        AbstractFeature.set_name(self, 'count_non_aligned_function')
-        AbstractFeature.set_description(self, "Count of non-aligned function words")
+        AbstractFeature.set_name(self, 'count_non_aligned_function_target')
+        AbstractFeature.set_description(self, "Count of non-aligned function words in the target translation")
 
     def run(self, cand, ref):
+
+        if len(cand['alignments'][0]) == len(cand['tokens']):
+            AbstractFeature.set_value(self, -1)
+            return
 
         count = 0
         for i, word in enumerate(cand['tokens']):
             if i + 1 not in [x[0] for x in cand['alignments'][0]]:
-                if word.lower() in config.stopwords and word.lower() not in config.punctuations:
+                if word_sim.functionWord(word):
                     count += 1
 
             AbstractFeature.set_value(self, count)
@@ -287,37 +302,38 @@ class CountNonAlignedFunction(AbstractFeature):
 
 class PropNonAlignedContent(AbstractFeature):
 
-    # On target side
-
     def __init__(self):
         AbstractFeature.__init__(self)
-        AbstractFeature.set_name(self, 'prop_non_aligned_content')
+        AbstractFeature.set_name(self, 'prop_non_aligned_content_target')
         AbstractFeature.set_description(self, "Proportion of non aligned content words")
 
     def run(self, cand, ref):
 
+        if len(cand['alignments'][0]) == len(cand['tokens']):
+            AbstractFeature.set_value(self, -1)
+            return
+
         count = 0
         for i, word in enumerate(cand['tokens']):
             if i + 1 not in [x[0] for x in cand['alignments'][0]]:
-                if word.lower() not in config.stopwords and word.lower() not in config.punctuations:
+                if not word_sim.functionWord(word):
                     count += 1
 
-            if len(cand['tokens']) == len(cand['alignments'][0]):
-                AbstractFeature.set_value(self, 0)
-            else:
-                AbstractFeature.set_value(self, count/float(len(cand['tokens']) - len(cand['alignments'][0])))
+        AbstractFeature.set_value(self, count/float(len(cand['tokens']) - len(cand['alignments'][0])))
 
 
 class PropNonAlignedFunction(AbstractFeature):
 
-    # On target side
-
     def __init__(self):
         AbstractFeature.__init__(self)
-        AbstractFeature.set_name(self, 'prop_non_aligned_function')
+        AbstractFeature.set_name(self, 'prop_non_aligned_function_target')
         AbstractFeature.set_description(self, "Prop of non-aligned function words")
 
     def run(self, cand, ref):
+
+        if len(cand['alignments'][0]) == len(cand['tokens']):
+            AbstractFeature.set_value(self, -1)
+            return
 
         count = 0
         for i, word in enumerate(cand['tokens']):
@@ -325,10 +341,7 @@ class PropNonAlignedFunction(AbstractFeature):
                 if word.lower() in config.stopwords and word.lower() not in config.punctuations:
                     count += 1
 
-            if len(cand['tokens']) == len(cand['alignments'][0]):
-                AbstractFeature.set_value(self, 0)
-            else:
-                AbstractFeature.set_value(self, count/float(len(cand['tokens']) - len(cand['alignments'][0])))
+        AbstractFeature.set_value(self, count/float(len(cand['tokens']) - len(cand['alignments'][0])))
 
 
 class PropAlignedContent(AbstractFeature):
@@ -346,12 +359,12 @@ class PropAlignedContent(AbstractFeature):
             count = 0
 
             for word in cand['alignments'][1]:
-                if word[0] not in config.stopwords and word[0] not in config.punctuations:
+                if not word_sim.functionWord(word[0]):
                     count += 1
 
             AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
         else:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
 
 
 class PropAlignedFunction(AbstractFeature):
@@ -367,13 +380,14 @@ class PropAlignedFunction(AbstractFeature):
 
         if len(cand['alignments'][0]) > 0:
             count = 0
+
             for word in cand['alignments'][1]:
-                if word[0] in config.stopwords or word[0] in config.punctuations:
+                if word_sim.functionWord(word[0]):
                     count += 1
 
             AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
         else:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
 
 
 class PropAlignedExactExact(AbstractFeature):
@@ -397,7 +411,7 @@ class PropAlignedExactExact(AbstractFeature):
 
             AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
         else:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
 
 
 class CountAlignedExactExact(AbstractFeature):
@@ -420,6 +434,8 @@ class CountAlignedExactExact(AbstractFeature):
                     count += 1
 
             AbstractFeature.set_value(self, count)
+        else:
+            AbstractFeature.set_value(self, -1)
 
 
 class PropAlignedSynExact(AbstractFeature):
@@ -443,7 +459,7 @@ class PropAlignedSynExact(AbstractFeature):
 
             AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
         else:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
 
 
 class CountAlignedSynExact(AbstractFeature):
@@ -466,6 +482,8 @@ class CountAlignedSynExact(AbstractFeature):
                     count += 1
 
             AbstractFeature.set_value(self, count)
+        else:
+            AbstractFeature.set_value(self, -1)
 
 
 class PropAlignedParaExact(AbstractFeature):
@@ -489,7 +507,7 @@ class PropAlignedParaExact(AbstractFeature):
 
             AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
         else:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
 
 
 class CountAlignedParaExact(AbstractFeature):
@@ -512,6 +530,8 @@ class CountAlignedParaExact(AbstractFeature):
                     count += 1
 
             AbstractFeature.set_value(self, count)
+        else:
+            AbstractFeature.set_value(self, -1)
 
 
 class PropAlignedExactCoarse(AbstractFeature):
@@ -535,7 +555,7 @@ class PropAlignedExactCoarse(AbstractFeature):
 
             AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
         else:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
 
 
 class CountAlignedExactCoarse(AbstractFeature):
@@ -558,6 +578,8 @@ class CountAlignedExactCoarse(AbstractFeature):
                     count += 1
 
             AbstractFeature.set_value(self, count)
+        else:
+            AbstractFeature.set_value(self, -1)
 
 
 class PropAlignedSynCoarse(AbstractFeature):
@@ -581,7 +603,7 @@ class PropAlignedSynCoarse(AbstractFeature):
 
             AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
         else:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
 
 
 class CountAlignedSynCoarse(AbstractFeature):
@@ -604,6 +626,8 @@ class CountAlignedSynCoarse(AbstractFeature):
                     count += 1
 
             AbstractFeature.set_value(self, count)
+        else:
+            AbstractFeature.set_value(self, -1)
 
 
 class PropAlignedParaCoarse(AbstractFeature):
@@ -622,12 +646,13 @@ class PropAlignedParaCoarse(AbstractFeature):
                 word_candidate = cand['parse'][index[0] - 1]
                 word_reference = ref['parse'][index[1] - 1]
 
-                if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Paraphrase' and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Coarse':
+                if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Paraphrase':
+                    #and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Coarse':
                     count += 1
 
             AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
         else:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
 
 
 class CountAlignedParaCoarse(AbstractFeature):
@@ -651,6 +676,8 @@ class CountAlignedParaCoarse(AbstractFeature):
                         count += 1
 
             AbstractFeature.set_value(self, count)
+        else:
+            AbstractFeature.set_value(self, -1)
 
 
 class PropAlignedSynDiff(AbstractFeature):
@@ -674,7 +701,7 @@ class PropAlignedSynDiff(AbstractFeature):
 
             AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
         else:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
 
 
 class CountAlignedSynDiff(AbstractFeature):
@@ -697,6 +724,8 @@ class CountAlignedSynDiff(AbstractFeature):
                     count += 1
 
             AbstractFeature.set_value(self, count)
+        else:
+            AbstractFeature.set_value(self, -1)
 
 
 class PropAlignedParaDiff(AbstractFeature):
@@ -720,7 +749,7 @@ class PropAlignedParaDiff(AbstractFeature):
 
             AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
         else:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
 
 
 class CountAlignedParaDiff(AbstractFeature):
@@ -743,6 +772,8 @@ class CountAlignedParaDiff(AbstractFeature):
                     count += 1
 
             AbstractFeature.set_value(self, count)
+        else:
+            AbstractFeature.set_value(self, -1)
 
 
 class PropAlignedDistribExact(AbstractFeature):
@@ -766,7 +797,7 @@ class PropAlignedDistribExact(AbstractFeature):
 
             AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
         else:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
 
 
 class CountAlignedDistribExact(AbstractFeature):
@@ -789,6 +820,8 @@ class CountAlignedDistribExact(AbstractFeature):
                     count += 1
 
             AbstractFeature.set_value(self, count)
+        else:
+            AbstractFeature.set_value(self, -1)
 
 
 class PropAlignedDistribCoarse(AbstractFeature):
@@ -812,7 +845,7 @@ class PropAlignedDistribCoarse(AbstractFeature):
 
             AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
         else:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
 
 
 class CountAlignedDistribCoarse(AbstractFeature):
@@ -835,6 +868,8 @@ class CountAlignedDistribCoarse(AbstractFeature):
                     count += 1
 
             AbstractFeature.set_value(self, count)
+        else:
+            AbstractFeature.set_value(self, -1)
 
 
 class PropAlignedDistribDiff(AbstractFeature):
@@ -858,7 +893,7 @@ class PropAlignedDistribDiff(AbstractFeature):
 
             AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
         else:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
 
 
 class CountAlignedDistribDiff(AbstractFeature):
@@ -881,6 +916,8 @@ class CountAlignedDistribDiff(AbstractFeature):
                     count += 1
 
             AbstractFeature.set_value(self, count)
+        else:
+            AbstractFeature.set_value(self, -1)
 
 
 class PropAlignedPosExact(AbstractFeature):
@@ -904,7 +941,7 @@ class PropAlignedPosExact(AbstractFeature):
 
             AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
         else:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
 
 
 class PropAlignedPosCoarse(AbstractFeature):
@@ -928,7 +965,7 @@ class PropAlignedPosCoarse(AbstractFeature):
 
             AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
         else:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
 
 
 class PropAlignedPosDiff(AbstractFeature):
@@ -952,7 +989,7 @@ class PropAlignedPosDiff(AbstractFeature):
 
             AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
         else:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
 
 
 class PropAlignedLexExact(AbstractFeature):
@@ -976,7 +1013,7 @@ class PropAlignedLexExact(AbstractFeature):
 
             AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
         else:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
 
 
 class PropAlignedLexSyn(AbstractFeature):
@@ -1000,7 +1037,7 @@ class PropAlignedLexSyn(AbstractFeature):
 
             AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
         else:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
 
 
 class PropAlignedLexPara(AbstractFeature):
@@ -1024,7 +1061,7 @@ class PropAlignedLexPara(AbstractFeature):
 
             AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
         else:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
 
 
 class PropAlignedLexDistrib(AbstractFeature):
@@ -1048,7 +1085,7 @@ class PropAlignedLexDistrib(AbstractFeature):
 
             AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
         else:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
 
 
 class PropAlignedLexExactMeteor(AbstractFeature):
@@ -1070,7 +1107,7 @@ class PropAlignedLexExactMeteor(AbstractFeature):
 
             AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
         else:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
 
 
 class PropAlignedLexNonExactMeteor(AbstractFeature):
@@ -1092,7 +1129,7 @@ class PropAlignedLexNonExactMeteor(AbstractFeature):
 
             AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
         else:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
 
 
 class PropAlignedLexStemMeteor(AbstractFeature):
@@ -1114,7 +1151,7 @@ class PropAlignedLexStemMeteor(AbstractFeature):
 
             AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
         else:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
 
 
 class PropAlignedLexSynMeteor(AbstractFeature):
@@ -1136,7 +1173,7 @@ class PropAlignedLexSynMeteor(AbstractFeature):
 
             AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
         else:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
 
 
 class PropAlignedLexParaMeteor(AbstractFeature):
@@ -1158,7 +1195,7 @@ class PropAlignedLexParaMeteor(AbstractFeature):
 
             AbstractFeature.set_value(self, count / float(len(cand['alignments'][0])))
         else:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
 
 
 class AvgPenExactTarget(AbstractFeature):
@@ -1176,7 +1213,7 @@ class AvgPenExactTarget(AbstractFeature):
         penalties = []
 
         if len(cand['alignments'][0]) == 0:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
             return
 
         for i, index in enumerate(cand['alignments'][0]):
@@ -1222,7 +1259,7 @@ class AvgPenExactRef(AbstractFeature):
         penalties = []
 
         if len(cand['alignments'][0]) == 0:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
             return
 
         for i, index in enumerate(cand['alignments'][0]):
@@ -1268,7 +1305,7 @@ class AvgPenNonExactTarget(AbstractFeature):
         penalties = []
 
         if len(cand['alignments'][0]) == 0:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
             return
 
         for i, index in enumerate(cand['alignments'][0]):
@@ -1314,7 +1351,7 @@ class AvgPenNonExactRef(AbstractFeature):
         penalties = []
 
         if len(cand['alignments'][0]) == 0:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
             return
 
         for i, index in enumerate(cand['alignments'][0]):
@@ -1358,7 +1395,7 @@ class PropPenExactTarget(AbstractFeature):
         counter_penalties = 0
 
         if len(cand['alignments'][0]) == 0:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
             return
 
         for i, index in enumerate(cand['alignments'][0]):
@@ -1374,7 +1411,7 @@ class PropPenExactTarget(AbstractFeature):
                     counter_penalties += 1
 
         if counter_words > 0:
-             AbstractFeature.set_value(self, counter_penalties / counter_words)
+             AbstractFeature.set_value(self, counter_penalties / float(counter_words))
         else:
              AbstractFeature.set_value(self, 0.0)
 
@@ -1392,7 +1429,7 @@ class PropPenExactRef(AbstractFeature):
         counter_penalties = 0
 
         if len(cand['alignments'][0]) == 0:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
             return
 
         for i, index in enumerate(cand['alignments'][0]):
@@ -1408,7 +1445,7 @@ class PropPenExactRef(AbstractFeature):
                     counter_penalties += 1
 
         if counter_words > 0:
-             AbstractFeature.set_value(self, counter_penalties / counter_words)
+             AbstractFeature.set_value(self, counter_penalties / float(counter_words))
         else:
              AbstractFeature.set_value(self, 0.0)
 
@@ -1426,7 +1463,7 @@ class PropPenNonExactTarget(AbstractFeature):
         counter_penalties = 0
 
         if len(cand['alignments'][0]) == 0:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
             return
 
         for i, index in enumerate(cand['alignments'][0]):
@@ -1442,7 +1479,7 @@ class PropPenNonExactTarget(AbstractFeature):
                     counter_penalties += 1
 
         if counter_words > 0:
-             AbstractFeature.set_value(self, counter_penalties / counter_words)
+             AbstractFeature.set_value(self, counter_penalties / float(counter_words))
         else:
              AbstractFeature.set_value(self, 0.0)
 
@@ -1460,7 +1497,7 @@ class PropPenNonExactRef(AbstractFeature):
         counter_penalties = 0
 
         if len(cand['alignments'][0]) == 0:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
             return
 
         for i, index in enumerate(cand['alignments'][0]):
@@ -1476,7 +1513,7 @@ class PropPenNonExactRef(AbstractFeature):
                     counter_penalties += 1
 
         if counter_words > 0:
-             AbstractFeature.set_value(self, counter_penalties / counter_words)
+             AbstractFeature.set_value(self, counter_penalties / float(counter_words))
         else:
              AbstractFeature.set_value(self, 0.0)
 
@@ -1496,7 +1533,7 @@ class AvgPenTarget(AbstractFeature):
         penalties = []
 
         if len(cand['alignments'][0]) == 0:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
             return
 
         for i, index in enumerate(cand['alignments'][0]):
@@ -1537,7 +1574,7 @@ class AvgPentRef(AbstractFeature):
         penalties = []
 
         if len(cand['alignments'][0]) == 0:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
             return
 
         for i, index in enumerate(cand['alignments'][0]):
@@ -1578,7 +1615,7 @@ class MinPenTarget(AbstractFeature):
         penalties = []
 
         if len(cand['alignments'][0]) == 0:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
             return
 
         for i, index in enumerate(cand['alignments'][0]):
@@ -1619,7 +1656,7 @@ class MinPentRef(AbstractFeature):
         penalties = []
 
         if len(cand['alignments'][0]) == 0:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
             return
 
         for i, index in enumerate(cand['alignments'][0]):
@@ -1660,7 +1697,7 @@ class MaxPenTarget(AbstractFeature):
         penalties = []
 
         if len(cand['alignments'][0]) == 0:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
             return
 
         for i, index in enumerate(cand['alignments'][0]):
@@ -1701,7 +1738,7 @@ class MaxPentRef(AbstractFeature):
         penalties = []
 
         if len(cand['alignments'][0]) == 0:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
             return
 
         for i, index in enumerate(cand['alignments'][0]):
@@ -1736,7 +1773,7 @@ class PropPen(AbstractFeature):
     def run(self, cand, ref):
 
         if len(cand['alignments'][0]) == 0:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
             return
 
         counter_penalties = 0.0
@@ -1750,7 +1787,7 @@ class PropPen(AbstractFeature):
                 counter_penalties += 1
 
         if counter_words > 0:
-             AbstractFeature.set_value(self, counter_penalties / counter_words)
+             AbstractFeature.set_value(self, counter_penalties / float(counter_words))
         else:
              AbstractFeature.set_value(self, 0.0)
 
@@ -1765,7 +1802,7 @@ class CountPen(AbstractFeature):
     def run(self, cand, ref):
 
         if len(cand['alignments'][0]) == 0:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
             return
 
         counter_penalties = 0.0
@@ -1796,7 +1833,7 @@ class PropPenHigh(AbstractFeature):
         penalties = []
 
         if len(cand['alignments'][0]) == 0:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
             return
 
         for i, index in enumerate(cand['alignments'][0]):
@@ -1843,7 +1880,7 @@ class ContextMatch(AbstractFeature):
         count = 0
         for i, word in enumerate(cand['parse']):
 
-            if word.form.lower() not in config.stopwords:
+            if not word_sim.functionWord(word.form):
                 continue
             if i in align_dict.keys():
                 continue
@@ -1963,18 +2000,15 @@ class FragPenalty(AbstractFeature):
 
     def run(self, cand, ref):
 
-        beta = 1.30 # parameters from Meteor rank task for Spanish
-        gamma = 0.50
+        chunck_number = self.calculate_chuncks(cand['alignments'][0])
+        frag_penalty = 0.0
 
-        chunckNumber = self.calculateChuncks(cand['alignments'][0])
-        fragPenalty = 0.0
+        if chunck_number > 1:
+            frag_penalty = float(chunck_number) / len(cand['alignments'][0])
 
-        if chunckNumber > 1:
-            fragPenalty = gamma * pow(float(chunckNumber) / len(cand['alignments'][0]), beta)
+        AbstractFeature.set_value(self, frag_penalty)
 
-        AbstractFeature.set_value(self, fragPenalty)
-
-    def calculateChuncks(self, alignments):
+    def calculate_chuncks(self, alignments):
 
         sortedAlignments = sorted(alignments, key=lambda alignment: alignment[0])
 
@@ -2001,7 +2035,11 @@ class AvgWordQuest(AbstractFeature):
         back_props = []
         cnt = 0
         for i, word in enumerate(cand['tokens']):
+
             if word.lower() in config.punctuations:
+                continue
+
+            if word.lower().isdigit():
                 continue
 
             if i + 1 not in [x[0] for x in cand['alignments'][0]]:
@@ -2025,7 +2063,11 @@ class MinWordQuest(AbstractFeature):
         back_props = []
         cnt = 0
         for i, word in enumerate(cand['tokens']):
+
             if word.lower() in config.punctuations:
+                continue
+
+            if word.lower().isdigit():
                 continue
 
             if i + 1 not in [x[0] for x in cand['alignments'][0]]:
@@ -2050,7 +2092,11 @@ class MaxWordQuest(AbstractFeature):
         back_props = []
         cnt = 0
         for i, word in enumerate(cand['tokens']):
+
             if word.lower() in config.punctuations:
+                continue
+
+            if word.lower().isdigit():
                 continue
 
             if i + 1 not in [x[0] for x in cand['alignments'][0]]:
@@ -2075,7 +2121,11 @@ class AvgWordQuestAlign(AbstractFeature):
         back_props = []
         cnt = 0
         for i, word in enumerate(cand['tokens']):
+
             if word.lower() in config.punctuations:
+                continue
+
+            if word.lower().isdigit():
                 continue
 
             if i + 1 in [x[0] for x in cand['alignments'][0]]:
@@ -2099,7 +2149,11 @@ class MinWordQuestAlign(AbstractFeature):
         back_props = []
         cnt = 0
         for i, word in enumerate(cand['tokens']):
+
             if word.lower() in config.punctuations:
+                continue
+
+            if word.lower().isdigit():
                 continue
 
             if i + 1 in [x[0] for x in cand['alignments'][0]]:
@@ -2124,7 +2178,11 @@ class MaxWordQuestAlign(AbstractFeature):
         back_props = []
         cnt = 0
         for i, word in enumerate(cand['tokens']):
+
             if word.lower() in config.punctuations:
+                continue
+
+            if word.lower().isdigit():
                 continue
 
             if i + 1 in [x[0] for x in cand['alignments'][0]]:
@@ -2149,7 +2207,11 @@ class AvgWordQuestBack(AbstractFeature):
         back_props = []
         cnt = 0
         for i, word in enumerate(cand['tokens']):
+
             if word.lower() in config.punctuations:
+                continue
+
+            if word.lower().isdigit():
                 continue
 
             if i + 1 not in [x[0] for x in cand['alignments'][0]]:
@@ -2173,7 +2235,11 @@ class MinWordQuestBack(AbstractFeature):
         back_props = []
         cnt = 0
         for i, word in enumerate(cand['tokens']):
+
             if word.lower() in config.punctuations:
+                continue
+
+            if word.lower().isdigit():
                 continue
 
             if i + 1 not in [x[0] for x in cand['alignments'][0]]:
@@ -2198,7 +2264,11 @@ class MaxWordQuestBack(AbstractFeature):
         back_props = []
         cnt = 0
         for i, word in enumerate(cand['tokens']):
+
             if word.lower() in config.punctuations:
+                continue
+
+            if word.lower().isdigit():
                 continue
 
             if i + 1 not in [x[0] for x in cand['alignments'][0]]:
@@ -2223,7 +2293,11 @@ class AvgPosProb(AbstractFeature):
         back_props = []
         cnt = 0
         for i, word in enumerate(cand['tokens']):
+
             if word.lower() in config.punctuations:
+                continue
+
+            if word.lower().isdigit():
                 continue
 
             if i + 1 not in [x[0] for x in cand['alignments'][0]]:
@@ -2248,7 +2322,11 @@ class MinPosProb(AbstractFeature):
         back_props = []
         cnt = 0
         for i, word in enumerate(cand['tokens']):
+
             if word.lower() in config.punctuations:
+                continue
+
+            if word.lower().isdigit():
                 continue
 
             if i + 1 not in [x[0] for x in cand['alignments'][0]]:
@@ -2273,7 +2351,11 @@ class MaxPosProb(AbstractFeature):
         back_props = []
         cnt = 0
         for i, word in enumerate(cand['tokens']):
+
             if word.lower() in config.punctuations:
+                continue
+
+            if word.lower().isdigit():
                 continue
 
             if i + 1 not in [x[0] for x in cand['alignments'][0]]:
@@ -2298,7 +2380,11 @@ class CountPosProb(AbstractFeature):
         back_props = []
         cnt = 0
         for i, word in enumerate(cand['tokens']):
+
             if word.lower() in config.punctuations:
+                continue
+
+            if word.lower().isdigit():
                 continue
 
             if i + 1 not in [x[0] for x in cand['alignments'][0]]:
@@ -2309,7 +2395,7 @@ class CountPosProb(AbstractFeature):
         if cnt > 0:
              AbstractFeature.set_value(self, len([x for x in back_props if x < threshold]))
         else:
-             AbstractFeature.set_value(self, 0.0)
+             AbstractFeature.set_value(self, -1)
 
 
 class PropPosProb(AbstractFeature):
@@ -2335,7 +2421,7 @@ class PropPosProb(AbstractFeature):
         if cnt > 0:
              AbstractFeature.set_value(self, len([x for x in back_props if x < threshold])/float(len(cand['tokens'])))
         else:
-             AbstractFeature.set_value(self, 0.0)
+             AbstractFeature.set_value(self, -1)
 
 
 class AvgWordQuestLen(AbstractFeature):
@@ -2514,7 +2600,11 @@ class CountFluencyErrors0(AbstractFeature):
 
         errors = 0
         for i, word in enumerate(cand['tokens']):
+
             if word.lower() in config.punctuations:
+                continue
+
+            if word.lower().isdigit():
                 continue
 
             if i + 1 not in [x[0] for x in cand['alignments'][0]]:
@@ -2543,12 +2633,16 @@ class CountFluencyErrors0Avg(AbstractFeature):
 
         errors = 0
         for i, word in enumerate(cand['tokens']):
+
             if word.lower() in config.punctuations:
+                continue
+
+            if word.lower().isdigit():
                 continue
 
             if i + 1 not in [x[0] for x in cand['alignments'][0]]:
 
-                avg = (cand['quest_word'][i]['WCE1015'] + cand['quest_word'][i]['WCE1041']) / 2
+                avg = (cand['quest_word'][i]['WCE1015'] + cand['quest_word'][i]['WCE1041']) / 2.0
 
                 if 1 < avg < 3:
 
@@ -2574,7 +2668,11 @@ class PropFluencyErrors0(AbstractFeature):
 
         errors = 0
         for i, word in enumerate(cand['tokens']):
+
             if word.lower() in config.punctuations:
+                continue
+
+            if word.lower().isdigit():
                 continue
 
             if i + 1 not in [x[0] for x in cand['alignments'][0]]:
@@ -2604,12 +2702,16 @@ class PropFluencyErrors0Avg(AbstractFeature):
 
         errors = 0
         for i, word in enumerate(cand['tokens']):
+
             if word.lower() in config.punctuations:
+                continue
+
+            if word.lower().isdigit():
                 continue
 
             if i + 1 not in [x[0] for x in cand['alignments'][0]]:
 
-                avg = (cand['quest_word'][i]['WCE1015'] + cand['quest_word'][i]['WCE1041']) / 2
+                avg = (cand['quest_word'][i]['WCE1015'] + cand['quest_word'][i]['WCE1041']) / 2.0
 
                 if 1 < avg < 3:
 
@@ -2636,7 +2738,11 @@ class CountFluencyErrors1(AbstractFeature):
 
         errors = 0
         for i, word in enumerate(cand['tokens']):
+
             if word.lower() in config.punctuations:
+                continue
+
+            if word.lower().isdigit():
                 continue
 
             if i + 1 not in [x[0] for x in cand['alignments'][0]]:
@@ -2665,12 +2771,16 @@ class CountFluencyErrors1Avg(AbstractFeature):
 
         errors = 0
         for i, word in enumerate(cand['tokens']):
+
             if word.lower() in config.punctuations:
+                continue
+
+            if word.lower().isdigit():
                 continue
 
             if i + 1 not in [x[0] for x in cand['alignments'][0]]:
 
-                avg = (cand['quest_word'][i]['WCE1015'] + cand['quest_word'][i]['WCE1041']) / 2
+                avg = (cand['quest_word'][i]['WCE1015'] + cand['quest_word'][i]['WCE1041']) / 2.0
 
                 if 2 < avg < 4:
 
@@ -2696,7 +2806,11 @@ class PropFluencyErrors1(AbstractFeature):
 
         errors = 0
         for i, word in enumerate(cand['tokens']):
+
             if word.lower() in config.punctuations:
+                continue
+
+            if word.lower().isdigit():
                 continue
 
             if i + 1 not in [x[0] for x in cand['alignments'][0]]:
@@ -2726,12 +2840,16 @@ class PropFluencyErrors1Avg(AbstractFeature):
 
         errors = 0
         for i, word in enumerate(cand['tokens']):
+
             if word.lower() in config.punctuations:
+                continue
+
+            if word.lower().isdigit():
                 continue
 
             if i + 1 not in [x[0] for x in cand['alignments'][0]]:
 
-                avg = (cand['quest_word'][i]['WCE1015'] + cand['quest_word'][i]['WCE1041']) / 2
+                avg = (cand['quest_word'][i]['WCE1015'] + cand['quest_word'][i]['WCE1041']) / 2.0
 
                 if 2 < avg < 4:
 
@@ -2758,7 +2876,11 @@ class CountNonAlignedOOV(AbstractFeature):
 
         oov = 0
         for i, word in enumerate(cand['tokens']):
+
             if word.lower() in config.punctuations:
+                continue
+
+            if word.lower().isdigit():
                 continue
 
             if i + 1 not in [x[0] for x in cand['alignments'][0]]:
@@ -2779,7 +2901,11 @@ class PropNonAlignedOOV(AbstractFeature):
 
         oov = 0
         for i, word in enumerate(cand['tokens']):
+
             if word.lower() in config.punctuations:
+                continue
+
+            if word.lower().isdigit():
                 continue
 
             if i + 1 not in [x[0] for x in cand['alignments'][0]]:
@@ -2789,7 +2915,7 @@ class PropNonAlignedOOV(AbstractFeature):
         if len(cand['alignments'][0]) != len(cand['tokens']):
             AbstractFeature.set_value(self, oov/float(len(cand['tokens']) - len(cand['alignments'][0])))
         else:
-            AbstractFeature.set_value(self, 0)
+            AbstractFeature.set_value(self, -1)
 
 
 class CountOOVSrilm(AbstractFeature):

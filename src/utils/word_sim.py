@@ -147,9 +147,8 @@ def presentInPPDB(word1, word2):
     if (word2.lower(), word1.lower()) in ppdb_dict:
         return True
 
-
 def functionWord(word):
-    return (word.lower() in stopwords) or (word.lower() in punctuations)
+    return (word.lower() in stopwords) or (word.lower() in punctuations) or (word.lower().isdigit())
 
 
 def canonize_word(word):

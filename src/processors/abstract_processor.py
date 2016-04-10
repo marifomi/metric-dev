@@ -14,6 +14,12 @@ class AbstractProcessor(object):
     def get_name(self):
         return self.name
 
+    def set_output(self, output):
+        self.output = output
+
+    def get_output(self):
+        return self.output
+
     def set_result_tgt(self, result_tgt):
         self.result_tgt = result_tgt
 
