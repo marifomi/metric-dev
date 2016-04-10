@@ -13,8 +13,8 @@ import os
 import subprocess
 import shutil
 import numpy as np
-from src.utils.core_nlp_utils import read_parsed_sentences
-from src.utils.core_nlp_utils import prepareSentence2
+import re
+from src.utils.core_nlp_utils import read_parsed_sentences, prepareSentence2, parseText, dependencyParseAndPutOffsets
 import re
 from src.utils.features_reader import FeaturesReader
 import src.utils.txt_xml as xml
@@ -26,6 +26,7 @@ from src.utils.load_resources import load_ppdb, load_word_vectors
 from src.alignment.aligner_config import AlignerConfig
 from src.lex_resources.config import *
 import shutil
+import numpy
 
 
 class PosLangModel(AbstractProcessor):
@@ -212,12 +213,12 @@ class WordVectors(AbstractProcessor):
 
         result = []
 
-        cnt = 0
+        # cnt = 0
         for line in sents:
 
-            cnt += 1
-
-            print str(cnt)
+            # cnt += 1
+            #
+            # print str(cnt)
 
             tokens = [t.lower() for t in line.strip().split(' ')]
             vecs = []
@@ -302,13 +303,13 @@ class Parse(AbstractProcessor):
         AbstractProcessor.__init__(self)
         AbstractProcessor.set_name(self, 'parse')
 
-    def run(self, config, sample):
+    def run(self, config):
         print "Parse already exist!"
 
-    def get(self, config, sample):
+    def get(self, config):
 
-        result_tgt = read_parsed_sentences(codecs.open(config.get('Data', 'tgt') + '.' + 'parse' + sample, 'r', 'utf-8'))
-        result_ref = read_parsed_sentences(codecs.open(config.get('Data', 'ref') + '.' + 'parse' + sample, 'r', 'utf-8'))
+        result_tgt = read_parsed_sentences(codecs.open(config.get('Data', 'tgt') + '.' + 'parse', 'r', 'utf-8'))
+        result_ref = read_parsed_sentences(codecs.open(config.get('Data', 'ref') + '.' + 'parse', 'r', 'utf-8'))
 
         sents_tgt = []
         sents_ref = []
@@ -323,17 +324,49 @@ class Parse(AbstractProcessor):
         AbstractProcessor.set_result_ref(self, sents_ref)
 
 
+class Parse2(AbstractProcessor):
+
+    def __init__(self):
+        AbstractProcessor.__init__(self)
+        AbstractProcessor.set_name(self, 'parse2')
+
+    def run(self, config):
+        print "Parse already exist!"
+
+    def get(self, config):
+
+        result_tgt = read_parsed_sentences(codecs.open(config.get('Data', 'tgt') + '.' + 'parse', 'r', 'utf-8'))
+        result_ref = read_parsed_sentences(codecs.open(config.get('Data', 'ref') + '.' + 'parse', 'r', 'utf-8'))
+
+        sents_tgt = []
+        sents_ref = []
+
+        for sent in result_tgt:
+            sentence_parse_result = parseText(sent)
+            sents_tgt.append(dependencyParseAndPutOffsets(sentence_parse_result))
+
+        for sent in result_ref:
+            sentence_parse_result = parseText(sent)
+            sents_tgt.append(dependencyParseAndPutOffsets(sentence_parse_result))
+
+        AbstractProcessor.set_result_tgt(self, sents_tgt)
+        AbstractProcessor.set_result_ref(self, sents_ref)
+
+
 class Bleu(AbstractProcessor):
 
     def __init__(self):
         AbstractProcessor.__init__(self)
         AbstractProcessor.set_name(self, 'bleu')
 
-    def run(self, config, sample):
+    def run(self, config):
 
-        src_path = config.get('Data', 'src') + sample
-        tgt_path = config.get('Data', 'tgt') + sample
-        ref_path = config.get('Data', 'ref') + sample
+        src_path = config.get('Data', 'src')
+        tgt_path = config.get('Data', 'tgt')
+        ref_path = config.get('Data', 'ref')
+
+        if not os.path.exists(src_path):
+            shutil.copyfile(tgt_path, src_path)
 
         if os.path.exists(config.get('Metrics', 'dir') + '/' + tgt_path.split('/')[-1] + '.bleu.scores'):
             print "Bleu scores already exist!"
@@ -350,10 +383,10 @@ class Bleu(AbstractProcessor):
                          '-s', src_path + '.xml'], stdout=o)
         o.close()
 
-    def get(self, config, sample):
+    def get(self, config):
 
         result = []
-        tgt_path = config.get('Data', 'tgt') + sample
+        tgt_path = config.get('Data', 'tgt')
         scores_file = config.get('Metrics', 'dir') + '/' + tgt_path.split('/')[-1] + '.bleu.scores'
         for line in open(scores_file).readlines():
             if not line.startswith('  BLEU'):
@@ -370,10 +403,10 @@ class MeteorScorer(AbstractProcessor):
         AbstractProcessor.__init__(self)
         AbstractProcessor.set_name(self, 'meteor')
 
-    def run(self, config, sample):
+    def run(self, config):
 
-        tgt_path = config.get('Data', 'tgt') + sample
-        ref_path = config.get('Data', 'ref') + sample
+        tgt_path = config.get('Data', 'tgt')
+        ref_path = config.get('Data', 'ref')
 
         if os.path.exists(config.get('Metrics', 'dir') + '/' + tgt_path.split('/')[-1] + '.meteor.scores'):
             print "Meteor scores already exist!"
@@ -387,10 +420,10 @@ class MeteorScorer(AbstractProcessor):
         subprocess.call(['java', '-Xmx2G', '-jar', meteor, tgt_path, ref_path, '-l', lang, '-norm'], stdout=o)
         o.close()
 
-    def get(self, config, sample):
+    def get(self, config):
 
         result = []
-        tgt_path = config.get('Data', 'tgt') + sample
+        tgt_path = config.get('Data', 'tgt')
         scores_file = config.get('Metrics', 'dir') + '/' + tgt_path.split('/')[-1] + '.meteor.scores'
 
         for line in open(scores_file).readlines():
@@ -737,13 +770,13 @@ class QuestSentence(AbstractProcessor):
         AbstractProcessor.set_result_ref(self, result)
 
 
-class LangModelWordFeatures(AbstractProcessor):
+class LanguageModelWordFeatures(AbstractProcessor):
 
     # Language model word features extracted using SRILM: oov words
 
     def __init__(self):
         AbstractProcessor.__init__(self)
-        AbstractProcessor.set_name(self, 'lang_model_word_features')
+        AbstractProcessor.set_name(self, 'language_model_word_features')
 
     def run(self, config):
 
@@ -791,13 +824,115 @@ class LangModelWordFeatures(AbstractProcessor):
         AbstractProcessor.set_result_ref(self, result)
 
 
+# class LanguageModelSentenceFeaturesInformed(AbstractProcessor):
+#
+#     def __init__(self):
+#         AbstractProcessor.__init__(self)
+#         AbstractProcessor.set_name(self, 'language_model_sentence_features_informed')
+#
+#     def run(self, config):
+#
+#         tgt_path = config.get('Data', 'tgt') + '.' + 'token'
+#         output_path = tgt_path + '.' + 'ppl2'
+#         lm = config.get('Language Model', 'path')
+#         ngram_size = config.get('Language Model', 'ngram_size')
+#         srilm = config.get('Language Model', 'srilm')
+#
+#         if os.path.exists(output_path):
+#             print 'File with lm perplexities already exist'
+#             return
+#
+#         my_output = open(output_path, 'w')
+#
+#         SRILM = [srilm + '/' + 'ngram', '-lm', lm, '-order', ngram_size, '-debug', str(2), '-ppl', tgt_path]
+#         subprocess.check_call(SRILM, stdout=my_output)
+#
+#     def get(self, config):
+#
+#         ppl_file = open(config.get('Data', 'tgt') + '.' + 'token' + '.' + 'ppl2', 'r')
+#
+#         result = []
+#         tmp = []
+#
+#         lines = ppl_file.readlines()
+#
+#         for i, line in enumerate(lines):
+#             if line.startswith('\n'):
+#                 result.append(numpy.sum(tmp))
+#                 tmp = []
+#             if 'p( ' in line:
+#                 if 'OOV' in line:
+#                     continue
+#                 ngram = int(re.sub(r'\[([1-3])gram\]', r'\1', line.strip().split(' ')[6]))
+#                 prob = float(line.strip().split(' ')[7])
+#                 tmp.append(numpy.log(prob * ngram))
+#         if len(tmp) > 0:
+#             result.append(numpy.sum(tmp))
+#
+#         AbstractProcessor.set_result_tgt(self, result)
+#         AbstractProcessor.set_result_ref(self, result)
+
+
+class LanguageModelWordFeaturesInformed(AbstractProcessor):
+
+    def __init__(self):
+        AbstractProcessor.__init__(self)
+        AbstractProcessor.set_name(self, 'language_model_word_features_informed')
+
+    def run(self, config):
+
+        tgt_path = config.get('Data', 'tgt') + '.' + 'token'
+        output_path = tgt_path + '.' + 'ppl2'
+        lm = config.get('Language Model', 'path')
+        ngram_size = config.get('Language Model', 'ngram_size')
+        srilm = config.get('Language Model', 'srilm')
+
+        if os.path.exists(output_path):
+            print 'File with lm perplexities already exist'
+            return
+
+        my_output = open(output_path, 'w')
+
+        SRILM = [srilm + '/' + 'ngram', '-lm', lm, '-order', ngram_size, '-debug', str(2), '-ppl', tgt_path]
+        subprocess.check_call(SRILM, stdout=my_output)
+
+    def get(self, config):
+
+        ppl_file = open(config.get('Data', 'tgt') + '.' + 'token' + '.' + 'ppl2', 'r')
+
+        result = []
+        tmp = []
+
+        lines = ppl_file.readlines()
+
+        for i, line in enumerate(lines):
+            if line.startswith('\n'):
+                result.append(tmp)
+                tmp = []
+            if 'p( ' in line:
+                if 'p( </s> |' in line:
+                    continue
+                if 'OOV' in line:
+                    tmp.append([0, 0])
+                else:
+                    ngram = int(re.sub(r'\[([1-3])gram\]', r'\1', line.strip().split(' ')[6]))
+                    prob = float(line.strip().split(' ')[7])
+                    tmp.append([prob, ngram])
+        if len(tmp) > 0:
+            result.append(tmp)
+
+        AbstractProcessor.set_result_tgt(self, result)
+        AbstractProcessor.set_result_ref(self, result)
+
+
+
 class LanguageModelSentenceFeatures(AbstractProcessor):
 
     # Language model sentence features extracted using SRILM: oov, probability, perplexity
 
     def __init__(self):
         AbstractProcessor.__init__(self)
-        AbstractProcessor.set_name(self, 'lang_model_sentence_features')
+        AbstractProcessor.set_name(self, 'language_model_sentence_features')
 
     def run(self, config):
 
