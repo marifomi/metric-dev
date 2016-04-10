@@ -141,6 +141,10 @@ class PrepareWmt(object):
         path_out_tgt = os.path.expanduser(config.get('WMT', 'output_dir') + '/' + 'tgt')
         path_out_ref = os.path.expanduser(config.get('WMT', 'output_dir') + '/' + 'ref')
 
+        if self.data_type == 'parse':
+            path_out_tgt += '.' + 'parse'
+            path_out_ref += '.' + 'parse'
+
         if os.path.exists(path_out_tgt) and os.path.exists(path_out_ref):
             print("Data files already exist.\nWMT printer will not run.")
             return
@@ -257,6 +261,9 @@ class PrepareWmt(object):
         system_paths = []
         system_names = []
 
+        if self.data_type == 'parse':
+            my_directory = my_directory.replace('plain', 'parse')
+
         for f_system in sorted(os.listdir(os.path.expanduser(my_directory))):
             if f_system.startswith('.'):
                 continue
@@ -279,6 +286,7 @@ class PrepareWmt(object):
             reference_path = my_directory + '/' + data_set + '-' + 'ref' + '.' + lang_pair
 
         if self.data_type == 'parse':
+            reference_path = reference_path.replace('plain', 'parse')
             reference_path += '.' + 'out'
 
         return reference_path
