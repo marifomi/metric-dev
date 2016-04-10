@@ -53,8 +53,8 @@ class RankingTask(object):
 
         combination_methods = FeatureExtractor.get_combinations_from_config_file(self.config)
         data_set_name = self.config.get('WMT', 'dataset')
-        f_features = open(self.config.get('WMT', 'output_dir') + '/' + 'x_' + data_set_name, 'w')
-        f_objective = open(self.config.get('WMT', 'output_dir') + '/' + 'y_' + data_set_name, 'w')
+        f_features = open(os.path.expanduser(self.config.get('WMT', 'output_dir') + '/' + 'x_' + data_set_name), 'w')
+        f_objective = open(os.path.expanduser(self.config.get('WMT', 'output_dir') + '/' + 'y_' + data_set_name), 'w')
 
         for dataset, lang_pair in sorted(human_rankings.keys()):
 
@@ -85,8 +85,8 @@ class RankingTask(object):
     def training_set_for_learn_to_rank(self, data_structure, human_rankings, feature_values):
 
         data_set_name = self.config.get('WMT', 'dataset')
-        f_features = open(self.config.get('WMT', 'output_dir') + '/' + 'x_' + data_set_name, 'w')
-        f_objective = open(self.config.get('WMT', 'output_dir') + '/' + 'y_' + data_set_name, 'w')
+        f_features = open(os.path.expanduser(self.config.get('WMT', 'output_dir') + '/' + 'x_' + data_set_name), 'w')
+        f_objective = open(os.path.expanduser(self.config.get('WMT', 'output_dir') + '/' + 'y_' + data_set_name), 'w')
 
         for dataset, lang_pair in sorted(human_rankings.keys()):
 
