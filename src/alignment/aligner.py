@@ -113,15 +113,19 @@ class Aligner(object):
         maxRightList = {}
 
         for similarity in wordSimilarities.keys():
-            if not maxLeft.has_key(similarity[0]) or wordSimilarities[maxLeft[similarity[0]]] < wordSimilarities[similarity]:
+            if not similarity[0] in maxLeft or wordSimilarities[maxLeft[similarity[0]]] < wordSimilarities[similarity]:
                 maxLeft[similarity[0]] = similarity
                 maxLeftList[similarity[0]] = similarity[1]
 
-            if not maxRight.has_key(similarity[1]) or wordSimilarities[maxRight[similarity[1]]] < wordSimilarities[similarity]:
+            if not similarity[1] in maxRight or wordSimilarities[maxRight[similarity[1]]] < wordSimilarities[similarity]:
                 maxRight[similarity[1]] = similarity
                 maxRightList[similarity[1]] = similarity[0]
 
-        maxRelations = set(maxLeft.values() + maxRight.values())
+        leftRight = dict()
+        leftRight.update(maxLeft)
+        leftRight.update(maxRight)
+
+        maxRelations = set(leftRight.values())
 
         score = 0
         sourceNodesConsidered = []
@@ -149,7 +153,11 @@ class Aligner(object):
         compareParentChildren = self.compareNodes(sourceWordParents, targetWordChildren, pos, True, 'parent_child', existingAlignments, sourcePosTags, targetPosTags, sourceLemmas, targetLemmas)
         compareChildrenParent = self.compareNodes(sourceWordParents, targetWordChildren, pos, True, 'child_parent', existingAlignments, sourcePosTags, targetPosTags, sourceLemmas, targetLemmas)
 
-        comparisonResult = dict(compareParents.items() + compareChildren.items() + compareChildrenParent.items() + compareParentChildren.items())
+        comparisonResult = dict()
+        comparisonResult.update(compareParents)
+        comparisonResult.update(compareChildren)
+        comparisonResult.update(compareChildrenParent)
+        comparisonResult.update(compareParentChildren)
 
         alignments = []
         wordSimilarities = {}
@@ -1055,8 +1063,10 @@ class Aligner(object):
         tst_phrases = read_parsed_sentences(codecs.open(os.path.expanduser(tgt), 'r', encoding='UTF-8'))
         ref_phrases = read_parsed_sentences(codecs.open(os.path.expanduser(ref), 'r', encoding='UTF-8'))
 
-        load_resources.load_ppdb(self.config.path_to_ppdb)
-        load_resources.load_word_vectors(self.config.path_to_vectors)
+        if "paraphrases" in self.config.selected_lexical_resources:
+            load_resources.load_ppdb(self.config.path_to_ppdb)
+        if "distributional" in self.config.selected_lexical_resources:
+            load_resources.load_word_vectors(self.config.path_to_vectors)
 
         for i, candidate in enumerate(tst_phrases):
             self.alignments.append(self.align_sentence(candidate, ref_phrases[i]))
@@ -1064,7 +1074,7 @@ class Aligner(object):
 
     def write_alignments(self, output_file_name):
 
-        my_output = codecs.open(output_file_name, 'w', 'utf-8')
+        my_output = codecs.open(os.path.expanduser(output_file_name), 'w', 'utf-8')
 
         for i, sentence in enumerate(self.alignments):
             print('Sentence #' + str(i + 1), file=my_output)

@@ -44,6 +44,7 @@ class RankingTask(object):
 
         extractor = FeatureExtractor(self.config)
         features_to_extract = FeatureExtractor.get_features_from_config_file(self.config)
+
         extractor.extract_features(features_to_extract, sents_tgt, sents_ref)
 
         return data_structure2, human_rankings, extractor.vals

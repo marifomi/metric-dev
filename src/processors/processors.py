@@ -308,8 +308,8 @@ class Parse(AbstractProcessor):
 
     def get(self, config):
 
-        result_tgt = read_parsed_sentences(codecs.open(config.get('Data', 'tgt') + '.' + 'parse', 'r', 'utf-8'))
-        result_ref = read_parsed_sentences(codecs.open(config.get('Data', 'ref') + '.' + 'parse', 'r', 'utf-8'))
+        result_tgt = read_parsed_sentences(codecs.open(os.path.expanduser(config.get('Data', 'tgt') + '.' + 'parse'), 'r', 'utf-8'))
+        result_ref = read_parsed_sentences(codecs.open(os.path.expanduser(config.get('Data', 'ref') + '.' + 'parse'), 'r', 'utf-8'))
 
         sents_tgt = []
         sents_ref = []
@@ -582,11 +582,11 @@ class Tokenizer(AbstractProcessor):
 
     def tokenize_from_parse(self, config):
 
-        input_file_tgt = config.get('Data', 'tgt') + '.parse'
-        input_file_ref = config.get('Data', 'ref') + '.parse'
-        out_tgt = config.get('Data', 'tgt') + '.' + 'token'
-        out_ref = config.get('Data', 'ref') + '.' + 'token'
-        out_src = config.get('Data', 'src') + '.' + 'token'
+        input_file_tgt = os.path.expanduser(config.get('Data', 'tgt') + '.parse')
+        input_file_ref = os.path.expanduser(config.get('Data', 'ref') + '.parse')
+        out_tgt = os.path.expanduser(config.get('Data', 'tgt') + '.' + 'token')
+        out_ref = os.path.expanduser(config.get('Data', 'ref') + '.' + 'token')
+        out_src = os.path.expanduser(config.get('Data', 'src') + '.' + 'token')
 
         if os.path.exists(out_tgt):
             print("The file " + out_tgt + " is already tokenized.\n Tokenizer will not run.")
@@ -700,8 +700,8 @@ class Tokenizer(AbstractProcessor):
         sents_tokens_ref = []
         sents_tokens_tgt = []
 
-        lines_ref = codecs.open(config.get('Data', 'ref') + '.' + 'token', 'r', 'utf-8').readlines()
-        lines_tgt = codecs.open(config.get('Data', 'tgt') + '.' + 'token', 'r', 'utf-8').readlines()
+        lines_ref = codecs.open(os.path.expanduser(config.get('Data', 'ref') + '.' + 'token'), 'r', 'utf-8').readlines()
+        lines_tgt = codecs.open(os.path.expanduser(config.get('Data', 'tgt') + '.' + 'token'), 'r', 'utf-8').readlines()
         for i, line in enumerate(lines_tgt):
             sents_tokens_tgt.append(line.strip().split(' '))
             sents_tokens_ref.append(lines_ref[i].strip().split(' '))

@@ -23,6 +23,8 @@ class HumanRanking(defaultdict):
 
         ranks = open(os.path.expanduser(f_judgments), 'r')
 
+        directions = loads(config.get('WMT', 'directions')) if config.get('WMT', 'directions') != 'None' else 'None'
+
         for line in DictReader(ranks):
 
             if max_segments and counter > max_segments:
@@ -30,7 +32,7 @@ class HumanRanking(defaultdict):
 
             direction = self.get_direction(line)
 
-            if not config.get('WMT', 'directions') == 'None' and direction not in loads(config.get('WMT', 'directions')):
+            if not directions == 'None' and direction not in directions:
                 continue
 
             dataset = self.get_dataset(line)
