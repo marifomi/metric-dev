@@ -10,3 +10,10 @@ LANGUAGE_CODE_TO_NAME = {
   'eng': 'English'
 
 }
+
+LANGUAGE_THREE_TO_TWO = {
+  'ces': 'cs', 'deu': 'de', 'fra': 'fr', 'fre': 'fr',
+  'esn': 'es', 'fin': 'fi', 'rus': 'ru', 'hin': 'hi',
+  'eng': 'en'
+
+}
