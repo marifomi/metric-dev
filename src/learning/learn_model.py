@@ -355,7 +355,7 @@ def fit_predict(config, X_train, y_train, X_test=None, y_test=None, ref_thd=None
         y_hat = estimator.predict(X_test)
         log.info("Evaluating prediction on the test set...")
         for scorer_name, scorer_func in scorers:
-            v = scorer_func(y_test, y_hat)
+            v = scorer_func(y_test, y_hat, average=None)
             log.info("%s = %s" % (scorer_name, v))
         log.info("Customized scores: ")
         try:
