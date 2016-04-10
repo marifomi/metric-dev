@@ -10,3 +10,4 @@ analysis/
 models/
 src/learning/logistic_temp.py
 test.py
+**/*.pyc
