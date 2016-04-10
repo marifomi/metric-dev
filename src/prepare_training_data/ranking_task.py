@@ -12,6 +12,7 @@ from src.learning.features_file_utils import read_reference_file, read_features_
 from sklearn.metrics import accuracy_score, cohen_kappa_score
 from sklearn.externals import joblib
 from ConfigParser import ConfigParser
+from json import loads
 import yaml
 
 
@@ -27,6 +28,11 @@ class RankingTask(object):
         data_structure1 = process_wmt.get_data_structure(self.config)
         data_structure2 = process_wmt.get_data_structure2(self.config)
         process_wmt.print_data_set(self.config, data_structure1)
+
+        if 'Parse' in loads(self.config.get("Resources", "processors")):
+            process_wmt_parse = PrepareWmt(data_type='parse')
+            data_structure_parse = process_wmt_parse.get_data_structure(self.config)
+            process_wmt_parse.print_data_set(self.config, data_structure_parse)
 
         f_judgements = self.config.get('WMT', 'human_ranking')
         human_rankings = HumanRanking()
