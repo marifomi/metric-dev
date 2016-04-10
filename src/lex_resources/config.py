@@ -13,7 +13,7 @@ stemmer = SnowballStemmer('english')
 synonymDictionary = SynonymDictionary('english')
 contractionDictionary = ContractionDictionary('english')
 
-punctuations = ['(','-lrb-','.',',','-','?','!',';','_',':','{','}','[','/',']','...','"','\'',')', '-rrb-']
+punctuations = ['%', '(', '-lrb-', '.', ',', '-', '?', '!', ';', '_', ':', '{', '}', '[', '/', ']', '...', '"', '\'', ')', '-rrb-']
 punctuations = map(lambda x: x.encode('UTF-8'), punctuations)
 
 stopwords = stopwords.words('english')
