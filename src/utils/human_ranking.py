@@ -4,6 +4,7 @@ from collections import defaultdict
 from collections import namedtuple
 from collections import Counter
 from csv import DictReader
+from src.utils.language_codes import *
 import re
 import numpy as np
 import itertools
@@ -48,7 +49,7 @@ class HumanRanking(defaultdict):
                     and sys2.rank != -1
                 ]
 
-            self[direction] += extracted_comparisons
+            self[dataset, direction] += extracted_comparisons
             counter += 1
 
     def clean_data(self, directions):
@@ -102,6 +103,8 @@ class HumanRanking(defaultdict):
         if '2013' in line['system1Id']:
             return line['system1Id'].split('.')[1]
         elif '2015' in line['system1Id']:
+            # src, tgt = re.sub(r'^.+\.(?P<l1>..)-(?P<l2>..)\.txt$', '\g<l1>-\g<l2>', line['system1Id']).split('-')
+            # language_pair = LANGUAGE_THREE_TO_TWO[src] + '-' + LANGUAGE_THREE_TO_TWO[tgt]
             return re.sub(r'^.+\.(?P<l1>..)-(?P<l2>..)\.txt$', '\g<l1>-\g<l2>', line['system1Id'])
         else:
             return line['system1Id'].split('.')[-1]
