@@ -2411,6 +2411,43 @@ class MaxWordQuestLen(AbstractFeature):
         else:
              AbstractFeature.set_value(self, 0.0)
 
+
+class LanguageModelProbabilityInformed(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'language_model_probability_informed')
+        AbstractFeature.set_description(self, "In progress...")
+
+    def run(self, cand, ref):
+
+        word_probs = []
+
+        for i, word in enumerate(cand['tokens']):
+
+            prob, ngram = cand['language_model_word_features_informed'][i]
+
+            if ngram == 0:
+                continue
+
+            if cand['tokens'][i] in config.punctuations or cand['tokens'][i].isdigit():
+                continue
+
+            penalty = 1.0
+            penalty1 = 1.0
+
+            if cand['tokens'][i] in config.stopwords:
+                penalty1 = 0.3
+
+            # if i + 1 not in [x[0] for x in cand['alignments'][0]]:
+            #     penalty = 0.3
+
+            word_probs.append(numpy.log10(prob * ngram * penalty * penalty1))
+
+        AbstractFeature.set_value(self, numpy.sum(word_probs))
+        # AbstractFeature.set_value(self, 10 ** (-(numpy.sum(word_probs)/count)))
+
+
 class LangModProbSrilm(AbstractFeature):
 
     def __init__(self):
@@ -2419,7 +2456,7 @@ class LangModProbSrilm(AbstractFeature):
         AbstractFeature.set_description(self, "Language model log-probability using srilm")
 
     def run(self, cand, ref):
-        AbstractFeature.set_value(self, cand['lang_model_sentence_features'][1])
+        AbstractFeature.set_value(self, cand['language_model_sentence_features'][1])
 
 
 class LangModPerlexSrilm(AbstractFeature):
@@ -2430,7 +2467,7 @@ class LangModPerlexSrilm(AbstractFeature):
         AbstractFeature.set_description(self, "Language model perplexity using srilm")
 
     def run(self, cand, ref):
-        AbstractFeature.set_value(self, cand['lang_model_sentence_features'][2])
+        AbstractFeature.set_value(self, cand['language_model_sentence_features'][2])
 
 
 class LangModProb(AbstractFeature):
@@ -2763,7 +2800,7 @@ class CountOOVSrilm(AbstractFeature):
         AbstractFeature.set_description(self, "Count of out-of-vocabulary words using srilm")
 
     def run(self, cand, ref):
-        AbstractFeature.set_value(self, cand['lang_model_sentence_features'][0])
+        AbstractFeature.set_value(self, cand['language_model_sentence_features'][0])
 
 
 class CountAllOOV(AbstractFeature):
@@ -2946,8 +2983,8 @@ class MedianCosineDifference(AbstractFeature):
         if len(tgt_content_indexes) < 2 or len(ref_content_indexes) < 2:
             AbstractFeature.set_value(self, -1.0)
         else:
-            tgt_similarities = self.cosine_similarities(cand, tgt_content_indexes)
-            ref_similarities = self.cosine_similarities(ref, ref_content_indexes)
+            tgt_similarities = self.cosine_similarities_sequence(cand, tgt_content_indexes)
+            ref_similarities = self.cosine_similarities_sequence(ref, ref_content_indexes)
             AbstractFeature.set_value(self, numpy.median(tgt_similarities) - numpy.median(ref_similarities))
 
     @staticmethod
@@ -2962,7 +2999,7 @@ class MedianCosineDifference(AbstractFeature):
         return content_words_indexes
 
     @staticmethod
-    def cosine_similarities(sentence_object, content_words_indexes):
+    def cosine_similarities_sequence(sentence_object, content_words_indexes):
 
         similarities = []
         for i, idx in enumerate(content_words_indexes):
@@ -2993,7 +3030,7 @@ class MedianCosineTarget(AbstractFeature):
         if len(tgt_content_indexes) < 2:
             AbstractFeature.set_value(self, -1.0)
         else:
-            tgt_similarities = MedianCosineDifference.cosine_similarities(cand, tgt_content_indexes)
+            tgt_similarities = MedianCosineDifference.cosine_similarities_sequence(cand, tgt_content_indexes)
             AbstractFeature.set_value(self, numpy.median(tgt_similarities))
 
 
@@ -3014,8 +3051,86 @@ class MedianCosineReference(AbstractFeature):
         if len(ref_content_indexes) < 2:
             AbstractFeature.set_value(self, -1.0)
         else:
-            ref_similarities = MedianCosineDifference.cosine_similarities(ref, ref_content_indexes)
+            ref_similarities = MedianCosineDifference.cosine_similarities_sequence(ref, ref_content_indexes)
             AbstractFeature.set_value(self, numpy.median(ref_similarities))
+
+
+class MedianCosineTargetNonAligned(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'median_cosine_target_non_aligned')
+        AbstractFeature.set_description(self, "Median cosine similarity between adjacent words in the target for non-aligned words")
+
+    def run(self, cand, ref):
+
+        print ' '.join(ref['tokens'])
+        print ' '.join(cand['tokens'])
+
+        similarities = []
+
+        content_indexes = MedianCosineDifference.content_words_indexes(cand['tokens'])
+
+        if len(content_indexes) < 2:
+            AbstractFeature.set_value(self, -1.0)
+            return
+
+        non_aligned_content_indexes = self.non_aligned_content_words_indexes(cand, content_indexes)
+
+        if len(non_aligned_content_indexes) == 0:
+            AbstractFeature.set_value(self, 1.0)
+            return
+
+        print "Non-aligned: " + ' '.join([cand['tokens'][x] for x in non_aligned_content_indexes])
+
+        for index in non_aligned_content_indexes:
+            context_words = self.get_context_words(index, content_indexes)
+
+            if len(context_words) == 0:
+                continue
+
+            avg_similarity = self.cosine_similarity_neighbors(cand, index, context_words)
+
+            similarities.append(avg_similarity)
+
+        AbstractFeature.set_value(self, numpy.median(similarities))
+
+
+    @staticmethod
+    def get_context_words(target_word_idx, content_indexes):
+
+        context_word_indexes = []
+        for i, word_idx in enumerate(content_indexes):
+            if word_idx == target_word_idx:
+                if i > 0:
+                    context_word_indexes.append(content_indexes[i - 1])
+                if i < len(content_indexes) - 1:
+                    context_word_indexes.append(content_indexes[i + 1])
+
+        return context_word_indexes
+
+    @staticmethod
+    def cosine_similarity_neighbors(sentence_object, target_word_idx, context_words_idxs):
+
+        similarities = []
+        for context_words_idx in context_words_idxs:
+            similarity = dot(matutils.unitvec(sentence_object['word_vectors'][target_word_idx]), matutils.unitvec(sentence_object['word_vectors'][context_words_idx]))
+            similarities.append(similarity)
+            print "Target word: " + sentence_object['tokens'][target_word_idx] + " similarity to context word " + sentence_object['tokens'][context_words_idx] + " is " + str(similarity)
+
+        average = numpy.mean(similarities)
+        print "Average context similarity for the word " + sentence_object['tokens'][target_word_idx] + " is " + str(average)
+        return average
+
+    @staticmethod
+    def non_aligned_content_words_indexes(cand, content_indexes):
+
+        non_aligned = []
+        for index in content_indexes:
+            if index + 1 not in [x[0] for x in cand['alignments'][0]]:
+                non_aligned.append(index)
+
+        return non_aligned
 
 
 class CosineSimilarity(AbstractFeature):
