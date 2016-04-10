@@ -1,4 +1,5 @@
 import codecs
+import os
 
 
 class CobaltAlignReader(object):
@@ -6,7 +7,7 @@ class CobaltAlignReader(object):
     def read(self, alignment_file):
 
         alignments = []
-        lines = codecs.open(alignment_file, 'r', 'utf-8')
+        lines = codecs.open(os.path.expanduser(alignment_file), 'r', 'utf-8')
 
         for line in lines:
             if line.startswith('Sentence #'):

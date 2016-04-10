@@ -34,13 +34,13 @@ class RunProcessors(object):
 
             instance = my_class()
 
-            print 'Running ' + instance.get_name()
+            print('Running ' + instance.get_name())
             instance.run(self.config)
 
-            print 'Getting ' + instance.get_name()
+            print('Getting ' + instance.get_name())
             instance.get(self.config)
 
-            print instance.get_name() + ' ' + 'finished!'
+            print(instance.get_name() + ' ' + 'finished!')
 
             results_target.append(instance.get_result_tgt())
             results_reference.append(instance.get_result_ref())

@@ -1,6 +1,6 @@
 __author__ = 'MarinaFomicheva'
 
-import re
+import os
 from src.lex_resources.config import *
 import numpy as np
 
@@ -11,14 +11,17 @@ def load_ppdb(ppdbFileName):
 
     count = 0
 
-    ppdbFile = open(ppdbFileName, 'r')
+    ppdbFile = open(os.path.expanduser(ppdbFileName), 'r')
     for line in ppdbFile:
         if line == '\n':
             continue
         tokens = line.split()
+        if len(tokens) < 2:
+            continue
         tokens[1] = tokens[1].strip()
         ppdb_dict[(tokens[0], tokens[1])] = 0.6
         count += 1
+
 
 def load_word_vectors(vectorsFileName, delimiter=' '):
 

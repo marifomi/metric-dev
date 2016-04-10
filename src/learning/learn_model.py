@@ -29,19 +29,18 @@ from sklearn.linear_model.coordinate_descent import LassoCV
 from sklearn.linear_model.least_angle import LassoLarsCV, LassoLars
 from sklearn.linear_model.randomized_l1 import RandomizedLasso
 from sklearn.linear_model.logistic import LogisticRegression
-from sklearn.metrics.metrics import mean_squared_error, f1_score, \
-    precision_score, recall_score
+from sklearn.metrics.classification import f1_score, precision_score, recall_score
+from sklearn.metrics import mean_squared_error, mean_absolute_error
 from sklearn.svm.classes import SVR, SVC
-from sklearn_utils import scale_datasets, open_datasets, assert_number, \
-    assert_string
+from sklearn.ensemble import ExtraTreesClassifier
+from sklearn.preprocessing import scale
+from src.learning.customize_scorer import pearson_corrcoef, binary_precision, classify_report_bin, classify_report_bin_regression, classify_report_regression
 import logging as log
 import numpy as np
 import os
 import sys
 import yaml
-from evaluation_measures import mean_absolute_error, root_mean_squared_error
-
-from customize_scorer import pearson_corrcoef, binary_precision, classify_report_bin, classify_report_bin_regression, classify_report_regression
+import codecs
 
 __all__ = []
 __version__ = 0.1
@@ -128,8 +127,6 @@ def set_scorer_functions(scorers):
     for score in scorers:
         if score == 'mae':
             scores.append((score, mean_absolute_error))
-        elif score == 'rmse':
-            scores.append((score, root_mean_squared_error))
         elif score == 'mse':
             scores.append((score, mean_squared_error))
         elif score == 'f1_score':
@@ -142,7 +139,7 @@ def set_scorer_functions(scorers):
             scores.append((score, pearson_corrcoef))
         elif score == 'binary_precision':
             scores.append((score, binary_precision))
-            
+
     return scores
 
 
@@ -379,10 +376,6 @@ def fit_predict(config, X_train, y_train, X_test=None, y_test=None, ref_thd=None
         except:
             pass
         try:
-            log.info("RMSE: = %s" % root_mean_squared_error(y_test, y_hat))
-        except:
-            pass
-        try:
             res = classify_report_bin(y_test, y_hat)
             if "N/A" != res:
                 log.info("Classify report bin: = %s" % res)
@@ -403,7 +396,7 @@ def fit_predict(config, X_train, y_train, X_test=None, y_test=None, ref_thd=None
         predictions = []
         with open("predicted.csv", 'w') as _fout:
             for _x,  _y in zip(y_test, y_hat):
-                print >> _fout,  "%f\t%f" % (_x,  _y)
+                print("%f\t%f" % (_x,  _y), _fout)
                 predictions.append(_y)
             _fout.close()
 
@@ -479,6 +472,214 @@ def run(cfg_path, **kwargs):
     y_hat = fit_predict(config, X_train, y_train, X_test, y_test, config.get("ref_thd", None))
 
     return y_hat
+
+def assert_number(generic_list):
+      '''
+      Checks whether the list is composed only by numeric datatypes.
+
+      @param generic_list: a list containing any object type.
+      @return: True if the list contains only numeric objects. False otherwise.
+      '''
+      for i in generic_list:
+          if not isinstance(i, (int, float)):
+              return False
+      return True
+
+def assert_string(generic_list):
+    for i in generic_list:
+        if not isinstance(i, str):
+          return False
+    return True
+
+def open_datasets(train_path, train_ref_path, test_path,
+                test_ref_path, delim, labels_path=None):
+
+  if not os.path.isfile(os.path.abspath(train_path)):
+      raise IOError("training dataset path is not valid: %s" % train_path)
+
+  if not os.path.isfile(os.path.abspath(train_ref_path)):
+      raise IOError("training references path is not valid: %s" % train_ref_path)
+
+  if not os.path.isfile(os.path.abspath(test_path)):
+      raise IOError("test dataset path is not valid: %s" % test_path)
+
+  if not os.path.isfile(os.path.abspath(test_ref_path)):
+      raise IOError("test references path is not valid: %s" % test_ref_path)
+
+  labels = []
+  if labels_path is not None:
+      if not os.path.isfile(os.path.abspath(labels_path)):
+          raise IOError("labels file is not valid: %s" % labels_path)
+
+      labels = read_labels_file(labels_path, delim)
+
+  X_train = read_features_file(train_path, delim)
+  y_train = read_reference_file(train_ref_path, delim)
+
+  X_test = read_features_file(test_path, delim)
+  y_test = read_reference_file(test_ref_path, delim)
+
+  if len(X_train.shape) != 2:
+      raise IOError("the training dataset must be in the format of a matrix with M lines and N columns.")
+
+  if len(X_test.shape) != 2:
+      raise IOError("the test dataset must be in the format of a matrix with M lines and N columns.")
+
+  if X_train.shape[0] != y_train.shape[0]:
+      raise IOError("the number of instances in the train features file does not match the number of references given.")
+
+  if X_test.shape[0] != y_test.shape[0]:
+      raise IOError("the number of instances in the test features file does not match the number of references given.")
+
+  if X_train.shape[1] != X_test.shape[1]:
+      raise IOError("the number of features in train and test datasets is different.")
+
+  return X_train, y_train, X_test, y_test, labels
+
+def read_labels_file(path, delim, encoding='utf-8'): 
+      '''Reads the labels of each column in the training and test files (features  
+      and reference files). 
+       
+      @param path: the path of the labels file 
+      @param delim: the character used to separate the label strings. 
+      @param encoding: the character encoding used to read the file.  
+      Default is 'utf-8'. 
+       
+      @return: a list of strings representing each feature column. 
+      ''' 
+      labels_file = codecs.open(path, 'r', encoding) 
+      lines = labels_file.readlines() 
+       
+      if len(lines) > 1: 
+          log.warn("labels file has more than one line, using the first.") 
+       
+      if len(lines) == 0: 
+          log.error("labels file is empty: %s" % path) 
+       
+      labels = lines[0].strip().split(delim) 
+       
+      return labels 
+       
+       
+def read_reference_file(path, delim, encoding='utf-8'):
+  """Parses the file that contains the references and stores it in a numpy array.
+
+     @param path the path of the file.
+     @delim char the character used to separate values.
+
+     @return: a numpy array representing each instance response value
+  """
+
+  # reads the references to a vector
+  refs_file = codecs.open(path, 'r', encoding)
+  refs_lines = []
+  for line in refs_file:
+      cols = line.strip().split(delim)
+      refs_lines.append(cols[0])
+
+  refs = np.asfarray(refs_lines)
+
+
+  return refs
+   
+   
+def read_features_file(path, delim, encoding='utf-8'):
+    '''
+    Reads the features for each instance and stores it on an numpy array.
+
+    @param path: the path to the file containing the feature set.
+    @param delim: the character used to separate the values in the file pointed by path.
+    @param encoding: the character encoding used to read the file.
+
+    @return: an numpy array where the columns are the features and the rows are the instances.
+    '''
+    # this method is memory unneficient as all the data is kept in memory
+    feats_file = codecs.open(path, 'r', encoding)
+    feats_lines = []
+    line_num = 0
+    for line in feats_file:
+      if line == "":
+          continue
+      toks = tuple(line.strip().split(delim))
+      cols = []
+      for t in toks:
+          if t != '':
+              try:
+                  cols.append(float(t))
+              except ValueError as e:
+                  log.error("%s line %s: %s" % (e, line_num, t))
+
+      line_num += 1
+      feats_lines.append(cols)
+
+    #    print feats_lines
+    feats = np.asarray(feats_lines)
+
+    return feats
+
+def open_datasets_crossvalidation(train_path, train_ref_path, delim, labels_path=None):
+    if not os.path.isfile(os.path.abspath(train_path)):
+      raise IOError("training dataset path is not valid: %s" % train_path)
+
+    if not os.path.isfile(os.path.abspath(train_ref_path)):
+      raise IOError("training references path is not valid: %s" % train_ref_path)
+
+    labels = []
+    if labels_path is not None:
+      if not os.path.isfile(os.path.abspath(labels_path)):
+          raise IOError("labels file is not valid: %s" % labels_path)
+
+      labels = read_labels_file(labels_path, delim)
+
+    X_train = read_features_file(train_path, delim)
+    y_train = read_reference_file(train_ref_path, delim)
+
+    if len(X_train.shape) != 2:
+      raise IOError("the training dataset must be in the format of a matrix with M lines and N columns.")
+
+    if X_train.shape[0] != y_train.shape[0]:
+      raise IOError("the number of instances in the train features file does not match the number of references given.")
+
+    return X_train, y_train, labels
+
+
+def scale_datasets(X_train, X_test):
+    log.info("Scaling datasets...")
+
+    log.debug("X_train shape = %s,%s" % X_train.shape)
+    log.debug("X_test shape = %s,%s" % X_test.shape)
+
+    # concatenates the whole dataset so that the scaling is
+    # done over the same distribution
+    dataset = np.concatenate((X_train, X_test))
+    scaled_dataset = scale(dataset)
+
+    # gets the scaled datasets splits back
+    X_train = scaled_dataset[:X_train.shape[0]]
+    X_test = scaled_dataset[X_train.shape[0]:]
+
+    log.debug("X_train after scaling = %s,%s" % X_train.shape)
+    log.debug("X_test after scaling = %s,%s" % X_test.shape)
+
+    return X_train, X_test
+
+
+def scale_datasets_crossvalidation(X_train):
+    log.info("Scaling datasets...")
+
+    log.debug("X_train shape = %s,%s" % X_train.shape)
+
+    # concatenates the whole dataset so that the scaling is
+    # done over the same distribution
+    dataset = X_train
+    scaled_dataset = scale(dataset)
+
+    # gets the scaled datasets splits back
+    X_train = scaled_dataset[:X_train.shape[0]]
+
+    log.debug("X_train after scaling = %s,%s" % X_train.shape)
+
+    return X_train
 
 def main(argv=None): # IGNORE:C0111
     '''Command line options.'''

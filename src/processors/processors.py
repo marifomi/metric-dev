@@ -1,7 +1,7 @@
 __author__ = 'MarinaFomicheva'
 
 from collections import defaultdict
-from ConfigParser import ConfigParser
+from configparser import ConfigParser
 from src.processors.abstract_processor import AbstractProcessor
 from src.alignment.aligner import Aligner
 from src.alignment.aligner import stopwords
@@ -184,7 +184,7 @@ class WordVectors(AbstractProcessor):
         AbstractProcessor.set_output(self, True)
 
     def run(self, config):
-        print "Loading word vectors"
+        print("Loading word vectors")
 
     def get(self, config):
 
@@ -193,31 +193,29 @@ class WordVectors(AbstractProcessor):
 
         fvectors = config.get('Vectors', 'path')
 
-        print "Loading word vectors from " + fvectors
+        print("Loading word vectors from " + fvectors)
         wv = Word2Vec.load_word2vec_format(fvectors, binary=False)
 
-        print "Finished loading word vectors from " + fvectors
+        print("Finished loading word vectors from " + fvectors)
 
-        print "Building sentence vectors for target..."
+        print("Building sentence vectors for target...")
         AbstractProcessor.set_result_tgt(self, self.words2vec(lines_tgt, wv))
-        print "Finished building sentence vectors for target"
-        print "Building sentence vectors for reference..."
+        print("Finished building sentence vectors for target")
+        print("Building sentence vectors for reference...")
         AbstractProcessor.set_result_ref(self, self.words2vec(lines_ref, wv))
-        print "Finished building sentence vectors for reference"
+        print("Finished building sentence vectors for reference")
 
         wv = None
-        print "Finished getting word vectors"
+        print("Finished getting word vectors")
 
 
     @staticmethod
     def words2vec(sents, model):
 
         # Here vectors are added for all the words to preserve sentence length
-
         result = []
 
         for line in sents:
-
             tokens = [t.lower() for t in line.strip().split(' ')]
             vecs = []
 
@@ -254,11 +252,11 @@ class SentVector(AbstractProcessor):
         AbstractProcessor.set_output(self, True)
 
     def run(self, config):
-        print "Loading word vectors"
+        print("Loading word vectors")
 
     def get(self, config):
 
-        print "Getting sentence vectors"
+        print("Getting sentence vectors")
 
         lines_ref = codecs.open(config.get('Data', 'ref') + '.' + 'token', 'r', 'utf-8').readlines()
         lines_tgt = codecs.open(config.get('Data', 'tgt') + '.' + 'token', 'r', 'utf-8').readlines()
@@ -270,7 +268,7 @@ class SentVector(AbstractProcessor):
         AbstractProcessor.set_result_ref(self, self.sents2vec(lines_ref, wv))
 
         wv = None
-        print "Finished getting sentence vectors"
+        print("Finished getting sentence vectors")
 
 
     @staticmethod
@@ -304,12 +302,12 @@ class Parse(AbstractProcessor):
         AbstractProcessor.set_output(self, True)
 
     def run(self, config):
-        print "Parse already exist!"
+        print("Parse already exist!")
 
     def get(self, config):
 
-        result_tgt = read_parsed_sentences(codecs.open(config.get('Data', 'tgt') + '.' + 'parse', 'r', 'utf-8'))
-        result_ref = read_parsed_sentences(codecs.open(config.get('Data', 'ref') + '.' + 'parse', 'r', 'utf-8'))
+        result_tgt = read_parsed_sentences(codecs.open(os.path.expanduser(config.get('Data', 'tgt') + '.' + 'parse'), 'r', 'utf-8'))
+        result_ref = read_parsed_sentences(codecs.open(os.path.expanduser(config.get('Data', 'ref') + '.' + 'parse'), 'r', 'utf-8'))
 
         sents_tgt = []
         sents_ref = []
@@ -332,7 +330,7 @@ class Parse2(AbstractProcessor):
         AbstractProcessor.set_output(self, True)
 
     def run(self, config):
-        print "Parse already exist!"
+        print("Parse already exist!")
 
     def get(self, config):
 
@@ -371,7 +369,7 @@ class Bleu(AbstractProcessor):
             shutil.copyfile(tgt_path, src_path)
 
         if os.path.exists(config.get('Metrics', 'dir') + '/' + tgt_path.split('/')[-1] + '.bleu.scores'):
-            print "Bleu scores already exist!"
+            print("Bleu scores already exist!")
             return
 
         if not os.path.exists(ref_path + '.xml'):
@@ -412,7 +410,7 @@ class MeteorScorer(AbstractProcessor):
         ref_path = config.get('Data', 'ref')
 
         if os.path.exists(config.get('Metrics', 'dir') + '/' + tgt_path.split('/')[-1] + '.meteor.scores'):
-            print "Meteor scores already exist!"
+            print("Meteor scores already exist!")
             return
 
         meteor = config.get('Metrics', 'meteor')
@@ -470,7 +468,7 @@ class MeteorAligner(AbstractProcessor):
         prefix = config.get('Alignment', 'dir') + '/' + tgt_file_name + '.' + config.get('Alignment', 'aligner') + name
 
         if os.path.exists(prefix + '-align.out'):
-            print "Meteor alignments already exist!"
+            print("Meteor alignments already exist!")
             return
 
         meteor = config.get('Metrics', 'meteor')
@@ -553,15 +551,15 @@ class Tokenizer(AbstractProcessor):
             elif aligner == 'cobalt':
                 self.tokenize_from_parse(config)
             else:
-                print "Aligner is not defined"
+                print("Aligner is not defined")
         elif method == 'quest':
             self.tokenize_quest(config)
         elif method == 'tokenized':
             self.rewrite_tokenized(config)
         elif method == '':
-            print "Files are already tokenized!"
+            print("Files are already tokenized!")
         else:
-            print "Tokenizer is not defined"
+            print("Tokenizer is not defined")
 
 
     def tokenize_from_aligner(self, config):
@@ -601,11 +599,11 @@ class Tokenizer(AbstractProcessor):
 
     def tokenize_from_parse(self, config):
 
-        input_file_tgt = config.get('Data', 'tgt') + '.parse'
-        input_file_ref = config.get('Data', 'ref') + '.parse'
-        out_tgt = config.get('Data', 'tgt') + '.' + 'token'
-        out_ref = config.get('Data', 'ref') + '.' + 'token'
-        out_src = config.get('Data', 'src') + '.' + 'token'
+        input_file_tgt = os.path.expanduser(config.get('Data', 'tgt') + '.parse')
+        input_file_ref = os.path.expanduser(config.get('Data', 'ref') + '.parse')
+        out_tgt = os.path.expanduser(config.get('Data', 'tgt') + '.' + 'token')
+        out_ref = os.path.expanduser(config.get('Data', 'ref') + '.' + 'token')
+        out_src = os.path.expanduser(config.get('Data', 'src') + '.' + 'token')
 
         if os.path.exists(out_tgt):
             print("The file " + out_tgt + " is already tokenized.\n Tokenizer will not run.")
@@ -668,7 +666,7 @@ class Tokenizer(AbstractProcessor):
         path_output_ref = config.get('Data', 'ref') + '.token'
 
         if os.path.exists(path_output_tgt) and os.path.exists(path_output_ref):
-            print "The file " + path_output_tgt + "already exists\nTokenizer will not run."
+            print("The file " + path_output_tgt + "already exists\nTokenizer will not run.")
             return
 
         f_output_tgt = open(config.get('Data', 'tgt') + '.token', 'w')
@@ -694,7 +692,7 @@ class Tokenizer(AbstractProcessor):
         shutil.copyfile(config.get('Data', 'tgt') + '.' + 'token', config.get('Data', 'src') + '.' + 'token')
 
 
-        print "Tokenization finished!"
+        print("Tokenization finished!")
 
     def rewrite_tokenized(self, config):
 
@@ -703,7 +701,7 @@ class Tokenizer(AbstractProcessor):
         self.rewrite(config.get('Data', 'tgt'))
         self.rewrite(config.get('Data', 'ref'))
 
-        print "Tokenization finished!"
+        print("Tokenization finished!")
 
     @staticmethod
     def rewrite(fname):
@@ -719,8 +717,8 @@ class Tokenizer(AbstractProcessor):
         sents_tokens_ref = []
         sents_tokens_tgt = []
 
-        lines_ref = codecs.open(config.get('Data', 'ref') + '.' + 'token', 'r', 'utf-8').readlines()
-        lines_tgt = codecs.open(config.get('Data', 'tgt') + '.' + 'token', 'r', 'utf-8').readlines()
+        lines_ref = codecs.open(os.path.expanduser(config.get('Data', 'ref') + '.' + 'token'), 'r', 'utf-8').readlines()
+        lines_tgt = codecs.open(os.path.expanduser(config.get('Data', 'tgt') + '.' + 'token'), 'r', 'utf-8').readlines()
         for i, line in enumerate(lines_tgt):
             sents_tokens_tgt.append(line.strip().split(' '))
             sents_tokens_ref.append(lines_ref[i].strip().split(' '))
@@ -808,7 +806,7 @@ class LanguageModelWordFeatures(AbstractProcessor):
         srilm = config.get('Language Model', 'srilm')
 
         if os.path.exists(output_path):
-            print 'File with lm perplexities already exist'
+            print('File with lm perplexities already exist')
             return
 
         my_output = open(output_path, 'w')
@@ -860,7 +858,7 @@ class LanguageModelWordFeatures(AbstractProcessor):
 #         srilm = config.get('Language Model', 'srilm')
 #
 #         if os.path.exists(output_path):
-#             print 'File with lm perplexities already exist'
+#             print('File with lm perplexities already exist')
 #             return
 #
 #         my_output = open(output_path, 'w')
@@ -910,7 +908,7 @@ class LanguageModelWordFeaturesInformed(AbstractProcessor):
         srilm = config.get('Language Model', 'srilm')
 
         if os.path.exists(output_path):
-            print 'File with lm perplexities already exist'
+            print('File with lm perplexities already exist')
             return
 
         my_output = open(output_path, 'w')
@@ -966,7 +964,7 @@ class LanguageModelSentenceFeatures(AbstractProcessor):
         srilm = config.get('Language Model', 'srilm')
 
         if os.path.exists(output_path):
-            print 'File with lm perplexities already exist'
+            print('File with lm perplexities already exist')
             return
 
         my_output = open(output_path, 'w')

@@ -1,7 +1,8 @@
 from operator import itemgetter
 import codecs
+import os
 
-from aligner_config import AlignerConfig
+from src.alignment.aligner_config import AlignerConfig
 from src.utils.word_sim import *
 from src.alignment.util import *
 from src.utils.core_nlp_utils import *
@@ -112,15 +113,19 @@ class Aligner(object):
         maxRightList = {}
 
         for similarity in wordSimilarities.keys():
-            if not maxLeft.has_key(similarity[0]) or wordSimilarities[maxLeft[similarity[0]]] < wordSimilarities[similarity]:
+            if not similarity[0] in maxLeft or wordSimilarities[maxLeft[similarity[0]]] < wordSimilarities[similarity]:
                 maxLeft[similarity[0]] = similarity
                 maxLeftList[similarity[0]] = similarity[1]
 
-            if not maxRight.has_key(similarity[1]) or wordSimilarities[maxRight[similarity[1]]] < wordSimilarities[similarity]:
+            if not similarity[1] in maxRight or wordSimilarities[maxRight[similarity[1]]] < wordSimilarities[similarity]:
                 maxRight[similarity[1]] = similarity
                 maxRightList[similarity[1]] = similarity[0]
 
-        maxRelations = set(maxLeft.values() + maxRight.values())
+        leftRight = dict()
+        leftRight.update(maxLeft)
+        leftRight.update(maxRight)
+
+        maxRelations = set(leftRight.values())
 
         score = 0
         sourceNodesConsidered = []
@@ -148,7 +153,11 @@ class Aligner(object):
         compareParentChildren = self.compareNodes(sourceWordParents, targetWordChildren, pos, True, 'parent_child', existingAlignments, sourcePosTags, targetPosTags, sourceLemmas, targetLemmas)
         compareChildrenParent = self.compareNodes(sourceWordParents, targetWordChildren, pos, True, 'child_parent', existingAlignments, sourcePosTags, targetPosTags, sourceLemmas, targetLemmas)
 
-        comparisonResult = dict(compareParents.items() + compareChildren.items() + compareChildrenParent.items() + compareParentChildren.items())
+        comparisonResult = dict()
+        comparisonResult.update(compareParents)
+        comparisonResult.update(compareChildren)
+        comparisonResult.update(compareChildrenParent)
+        comparisonResult.update(compareParentChildren)
 
         alignments = []
         wordSimilarities = {}
@@ -227,8 +236,8 @@ class Aligner(object):
 
         posAlignments = []
 
-        sourceWordIndices = [i+1 for i in xrange(len(source))]
-        targetWordIndices = [i+1 for i in xrange(len(target))]
+        sourceWordIndices = [i+1 for i in range(len(source))]
+        targetWordIndices = [i+1 for i in range(len(target))]
 
         sourceWordIndicesAlreadyAligned = sorted(list(set([item[0] for item in existingAlignments])))
         targetWordIndicesAlreadyAligned = sorted(list(set([item[1] for item in existingAlignments])))
@@ -284,7 +293,7 @@ class Aligner(object):
                     evidenceCountsMatrix[(i, j)] = 0
 
         # now use the collected stats to align_sentence
-        for n in xrange(numberOfPosWordsInSource):
+        for n in range(numberOfPosWordsInSource):
 
             maxEvidenceCountForCurrentPass = 0
             maxOverallValueForCurrentPass = 0
@@ -347,7 +356,7 @@ class Aligner(object):
 
                     # check if the current item is part of a named entity part of which has already been added (by checking contiguousness)
                     partOfABiggerName = False
-                    for k in xrange(len(sourceNamedEntities)):
+                    for k in range(len(sourceNamedEntities)):
                         if sourceNamedEntities[k][1][len(sourceNamedEntities[k][1])-1] == newItem[1][0] - 1:
                             sourceNamedEntities[k][0].append(newItem[0][0])
                             sourceNamedEntities[k][1].append(newItem[1][0])
@@ -376,7 +385,7 @@ class Aligner(object):
 
                     # check if the current item is part of a named entity part of which has already been added (by checking contiguousness)
                     partOfABiggerName = False
-                    for k in xrange(len(targetNamedEntities)):
+                    for k in range(len(targetNamedEntities)):
                         if targetNamedEntities[k][1][len(targetNamedEntities[k][1])-1] == newItem[1][0] - 1:
                             targetNamedEntities[k][0].append(newItem[0][0])
                             targetNamedEntities[k][1].append(newItem[1][0])
@@ -447,7 +456,7 @@ class Aligner(object):
                 canonicalJtemWord = [j.replace('-', '') for j in jtem[2]]
 
                 if canonicalItemWord == canonicalJtemWord:
-                    for k in xrange(len(item[1])):
+                    for k in range(len(item[1])):
                         if ([item[1][k], jtem[1][k]]) not in alignments:
                             alignments.append([item[1][k], jtem[1][k]])
                     sourceNamedEntitiesAlreadyAligned.append(item)
@@ -462,14 +471,14 @@ class Aligner(object):
                     continue
 
                 if len(item[2])==1 and isAcronym(item[2][0], jtem[2]):
-                    for i in xrange(len(jtem[1])):
+                    for i in range(len(jtem[1])):
                         if [item[1][0], jtem[1][i]] not in alignments:
                             alignments.append([item[1][0], jtem[1][i]])
                             sourceNamedEntitiesAlreadyAligned.append(item[1][0])
                             targetNamedEntitiesAlreadyAligned.append(jtem[1][i])
 
                 elif len(jtem[2])==1 and isAcronym(jtem[2][0], item[2]):
-                    for i in xrange(len(item[1])):
+                    for i in range(len(item[1])):
                         if [item[1][i], jtem[1][0]] not in alignments:
                             alignments.append([item[1][i], jtem[1][0]])
                             sourceNamedEntitiesAlreadyAligned.append(item[1][i])
@@ -511,14 +520,14 @@ class Aligner(object):
                     unalignedWordIndicesInTheLongerName = []
                     for ktem in jtem[1]:
                         unalignedWordIndicesInTheLongerName.append(ktem)
-                    for k in xrange(len(item[2])):
-                        for l in xrange(len(jtem[2])):
+                    for k in range(len(item[2])):
+                        for l in range(len(jtem[2])):
                             if item[2][k] == jtem[2][l] and [item[1][k], jtem[1][l]] not in alignments:
                                 alignments.append([item[1][k], jtem[1][l]])
                                 if jtem[1][l] in unalignedWordIndicesInTheLongerName:
                                     unalignedWordIndicesInTheLongerName.remove(jtem[1][l])
-                    for k in xrange(len(item[1])): # the shorter name
-                        for l in xrange(len(jtem[1])): # the longer name
+                    for k in range(len(item[1])): # the shorter name
+                        for l in range(len(jtem[1])): # the longer name
                             # find if the current term in the longer name has already been aligned (before calling alignNamedEntities()), do not align_sentence it in that case
                             alreadyInserted = False
                             for mtem in existingAlignments:
@@ -535,14 +544,14 @@ class Aligner(object):
                     unalignedWordIndicesInTheLongerName = []
                     for ktem in item[1]:
                         unalignedWordIndicesInTheLongerName.append(ktem)
-                    for k in xrange(len(jtem[2])):
-                        for l in xrange(len(item[2])):
+                    for k in range(len(jtem[2])):
+                        for l in range(len(item[2])):
                             if jtem[2][k] == item[2][l] and [item[1][l], jtem[1][k]] not in alignments:
                                 alignments.append([item[1][l], jtem[1][k]])
                                 if item[1][l] in unalignedWordIndicesInTheLongerName:
                                     unalignedWordIndicesInTheLongerName.remove(item[1][l])
-                    for k in xrange(len(jtem[1])): # the shorter name
-                        for l in xrange(len(item[1])): # the longer name
+                    for k in range(len(jtem[1])): # the shorter name
+                        for l in range(len(item[1])): # the longer name
                             # find if the current term in the longer name has already been aligned (before calling alignNamedEntities()), do not align_sentence it in that case
                             alreadyInserted = False
                             for mtem in existingAlignments:
@@ -569,8 +578,8 @@ class Aligner(object):
 
         global punctuations
 
-        sourceWordIndices = [i+1 for i in xrange(len(source))]
-        targetWordIndices = [i+1 for i in xrange(len(target))]
+        sourceWordIndices = [i+1 for i in range(len(source))]
+        targetWordIndices = [i+1 for i in range(len(target))]
 
 
         alignments = []
@@ -615,7 +624,7 @@ class Aligner(object):
                     allStopWords = False
                     break
             if len(item[0]) >= 2 and not allStopWords:
-                for j in xrange(len(item[0])):
+                for j in range(len(item[0])):
                     if item[0][j]+1 not in sourceWordIndicesAlreadyAligned and item[1][j]+1 not in targetWordIndicesAlreadyAligned and [item[0][j]+1, item[1][j]+1] not in alignments:
                         alignments.append([item[0][j]+1, item[1][j]+1])
                         sourceWordIndicesAlreadyAligned.append(item[0][j]+1)
@@ -727,8 +736,8 @@ class Aligner(object):
                 targetNeighborhood = findTextualNeighborhood(target, j, 3, 3)
                 evidence = 0
 
-                for k in xrange(len(sourceNeighborhood[0])):
-                    for l in xrange(len(targetNeighborhood[0])):
+                for k in range(len(sourceNeighborhood[0])):
+                    for l in range(len(targetNeighborhood[0])):
                         neighbor1 = Word(sourceNeighborhood[0][k], sourceNeighborhood[1][k], sourceLemmas[sourceNeighborhood[0][k]-1], sourcePosTags[sourceNeighborhood[0][k]-1], '')
                         neighbor2 = Word(targetNeighborhood[0][l], targetNeighborhood[1][l], targetLemmas[targetNeighborhood[0][l]-1], targetPosTags[targetNeighborhood[0][l]-1], '')
                         if (sourceNeighborhood[1][k] not in stopwords + punctuations) and ((sourceNeighborhood[0][k], targetNeighborhood[0][l]) in alignments or (wordRelatednessAlignment(neighbor1, neighbor2, self.config) >= self.config.alignment_similarity_threshold)):
@@ -738,7 +747,7 @@ class Aligner(object):
         numOfUnalignedWordsInSource = len(set(sourceWordIndicesBeingConsidered))
 
         # now align_sentence: find the best alignment in each iteration of the following loop and include in alignments if good enough
-        for item in xrange(numOfUnalignedWordsInSource):
+        for item in range(numOfUnalignedWordsInSource):
             highestWeightedSim = 0
             bestWordSim = 0
             bestSourceIndex = -1
@@ -852,7 +861,7 @@ class Aligner(object):
         numOfUnalignedWordsInSource = len(set(sourceWordIndicesBeingConsidered))
 
         # now align_sentence: find the best alignment in each iteration of the following loop and include in alignments if good enough
-        for item in xrange(numOfUnalignedWordsInSource):
+        for item in range(numOfUnalignedWordsInSource):
             highestWeightedSim = 0
             bestWordSim = 0
             bestSourceIndex = -1
@@ -950,7 +959,7 @@ class Aligner(object):
         numOfUnalignedWordsInSource = len(set(sourceWordIndicesBeingConsidered))
 
         # now align_sentence: find the best alignment in each iteration of the following loop and include in alignments if good enough
-        for item in xrange(numOfUnalignedWordsInSource):
+        for item in range(numOfUnalignedWordsInSource):
             highestWeightedSim = 0
             bestWordSim = 0
             bestSourceIndex = -1
@@ -1051,22 +1060,24 @@ class Aligner(object):
 
     def align_documents(self, tgt, ref):
 
-        tst_phrases = read_parsed_sentences(codecs.open(tgt, 'r', encoding='UTF-8'))
-        ref_phrases = read_parsed_sentences(codecs.open(ref, 'r', encoding='UTF-8'))
+        tst_phrases = read_parsed_sentences(codecs.open(os.path.expanduser(tgt), 'r', encoding='UTF-8'))
+        ref_phrases = read_parsed_sentences(codecs.open(os.path.expanduser(ref), 'r', encoding='UTF-8'))
 
-        load_resources.load_ppdb(self.config.path_to_ppdb)
-        load_resources.load_word_vectors(self.config.path_to_vectors)
+        if "paraphrases" in self.config.selected_lexical_resources:
+            load_resources.load_ppdb(self.config.path_to_ppdb)
+        if "distributional" in self.config.selected_lexical_resources:
+            load_resources.load_word_vectors(self.config.path_to_vectors)
 
         for i, candidate in enumerate(tst_phrases):
             self.alignments.append(self.align_sentence(candidate, ref_phrases[i]))
-            print str(i)
+            print(str(i))
 
     def write_alignments(self, output_file_name):
 
-        my_output = codecs.open(output_file_name, 'w', 'utf-8')
+        my_output = codecs.open(os.path.expanduser(output_file_name), 'w', 'utf-8')
 
         for i, sentence in enumerate(self.alignments):
-            print >>my_output, 'Sentence #' + str(i + 1)
+            print('Sentence #' + str(i + 1), file=my_output)
 
             for j, widx in enumerate(self.alignments[i][0]):
 

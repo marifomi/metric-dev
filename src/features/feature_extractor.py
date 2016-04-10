@@ -2,6 +2,7 @@ __author__ = 'MarinaFomicheva'
 
 import inspect
 import numpy as np
+import os
 from src.features.impl import features as feature_module
 
 class FeatureExtractor(object):
@@ -59,7 +60,7 @@ class FeatureExtractor(object):
     def get_features_from_config_file(config):
 
         config_features = []
-        f_features = open(config.get('Features', 'feature_set'), 'r').readlines()
+        f_features = open(os.path.expanduser(config.get('Features', 'feature_set')), 'r').readlines()
         for line in sorted(f_features):
             config_features.append(line.strip().split(':')[0])
 
@@ -107,5 +108,5 @@ class FeatureExtractor(object):
 
         for f in features_to_extract:
             if f not in feature_module_names:
-                print "Warning! Feature " + f + "does not exist!"
+                print("Warning! Feature " + f + "does not exist!")
 

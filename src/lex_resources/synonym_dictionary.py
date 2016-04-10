@@ -6,7 +6,7 @@ class SynonymDictionary(object):
     wordSynsetTable = {}
 
     def __init__(self, language):
-        with open(os.path.expanduser('~/workspace/upf-cobalt/src/lex_resources/synonyms/' + language + '.synsets')) as f:
+        with open(os.path.expanduser('src/lex_resources/synonyms/' + language + '.synsets')) as f:
             while True:
                 synsetBatch = list(islice(f, 2))
                 if not synsetBatch:
