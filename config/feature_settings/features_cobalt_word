@@ -1,0 +1,13 @@
+avg_pen_test
+avg_pen_ref
+prop_aligned_content
+prop_aligned_function
+prop_aligned_ref
+prop_aligned_test
+num_non_aligned_oov
+num_non_aligned
+num_fluency_errors_0
+num_fluency_errors_1
+num_fluency_errors_2
+target_length
+prop_pen
