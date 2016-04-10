@@ -4,6 +4,7 @@ __author__ = 'MarinaFomicheva'
 from src.processors.run_processors import RunProcessors
 from src.utils.prepare_wmt import PrepareWmt
 from src.features.feature_extractor import FeatureExtractor as FE
+from json import loads
 import numpy
 
 """ This module scores the data using a set of selected features
@@ -25,6 +26,11 @@ def evaluate_feature_scoring(config, feature_names, data_set, lang_pair, system_
 
 
 def evaluate_feature_ranking(config, features_to_extract):
+
+    if 'Parse' in loads(config.get("Resources", "processors")):
+        process_wmt_parse = PrepareWmt(data_type='parse')
+        data_structure = process_wmt_parse.get_data_structure(config)
+        process_wmt_parse.print_data_set(config, data_structure)
 
     process_wmt = PrepareWmt()
     data_structure = process_wmt.get_data_structure(config)

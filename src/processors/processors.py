@@ -34,6 +34,7 @@ class PosLangModel(AbstractProcessor):
     def __init__(self):
         AbstractProcessor.__init__(self)
         AbstractProcessor.set_name(self, 'pos_lang_model')
+        AbstractProcessor.set_output(self, True)
 
     def run(self, config, sample):
 
@@ -101,6 +102,7 @@ class PosTagger(AbstractProcessor):
     def __init__(self):
         AbstractProcessor.__init__(self)
         AbstractProcessor.set_name(self, 'pos_tagger')
+        AbstractProcessor.set_output(self, True)
 
     def run(self, config, sample):
 
@@ -179,6 +181,7 @@ class WordVectors(AbstractProcessor):
     def __init__(self):
         AbstractProcessor.__init__(self)
         AbstractProcessor.set_name(self, 'word_vectors')
+        AbstractProcessor.set_output(self, True)
 
     def run(self, config):
         print "Loading word vectors"
@@ -213,12 +216,7 @@ class WordVectors(AbstractProcessor):
 
         result = []
 
-        # cnt = 0
         for line in sents:
-
-            # cnt += 1
-            #
-            # print str(cnt)
 
             tokens = [t.lower() for t in line.strip().split(' ')]
             vecs = []
@@ -253,6 +251,7 @@ class SentVector(AbstractProcessor):
     def __init__(self):
         AbstractProcessor.__init__(self)
         AbstractProcessor.set_name(self, 'sent_vector')
+        AbstractProcessor.set_output(self, True)
 
     def run(self, config):
         print "Loading word vectors"
@@ -302,6 +301,7 @@ class Parse(AbstractProcessor):
     def __init__(self):
         AbstractProcessor.__init__(self)
         AbstractProcessor.set_name(self, 'parse')
+        AbstractProcessor.set_output(self, True)
 
     def run(self, config):
         print "Parse already exist!"
@@ -329,6 +329,7 @@ class Parse2(AbstractProcessor):
     def __init__(self):
         AbstractProcessor.__init__(self)
         AbstractProcessor.set_name(self, 'parse2')
+        AbstractProcessor.set_output(self, True)
 
     def run(self, config):
         print "Parse already exist!"
@@ -358,6 +359,7 @@ class Bleu(AbstractProcessor):
     def __init__(self):
         AbstractProcessor.__init__(self)
         AbstractProcessor.set_name(self, 'bleu')
+        AbstractProcessor.set_output(self, True)
 
     def run(self, config):
 
@@ -402,6 +404,7 @@ class MeteorScorer(AbstractProcessor):
     def __init__(self):
         AbstractProcessor.__init__(self)
         AbstractProcessor.set_name(self, 'meteor')
+        AbstractProcessor.set_output(self, True)
 
     def run(self, config):
 
@@ -435,11 +438,25 @@ class MeteorScorer(AbstractProcessor):
         AbstractProcessor.set_result_ref(self, result)
 
 
+class Paraphrases(AbstractProcessor):
+
+    def __init__(self):
+        AbstractProcessor.__init__(self)
+        AbstractProcessor.set_name(self, 'paraphrases')
+        AbstractProcessor.set_output(self, None)
+
+    def run(self, config):
+        load_ppdb(config.get("Paraphrases", "path"))
+
+    def get(self, config):
+        pass
+
 class MeteorAligner(AbstractProcessor):
 
     def __init__(self):
         AbstractProcessor.__init__(self)
         AbstractProcessor.set_name(self, 'meteor_aligner')
+        AbstractProcessor.set_output(self, True)
 
     def run(self, config):
 
@@ -482,6 +499,7 @@ class CobaltAligner(AbstractProcessor):
     def __init__(self):
         AbstractProcessor.__init__(self)
         AbstractProcessor.set_name(self, 'cobalt_aligner')
+        AbstractProcessor.set_output(self, True)
 
     def run(self, config):
 
@@ -522,6 +540,7 @@ class Tokenizer(AbstractProcessor):
     def __init__(self):
         AbstractProcessor.__init__(self)
         AbstractProcessor.set_name(self, 'tokenizer')
+        AbstractProcessor.set_output(self, True)
 
     def run(self, config):
 
@@ -714,6 +733,7 @@ class QuestSentence(AbstractProcessor):
     def __init__(self):
         AbstractProcessor.__init__(self)
         AbstractProcessor.set_name(self, 'quest_sentence')
+        AbstractProcessor.set_output(self, True)
 
     def run(self, config, sample):
 
@@ -777,6 +797,7 @@ class LanguageModelWordFeatures(AbstractProcessor):
     def __init__(self):
         AbstractProcessor.__init__(self)
         AbstractProcessor.set_name(self, 'language_model_word_features')
+        AbstractProcessor.set_output(self, True)
 
     def run(self, config):
 
@@ -878,6 +899,7 @@ class LanguageModelWordFeaturesInformed(AbstractProcessor):
     def __init__(self):
         AbstractProcessor.__init__(self)
         AbstractProcessor.set_name(self, 'language_model_word_features_informed')
+        AbstractProcessor.set_output(self, True)
 
     def run(self, config):
 
@@ -933,6 +955,7 @@ class LanguageModelSentenceFeatures(AbstractProcessor):
     def __init__(self):
         AbstractProcessor.__init__(self)
         AbstractProcessor.set_name(self, 'language_model_sentence_features')
+        AbstractProcessor.set_output(self, True)
 
     def run(self, config):
 
@@ -979,6 +1002,7 @@ class QuestWord(AbstractProcessor):
     def __init__(self):
         AbstractProcessor.__init__(self)
         AbstractProcessor.set_name(self, 'quest_word')
+        AbstractProcessor.set_output(self, True)
 
     def run(self, config):
 
