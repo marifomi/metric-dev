@@ -1,4 +1,4 @@
-from ConfigParser import ConfigParser
+from configparser import ConfigParser
 from json import *
 import os.path
 
@@ -9,7 +9,7 @@ class AlignerConfig(object):
     similarity_threshold = 0
 
     def __init__(self, language):
-        self.config.readfp(open(os.path.expanduser('~/workspace/upf-cobalt/config/aligner/' + language + '.cfg')))
+        self.config.readfp(open(os.path.expanduser('config/aligner/' + language + '.cfg')))
         self.alignment_similarity_threshold = self.config.getfloat('Aligner', 'alignment_similarity_threshold')
 
         self.exact = self.config.getfloat('Aligner', 'exact')

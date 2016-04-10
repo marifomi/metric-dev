@@ -2890,16 +2890,16 @@ class VizWordQuest(AbstractFeature):
 
     def run(self, cand, ref):
 
-        print ' '.join([x.form for x in ref['parse']])
-        print ' '.join([x.form for x in cand['parse']])
+        print(' '.join([x.form for x in ref['parse']]))
+        print(' '.join([x.form for x in cand['parse']]))
 
         if len(cand['tokens']) != len(cand['quest_word']):
-            print "Sentence lengths do not match!"
+            print("Sentence lengths do not match!")
             return
 
         for i, word in enumerate(cand['tokens']):
-            print word + '\t' + str(cand['quest_word'][i]['WCE1015']) + '\t' + str(cand['quest_word'][i]['WCE1041']) +\
-            '\t' + str((cand['quest_word'][i]['WCE1015'] + cand['quest_word'][i]['WCE1041'])/float(2))
+            print(word + '\t' + str(cand['quest_word'][i]['WCE1015']) + '\t' + str(cand['quest_word'][i]['WCE1041']) +\
+            '\t' + str((cand['quest_word'][i]['WCE1015'] + cand['quest_word'][i]['WCE1041'])/float(2)))
 
         AbstractFeature.set_value(self, 'NaN')
 
@@ -3064,8 +3064,8 @@ class MedianCosineTargetNonAligned(AbstractFeature):
 
     def run(self, cand, ref):
 
-        print ' '.join(ref['tokens'])
-        print ' '.join(cand['tokens'])
+        print(' '.join(ref['tokens']))
+        print(' '.join(cand['tokens']))
 
         similarities = []
 
@@ -3081,7 +3081,7 @@ class MedianCosineTargetNonAligned(AbstractFeature):
             AbstractFeature.set_value(self, 1.0)
             return
 
-        print "Non-aligned: " + ' '.join([cand['tokens'][x] for x in non_aligned_content_indexes])
+        print("Non-aligned: " + ' '.join([cand['tokens'][x] for x in non_aligned_content_indexes]))
 
         for index in non_aligned_content_indexes:
             context_words = self.get_context_words(index, content_indexes)
@@ -3116,10 +3116,10 @@ class MedianCosineTargetNonAligned(AbstractFeature):
         for context_words_idx in context_words_idxs:
             similarity = dot(matutils.unitvec(sentence_object['word_vectors'][target_word_idx]), matutils.unitvec(sentence_object['word_vectors'][context_words_idx]))
             similarities.append(similarity)
-            print "Target word: " + sentence_object['tokens'][target_word_idx] + " similarity to context word " + sentence_object['tokens'][context_words_idx] + " is " + str(similarity)
+            print("Target word: " + sentence_object['tokens'][target_word_idx] + " similarity to context word " + sentence_object['tokens'][context_words_idx] + " is " + str(similarity))
 
         average = numpy.mean(similarities)
-        print "Average context similarity for the word " + sentence_object['tokens'][target_word_idx] + " is " + str(average)
+        print("Average context similarity for the word " + sentence_object['tokens'][target_word_idx] + " is " + str(average))
         return average
 
     @staticmethod

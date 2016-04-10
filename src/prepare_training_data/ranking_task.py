@@ -9,17 +9,18 @@ from src.processors.run_processors import RunProcessors
 from src.features.feature_extractor import FeatureExtractor
 from src.learning import learn_model
 from src.learning.features_file_utils import read_reference_file, read_features_file
-from sklearn.metrics import accuracy_score, cohen_kappa_score
+from sklearn.metrics import accuracy_score
 from sklearn.externals import joblib
-from ConfigParser import ConfigParser
+from configparser import ConfigParser
 import yaml
+import os
 
 
 class RankingTask(object):
 
     def __init__(self, config_path):
         self.config = ConfigParser()
-        self.config.readfp(open(config_path))
+        self.config.readfp(open(os.path.expanduser(config_path)))
 
     def get_data(self):
 
@@ -206,7 +207,7 @@ class RankingTask(object):
     def evaluate_predicted(predicted, gold_class_labels, score='accuracy'):
         if score == 'accuracy':
             print("The accuracy score is " + str(accuracy_score(gold_class_labels, predicted)))
-            print("The kappa is " + str(cohen_kappa_score(gold_class_labels, predicted)))
+            #print("The kappa is " + str(cohen_kappa_score(gold_class_labels, predicted)))
         else:
             print("Error! Unknown type of error metric!")
 

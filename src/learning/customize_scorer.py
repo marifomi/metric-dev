@@ -70,7 +70,7 @@ def find_eer(fprs, tprs):
             continue
         else:
             return (x1 * y2 - x2 * y1) / (x1 + y2 - x2 -y1)
-    raise Exception, "not valid nubmers"
+    raise(Exception, "not valid nubmers")
 
 def classify_report_bin_regression(x, y):
     assert(len(x) == len(y))
@@ -199,7 +199,7 @@ def classify_report_regression(x, y, refthd):
 if __name__ == "__main__":
     a = [1,  2,  3,  4,  5]
     b = [2,  3,  4,  5,  9]
-    print pearson_corrcoef(a, b)
+    print(pearson_corrcoef(a, b))
     
 
     

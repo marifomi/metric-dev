@@ -26,7 +26,7 @@ def main():
     reader = FeaturesReader()
     features = reader.read_features(my_file)
     for f in features:
-        print f
+        print(f)
 
 
 if __name__ == '__main__':

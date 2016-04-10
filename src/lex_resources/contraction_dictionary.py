@@ -5,7 +5,7 @@ class ContractionDictionary(object):
     contraction_table = {}
 
     def __init__(self, language):
-        with open(os.path.expanduser('~/workspace/upf-cobalt/src/lex_resources/contractions/' + language + '.contractions')) as f:
+        with open(os.path.expanduser('src/lex_resources/contractions/' + language + '.contractions')) as f:
             for line in f:
                 words = line.split(',')
                 self.contraction_table[words[0].strip()] = words[1].strip()

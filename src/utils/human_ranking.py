@@ -8,6 +8,7 @@ from src.utils.language_codes import *
 import re
 import numpy as np
 import itertools
+import os
 from json import loads
 
 
@@ -20,7 +21,7 @@ class HumanRanking(defaultdict):
 
         counter = 1
 
-        ranks = open(f_judgments, 'r')
+        ranks = open(os.path.expanduser(f_judgments), 'r')
 
         for line in DictReader(ranks):
 
@@ -94,7 +95,7 @@ class HumanRanking(defaultdict):
                     my_sign = counts[idx][0]
                     comparisons[direction].append(HumanComparison(dpoint[0], dpoint[1], dpoint[2], my_sign))
 
-            print direction + ' ' + str(max_count) + ' ' + str(avg_count) + ' ' + str(all_counts) + ' ' + str(ties/float(all_counts)) + ' ' + str(len(comparisons[direction]))
+            print(direction + ' ' + str(max_count) + ' ' + str(avg_count) + ' ' + str(all_counts) + ' ' + str(ties/float(all_counts)) + ' ' + str(len(comparisons[direction])))
 
         return comparisons
 
@@ -155,7 +156,7 @@ class HumanComparison(object):
 
 def main():
     import os
-    from ConfigParser import ConfigParser
+    from configparser import ConfigParser
     cfg = ConfigParser()
     cfg.readfp(open(os.getcwd() + '/config/system.cfg'))
     lps = ['cs-en', 'es-en', 'de-en', 'fr-en', 'ru-en']

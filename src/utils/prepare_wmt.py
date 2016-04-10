@@ -4,7 +4,7 @@ import os
 import codecs
 from collections import defaultdict
 from src.utils.language_codes import *
-from ConfigParser import ConfigParser
+from configparser import ConfigParser
 import re
 from json import loads
 
@@ -138,8 +138,8 @@ class PrepareWmt(object):
 
         # Writes wmt data set into a single file, ordered by language pair, system, segment
 
-        path_out_tgt = config.get('WMT', 'output_dir') + '/' + 'tgt'
-        path_out_ref = config.get('WMT', 'output_dir') + '/' + 'ref'
+        path_out_tgt = os.path.expanduser(config.get('WMT', 'output_dir') + '/' + 'tgt')
+        path_out_ref = os.path.expanduser(config.get('WMT', 'output_dir') + '/' + 'ref')
 
         if os.path.exists(path_out_tgt) and os.path.exists(path_out_ref):
             print("Data files already exist.\nWMT printer will not run.")
@@ -161,8 +161,8 @@ class PrepareWmt(object):
             if not '-en' in lang_pair:
                 continue
 
-            f_input_tgt = codecs.open(system_path, 'r', 'utf-8')
-            f_input_ref = codecs.open(reference_path, 'r', 'utf-8')
+            f_input_tgt = codecs.open(os.path.expanduser(system_path), 'r', 'utf-8')
+            f_input_ref = codecs.open(os.path.expanduser(reference_path), 'r', 'utf-8')
 
             for line in f_input_tgt:
 
@@ -257,7 +257,7 @@ class PrepareWmt(object):
         system_paths = []
         system_names = []
 
-        for f_system in sorted(os.listdir(my_directory)):
+        for f_system in sorted(os.listdir(os.path.expanduser(my_directory))):
             if f_system.startswith('.'):
                 continue
 
@@ -286,10 +286,10 @@ class PrepareWmt(object):
     def dataset_length(self, input_file):
 
         if self.data_type == 'plain':
-            return sum(1 for line in open(input_file))
+            return sum(1 for line in open(os.path.expanduser(input_file)))
 
         elif self.data_type == 'parse':
-            return self.sentence_number_in_parsed_file(input_file)
+            return self.sentence_number_in_parsed_file(os.path.expanduser(input_file))
 
         else:
             print("Error! Unknown data type!")
@@ -325,7 +325,7 @@ class PrepareWmt(object):
     @staticmethod
     def get_data_sets(data_dir):
         result = []
-        for data_set in sorted(os.listdir(data_dir + '/' + 'system-outputs')):
+        for data_set in sorted(os.listdir(os.path.expanduser(data_dir + '/' + 'system-outputs'))):
             if data_set.startswith('.'):
                 continue
             result.append(data_set)
@@ -335,7 +335,7 @@ class PrepareWmt(object):
     def get_lang_pairs(data_dir, data_set):
 
         result = []
-        for lang_pair in sorted(os.listdir(data_dir + '/' + 'system-outputs' + '/' + data_set)):
+        for lang_pair in sorted(os.listdir(os.path.expanduser(data_dir + '/' + 'system-outputs' + '/' + data_set))):
             if lang_pair.startswith('.'):
                 continue
             if '-en' not in lang_pair:

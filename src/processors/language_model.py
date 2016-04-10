@@ -27,7 +27,7 @@ class LanguageModel(object):
     def produce_lm(self, corpus_file_name, ngram_size):
 
         if not os.path.exists(corpus_file_name):
-            print 'File does not exist!'
+            print('File does not exist!')
 
         SRILM = [self.ngram_tools_path + '/' + 'ngram-count', '-order', str(ngram_size), '-text', corpus_file_name, '-lm', corpus_file_name + '.lm']
         # -interpolate ? -kndiscount ?
@@ -41,7 +41,7 @@ class LanguageModel(object):
     def produce_ppl(self, input_file, output_file, lm_file, ngram_size, debug=2):
 
         if os.path.exists(output_file):
-            print 'File with lm perplexities already exist'
+            print('File with lm perplexities already exist')
             return
 
         my_output = open(output_file, 'w')
@@ -97,7 +97,7 @@ class LanguageModel(object):
         p.wait()
         myoutput.flush()
 
-        print "Tokenization finished"
+        print("Tokenization finished")
 
     def read_ppl(self, ppl_file_name):
 
@@ -114,7 +114,7 @@ class LanguageModel(object):
                 line_counter += 1
             if 'logprob' in line:
                 lm_features[line_counter] += [float(line.strip().split(' ')[3]), float(line.strip().split(' ')[5]), float(line.strip().split(' ')[7])]
-                print line.strip()
+                print(line.strip())
 
         return lm_features
 
