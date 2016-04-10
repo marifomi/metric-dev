@@ -21,7 +21,7 @@ class PrepareWmt(object):
     def __init__(self, data_type='plain'):
         self.data_type = data_type
 
-    def read_wmt_format_into_features_data(self, output_dir, data_set, features):
+    def read_wmt_format_into_features_data(self, config, output_dir, data_set, features):
 
         features_data = defaultdict(dict)
 
@@ -29,15 +29,38 @@ class PrepareWmt(object):
             my_file = open(output_dir + '/' + data_set + '.' + feature + '.' + 'out', 'r')
 
             for line in my_file:
+
                 feature, data_set, lang_pair, system_name, seg_id, value = line.strip().split('\t')
-                lang_pair_complete = self.get_lang_pair_complete(lang_pair.split('-')[0], lang_pair.split('-')[1])
-                features_data[feature][lang_pair_complete, seg_id, system_name] = value
+
+                if not config.get('WMT', 'directions') == 'None' and lang_pair not in loads(config.get('WMT', 'directions')):
+                    continue
+
+                if not '-en' in lang_pair:
+                    continue
+
+                if len(lang_pair.split('-')[0]) == 3:
+                    source = LANGUAGE_THREE_TO_TWO[lang_pair.split('-')[0]]
+                    target = LANGUAGE_THREE_TO_TWO[lang_pair.split('-')[1]]
+                    lang_pair = source + '-' + target
+                features_data[data_set, lang_pair, system_name, int(seg_id)][feature] = float(value)
 
         return features_data
 
+    @staticmethod
+    def order_feature_data(feature_data):
+
+        feature_values = []
+        for data_set, lang_pair, system_name, seg_id in sorted(feature_data.keys()):
+            sentence_feature = []
+            for feature in sorted(feature_data[data_set, lang_pair, system_name, seg_id].keys()):
+                sentence_feature.append(feature_data[data_set, lang_pair, system_name, seg_id][feature])
+            feature_values.append(sentence_feature)
+
+        return feature_values
+
     def wmt_format_simple(self, config, feature_name, data_set, lang_pair, system_name, scores):
 
-        f_output = config.get('WMT', 'output_dir') + '/' + data_set + '.' + feature_name + '.' + 'out'
+        f_output = config.get('Data', 'output_dir') + '/' + data_set + '.' + feature_name + '.' + 'out'
 
         if os.path.exists(f_output):
             print("Feature file already exist.")
@@ -64,6 +87,12 @@ class PrepareWmt(object):
         my_output = open(f_output, 'w')
 
         for data_dir, data_set, lang_pair, system_path, system_name, reference_path, counter_start, counter_end in data_structure:
+
+            if not config.get('WMT', 'directions') == 'None' and lang_pair not in loads(config.get('WMT', 'directions')):
+                continue
+
+            if not '-en' in lang_pair:
+                    continue
 
             phrase_number = 0
             for score_index in range(counter_start, counter_end):
@@ -129,6 +158,9 @@ class PrepareWmt(object):
             if not config.get('WMT', 'directions') == 'None' and lang_pair not in loads(config.get('WMT', 'directions')):
                 continue
 
+            if not '-en' in lang_pair:
+                continue
+
             f_input_tgt = codecs.open(system_path, 'r', 'utf-8')
             f_input_ref = codecs.open(reference_path, 'r', 'utf-8')
 
@@ -154,10 +186,11 @@ class PrepareWmt(object):
         f_out_tgt.close()
         f_out_ref.close()
 
-    def get_data_structure(self, data_dir):
+    def get_data_structure(self, config):
 
         # Extracts data structure with the information on the paths to reference and system files
 
+        data_dir = config.get("WMT", "input_dir")
         data_to_process = []
         data_sets = self.get_data_sets(data_dir)
 
@@ -167,6 +200,13 @@ class PrepareWmt(object):
             counter = 0
 
             for i, lang_pair in enumerate(lang_pairs):
+
+                if not config.get('WMT', 'directions') == 'None' and lang_pair not in loads(config.get('WMT', 'directions')):
+                    continue
+
+                if not '-en' in lang_pair:
+                    continue
+
                 system_paths, system_names = self.get_mt_systems(data_dir, data_set, lang_pair)
                 reference_path = self.get_reference_path(data_dir, data_set, lang_pair)
 
@@ -180,10 +220,11 @@ class PrepareWmt(object):
 
         return data_to_process
 
-    def get_data_structure2(self, data_dir):
+    def get_data_structure2(self, config):
 
         # Extracts data structure without the information on the paths to reference and system files
 
+        data_dir = config.get("WMT", "input_dir")
         data_to_process = []
         data_sets = self.get_data_sets(data_dir)
 
@@ -191,6 +232,13 @@ class PrepareWmt(object):
             lang_pairs = self.get_lang_pairs(data_dir, data_set)
 
             for i, lang_pair in enumerate(lang_pairs):
+
+                if not config.get('WMT', 'directions') == 'None' and lang_pair not in loads(config.get('WMT', 'directions')):
+                    continue
+
+                if not '-en' in lang_pair:
+                    continue
+
                 system_paths, system_names = self.get_mt_systems(data_dir, data_set, lang_pair)
                 reference_path = self.get_reference_path(data_dir, data_set, lang_pair)
 
