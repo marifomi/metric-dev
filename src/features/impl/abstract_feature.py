@@ -1,12 +1,13 @@
 __author__ = 'MarinaFomicheva'
 
+
 class AbstractFeature(object):
 
     def __init__(self):
-        self.computable = bool
-        self.value = float
-        self.description = str
-        self.name = str
+        self.computable = None
+        self.value = None
+        self.description = None
+        self.name = 'abstract_feature'
 
     def set_value(self, value):
         self.value = value
@@ -25,3 +26,15 @@ class AbstractFeature(object):
 
     def get_name(self):
         return self.name
+
+    def __str__(self):
+        return self.name
+
+
+class AbstractChunkFeature(AbstractFeature):
+
+    chunk_number = 10
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'abstract_chunk_feature')

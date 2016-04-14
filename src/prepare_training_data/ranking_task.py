@@ -72,7 +72,7 @@ class RankingTask(object):
                 idx_sys1, idx_sys2 = self.get_sentence_idx(dataset, lang_pair, data_structure, seg_id, sys1, sys2)
 
                 combined_features = []
-                for i in range(feature_values.shape[1]):
+                for i in range(len(feature_values[0])):
                     combined_feature = self.combine_feature_values(combination_methods[i], feature_values[idx_sys1][i],
                                                                    feature_values[idx_sys2][i])
                     combined_features.append(combined_feature)
@@ -167,21 +167,39 @@ class RankingTask(object):
 
     @staticmethod
     def combine_feature_values(method, feature_value1, feature_value2):
-
-        if method == 'average':
-            return str(np.mean([feature_value1, feature_value2]))
-        elif method == 'difference':
-            return str(np.subtract(feature_value1, feature_value2))
-        elif method == 'absolute_difference':
-            return str(np.fabs(np.subtract(feature_value1, feature_value2)))
-        elif method == 'maximum':
-            return str(np.max([feature_value1, feature_value2]))
-        elif method == 'minimum':
-            return str(np.min([feature_value1, feature_value2]))
-        elif method == 'first':
-            return str(feature_value1)
-        elif method == 'both':
-            return str(feature_value1) + '\t' + str(feature_value2)
+        if isinstance(feature_value1, list) and isinstance(feature_value2, list):
+            result = ''
+            for i, v in enumerate(feature_value1):
+                if method == 'average':
+                    result += str(np.mean([v, feature_value2[i]])) + '\t'
+                elif method == 'difference':
+                    return str(np.subtract(v, feature_value2[i])) + '\t'
+                elif method == 'absolute_difference':
+                    return str(np.fabs(np.subtract(v, feature_value2[i]))) + '\t'
+                elif method == 'maximum':
+                    return str(np.max([v, feature_value2[i]])) + '\t'
+                elif method == 'minimum':
+                    return str(np.min([v, feature_value2[i]])) + '\t'
+                elif method == 'first':
+                    return str(v) + '\t'
+                elif method == 'both':
+                    return str(v) + '\t' + str(feature_value2[i]) + '\t'
+            result.strip()
+        else:
+            if method == 'average':
+                return str(np.mean([feature_value1, feature_value2]))
+            elif method == 'difference':
+                return str(np.subtract(feature_value1, feature_value2))
+            elif method == 'absolute_difference':
+                return str(np.fabs(np.subtract(feature_value1, feature_value2)))
+            elif method == 'maximum':
+                return str(np.max([feature_value1, feature_value2]))
+            elif method == 'minimum':
+                return str(np.min([feature_value1, feature_value2]))
+            elif method == 'first':
+                return str(feature_value1)
+            elif method == 'both':
+                return str(feature_value1) + '\t' + str(feature_value2)
 
     @staticmethod
     def train_predict(config_path):

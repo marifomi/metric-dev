@@ -501,9 +501,9 @@ class CobaltAligner(AbstractProcessor):
 
     def run(self, config):
 
-        tgt_path = config.get('Data', 'tgt') + '.' + 'parse'
-        ref_path = config.get('Data', 'ref') + '.' + 'parse'
-        align_dir = config.get('Alignment', 'dir')
+        tgt_path = os.path.expanduser(config.get('Data', 'tgt') + '.' + 'parse')
+        ref_path = os.path.expanduser(config.get('Data', 'ref') + '.' + 'parse')
+        align_dir = os.path.expanduser(config.get('Alignment', 'dir'))
 
         align_cfg = AlignerConfig('english')
 
@@ -523,9 +523,9 @@ class CobaltAligner(AbstractProcessor):
 
     def get(self, config):
 
-        tgt_path = config.get('Data', 'tgt') + '.' + 'parse'
-        ref_path = config.get('Data', 'ref') + '.' + 'parse'
-        align_dir = config.get('Alignment', 'dir')
+        tgt_path = os.path.expanduser(config.get('Data', 'tgt') + '.' + 'parse')
+        ref_path = os.path.expanduser(config.get('Data', 'ref') + '.' + 'parse')
+        align_dir = os.path.expanduser(config.get('Alignment', 'dir'))
         reader = CobaltAlignReader()
 
         result = reader.read(align_dir + '/' + tgt_path.split('/')[-1] + '.' + ref_path.split('/')[-1] + '.cobalt-align.out')

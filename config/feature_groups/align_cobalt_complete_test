@@ -1,0 +1,6 @@
+count_non_aligned_chunks_ref:both
+count_non_aligned_chunks_cand:both
+avg_length_non_aligned_chunks_ref:both
+avg_length_non_aligned_chunks_cand:both
+avg_distance_between_non_aligned_chunks_ref:both
+avg_distance_between_non_aligned_chunks_cand:both

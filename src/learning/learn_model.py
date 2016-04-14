@@ -407,13 +407,14 @@ def run(cfg_path, **kwargs):
     log.basicConfig(level=log.INFO)
 
     # check if the mandatory parameters are set in the config file
-    with open(cfg_path, "r") as cfg_file:
+    with open(os.path.expanduser(cfg_path), "r") as cfg_file:
         config = yaml.load(cfg_file.read())
 
     if 'x_train_path' in kwargs.keys():
         x_train_path = kwargs['x_train_path']
     else:
         x_train_path = config.get("x_train", None)
+    x_train_path = os.path.expanduser(x_train_path)
 
     if not x_train_path:
         msg = "'x_train' option not found in the configuration file. \
@@ -424,6 +425,7 @@ def run(cfg_path, **kwargs):
         y_train_path = kwargs['y_train_path']
     else:
         y_train_path = config.get("y_train", None)
+    y_train_path = os.path.expanduser(y_train_path)
 
     if not y_train_path:
         msg = "'y_train' option not found in the configuration file. \
@@ -441,11 +443,13 @@ def run(cfg_path, **kwargs):
         x_test_path = kwargs['x_test_path']
     else:
         x_test_path = config.get("x_test", None)
+    x_test_path = os.path.expanduser(x_test_path)
 
     if 'y_test_path' in kwargs.keys():
         y_test_path = kwargs['y_test_path']
     else:
         y_test_path = config.get("y_test", None)
+    y_test_path = os.path.expanduser(y_test_path)
 
     separator = config.get("separator", DEFAULT_SEP)
     
