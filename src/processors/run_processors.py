@@ -5,6 +5,7 @@ import inspect
 from src.processors import processors
 from src.utils.sentence import Sentence
 
+
 class RunProcessors(object):
 
     def __init__(self, config):
@@ -61,6 +62,7 @@ class RunProcessors(object):
             sentences_reference.append(my_sentence_ref)
 
         return [sentences_target, sentences_reference]
+
 
 def get_len(my_file):
     return sum(1 for line in open(my_file))

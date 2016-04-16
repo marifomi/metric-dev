@@ -1,5 +1,3 @@
-__author__ = 'u88591'
-
 from src.scorer.scorer import Scorer
 from src.lex_resources import config
 import numpy
@@ -13,6 +11,10 @@ from src.utils.clean_punctuation import CleanPunctuation
 from src.sent_bleu.sent_bleu import SentBleu
 from collections import Counter
 
+__author__ = 'marina'
+
+
+class CountWordsTarget(AbstractFeature):
 
 ###########################################<Common Alignment Features>##################################################
 ########################################################################################################################
@@ -5067,3 +5069,43 @@ class RandomNumber(AbstractFeature):
     def run(self, cand, ref):
         AbstractFeature.set_value(self, numpy.random.uniform(0.0, 1.0))
 
+
+class CountWordsAlignedInWrongOrderRef(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'count_words_aligned_in_wrong_order_ref')
+        AbstractFeature.set_description(self, 'Returns the number of cases when words are '
+                                              'aligned not in their order in the sentence on reference side')
+
+    def run(self, cand, ref):
+        count = 0
+
+        prev = None
+        for a in ref['alignments'][0]:
+            if prev is not None and prev > a[1]:
+                count += 1
+            prev = a[1]
+
+        AbstractFeature.set_value(self, count)
+
+
+class CountWordsAlignedInWrongOrderCand(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'count_words_aligned_in_wrong_order_cand')
+        AbstractFeature.set_description(self, 'Returns the number of cases when words are '
+                                              'aligned not in their order in the sentence on candidate side')
+
+    def run(self, cand, ref):
+        count = 0
+
+        prev = None
+        for a in cand['alignments'][0]:
+            if prev is not None and prev > a[0]:
+                count += 1
+
+            prev = a[0]
+
+        AbstractFeature.set_value(self, count)

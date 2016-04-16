@@ -6,6 +6,7 @@ Created on Aug 29, 2012
 import codecs
 import numpy as np
 import logging as log
+import os
 from sklearn.cross_validation import train_test_split
 
 def read_labels_file(path, delim, encoding='utf-8'):
@@ -94,13 +95,14 @@ def read_features_file(path, delim, encoding='utf-8', tostring=False):
     
     return feats
 
+
 def split_dataset(input_path_x, input_path_y, output_dir):
 
-    with open(input_path_x, 'r') as f:
+    with open(os.path.expanduser(input_path_x), 'r') as f:
         read_data_x = f.readlines()
     f.close()
 
-    with open(input_path_y, 'r') as f:
+    with open(os.path.expanduser(input_path_y), 'r') as f:
         read_data_y = f.readlines()
     f.close()
 
@@ -114,7 +116,7 @@ def split_dataset(input_path_x, input_path_y, output_dir):
 
 def write_lines_to_file(file_path, lines):
 
-    with open(file_path, 'w') as f:
+    with open(os.path.expanduser(file_path), 'w') as f:
         for line in lines:
             f.write(line)
     f.close()
