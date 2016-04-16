@@ -36,22 +36,22 @@ class PosLangModel(AbstractProcessor):
         AbstractProcessor.set_name(self, 'pos_lang_model')
         AbstractProcessor.set_output(self, True)
 
-    def run(self, config, sample):
+    def run(self, config):
 
         tagger = PosTagger()
-        tagger.run(config, sample)
+        tagger.run(config)
 
-        f_in = config.get('Data', 'tgt') + '.pos.join' + sample
-        f_lm = config.get('LangModels', 'pos')
-        f_out = config.get('Data', 'tgt') + '.pos.join' + '.ppl' + sample
+        f_in = os.path.expanduser(config.get('Data', 'tgt')) + '.pos.join'
+        f_lm = os.path.expanduser(config.get('LangModels', 'pos'))
+        f_out = os.path.expanduser(config.get('Data', 'tgt')) + '.pos.join' + '.ppl'
         lm = LanguageModel()
         lm.set_path_to_tools('/Users/MarinaFomicheva/workspace/srilm-1.7.1/bin/macosx/')
         lm.produce_ppl(f_in, f_out, f_lm, 3)
 
-    def get(self, config, sample):
+    def get(self, config):
 
-        f_token = open(config.get('Data', 'tgt') + '.token' + sample, 'r')
-        f_probs = open(config.get('Data', 'tgt') + '.pos.join' + '.ppl' + sample, 'r')
+        f_token = open(os.path.expanduser(config.get('Data', 'tgt')) + '.token', 'r')
+        f_probs = open(os.path.expanduser(config.get('Data', 'tgt')) + '.pos.join' + '.ppl', 'r')
         lines_probs = []
 
         for line in f_probs:
@@ -104,25 +104,25 @@ class PosTagger(AbstractProcessor):
         AbstractProcessor.set_name(self, 'pos_tagger')
         AbstractProcessor.set_output(self, True)
 
-    def run(self, config, sample):
+    def run(self, config):
 
-        self.split_token(config, sample)
-        tagger = config.get('PosTagger', 'path')
+        self.split_token(config)
+        tagger = os.path.expanduser(config.get('PosTagger', 'path'))
 
-        f_in = config.get('Data', 'tgt') + '.' + 'token' + '.' + 'split' + sample
-        f_out = open(config.get('Data', 'tgt') + '.pos' + sample, 'w')
+        f_in = os.path.expanduser(config.get('Data', 'tgt')) + '.' + 'token' + '.' + 'split'
+        f_out = open(os.path.expanduser(config.get('Data', 'tgt')) + '.pos', 'w')
 
         subprocess.call([tagger, f_in], stdout=f_out)
         f_out.close()
         os.remove(f_in)
 
-        self.join_pos(config, sample)
+        self.join_pos(config)
 
     @staticmethod
     def tokenize_for_pos(config, sample):
 
-        Tokenizer.tokenize_quest(config, sample)
-        f_in = config.get('Data', 'tgt') + '.' + 'token' + sample
+        Tokenizer.tokenize_quest(config)
+        f_in = os.path.expanduser(config.get('Data', 'tgt')) + '.' + 'token' + sample
         lines = codecs.open(f_in, 'r', 'utf-8').readlines()
         f_out = open(f_in, 'w')
 
@@ -133,12 +133,12 @@ class PosTagger(AbstractProcessor):
 
         f_out.close()
 
-    def split_token(self, config, sample):
+    def split_token(self, config):
 
-        Tokenizer.tokenize_quest(config, sample)
+        Tokenizer.tokenize_quest(config)
 
-        f_in = codecs.open(config.get('Data', 'tgt') + '.' + 'token' + sample, 'r', 'utf-8')
-        f_out = codecs.open(config.get('Data', 'tgt') + '.' + 'token' + '.' + 'split' + sample, 'w', 'utf-8')
+        f_in = codecs.open(os.path.expanduser(config.get('Data', 'tgt')) + '.' + 'token', 'r', 'utf-8')
+        f_out = codecs.open(os.path.expanduser(config.get('Data', 'tgt')) + '.' + 'token' + '.' + 'split', 'w', 'utf-8')
 
         for line in f_in:
             f_out.write('\n'.join(line.split(' ')))
@@ -146,12 +146,12 @@ class PosTagger(AbstractProcessor):
         f_in.close()
         f_out.close()
 
-    def join_pos(self, config, sample):
+    def join_pos(self, config):
 
-        f_pos = config.get('Data', 'tgt') + '.pos' + sample
+        f_pos = os.path.expanduser(config.get('Data', 'tgt')) + '.pos'
         pos_lines = open(f_pos, 'r').readlines()
-        f_token = open(config.get('Data', 'tgt') + '.token' + sample, 'r')
-        f_out = open(config.get('Data', 'tgt') + '.pos' + '.' + 'join' + sample, 'w')
+        f_token = open(os.path.expanduser(config.get('Data', 'tgt')) + '.token', 'r')
+        f_out = open(os.path.expanduser(config.get('Data', 'tgt')) + '.pos' + '.' + 'join', 'w')
 
         number_tokens = {}
         sentence_tags = defaultdict(list)
@@ -188,10 +188,10 @@ class WordVectors(AbstractProcessor):
 
     def get(self, config):
 
-        lines_ref = codecs.open(config.get('Data', 'ref') + '.' + 'token', 'r', 'utf-8').readlines()
-        lines_tgt = codecs.open(config.get('Data', 'tgt') + '.' + 'token', 'r', 'utf-8').readlines()
+        lines_ref = codecs.open(os.path.expanduser(config.get('Data', 'ref')) + '.' + 'token', 'r', 'utf-8').readlines()
+        lines_tgt = codecs.open(os.path.expanduser(config.get('Data', 'tgt')) + '.' + 'token', 'r', 'utf-8').readlines()
 
-        fvectors = config.get('Vectors', 'path')
+        fvectors = os.path.expanduser(config.get('Vectors', 'path'))
 
         print("Loading word vectors from " + fvectors)
         wv = Word2Vec.load_word2vec_format(fvectors, binary=False)
@@ -258,10 +258,10 @@ class SentVector(AbstractProcessor):
 
         print("Getting sentence vectors")
 
-        lines_ref = codecs.open(config.get('Data', 'ref') + '.' + 'token', 'r', 'utf-8').readlines()
-        lines_tgt = codecs.open(config.get('Data', 'tgt') + '.' + 'token', 'r', 'utf-8').readlines()
+        lines_ref = codecs.open(os.path.expanduser(config.get('Data', 'ref')) + '.' + 'token', 'r', 'utf-8').readlines()
+        lines_tgt = codecs.open(os.path.expanduser(config.get('Data', 'tgt')) + '.' + 'token', 'r', 'utf-8').readlines()
 
-        fvectors = config.get('Vectors', 'path')
+        fvectors = os.path.expanduser(config.get('Vectors', 'path'))
         wv = Word2Vec.load_word2vec_format(fvectors, binary=False)
 
         AbstractProcessor.set_result_tgt(self, self.sents2vec(lines_tgt, wv))
@@ -334,8 +334,8 @@ class Parse2(AbstractProcessor):
 
     def get(self, config):
 
-        result_tgt = read_parsed_sentences(codecs.open(config.get('Data', 'tgt') + '.' + 'parse', 'r', 'utf-8'))
-        result_ref = read_parsed_sentences(codecs.open(config.get('Data', 'ref') + '.' + 'parse', 'r', 'utf-8'))
+        result_tgt = read_parsed_sentences(codecs.open(os.path.expanduser(config.get('Data', 'tgt')) + '.' + 'parse', 'r', 'utf-8'))
+        result_ref = read_parsed_sentences(codecs.open(os.path.expanduser(config.get('Data', 'ref')) + '.' + 'parse', 'r', 'utf-8'))
 
         sents_tgt = []
         sents_ref = []
@@ -361,22 +361,22 @@ class Bleu(AbstractProcessor):
 
     def run(self, config):
 
-        src_path = config.get('Data', 'src')
-        tgt_path = config.get('Data', 'tgt')
-        ref_path = config.get('Data', 'ref')
+        src_path = os.path.expanduser(config.get('Data', 'src'))
+        tgt_path = os.path.expanduser(config.get('Data', 'tgt'))
+        ref_path = os.path.expanduser(config.get('Data', 'ref'))
 
         if not os.path.exists(src_path):
             shutil.copyfile(tgt_path, src_path)
 
-        if os.path.exists(config.get('Metrics', 'dir') + '/' + tgt_path.split('/')[-1] + '.bleu.scores'):
+        if os.path.exists(os.path.expanduser(config.get('Metrics', 'dir')) + '/' + tgt_path.split('/')[-1] + '.bleu.scores'):
             print("Bleu scores already exist!")
             return
 
         if not os.path.exists(ref_path + '.xml'):
             xml.run(src_path, ref_path, tgt_path)
 
-        bleu_path = config.get('Metrics', 'bleu')
-        my_file = config.get('Metrics', 'dir') + '/' + tgt_path.split('/')[-1] + '.bleu.scores'
+        bleu_path = os.path.expanduser(config.get('Metrics', 'bleu'))
+        my_file = os.path.expanduser(config.get('Metrics', 'dir')) + '/' + tgt_path.split('/')[-1] + '.bleu.scores'
         o = open(my_file, 'w')
         subprocess.call(['perl', bleu_path, '-b', '-d', str(2), '-r', ref_path + '.xml',
                          '-t', tgt_path + '.xml',
@@ -386,8 +386,8 @@ class Bleu(AbstractProcessor):
     def get(self, config):
 
         result = []
-        tgt_path = config.get('Data', 'tgt')
-        scores_file = config.get('Metrics', 'dir') + '/' + tgt_path.split('/')[-1] + '.bleu.scores'
+        tgt_path = os.path.expanduser(config.get('Data', 'tgt'))
+        scores_file = os.path.expanduser(config.get('Metrics', 'dir')) + '/' + tgt_path.split('/')[-1] + '.bleu.scores'
         for line in open(scores_file).readlines():
             if not line.startswith('  BLEU'):
                 continue
@@ -406,16 +406,16 @@ class MeteorScorer(AbstractProcessor):
 
     def run(self, config):
 
-        tgt_path = config.get('Data', 'tgt')
-        ref_path = config.get('Data', 'ref')
+        tgt_path = os.path.expanduser(config.get('Data', 'tgt'))
+        ref_path = os.path.expanduser(config.get('Data', 'ref'))
 
-        if os.path.exists(config.get('Metrics', 'dir') + '/' + tgt_path.split('/')[-1] + '.meteor.scores'):
+        if os.path.exists(os.path.expanduser(config.get('Metrics', 'dir')) + '/' + tgt_path.split('/')[-1] + '.meteor.scores'):
             print("Meteor scores already exist!")
             return
 
-        meteor = config.get('Metrics', 'meteor')
+        meteor = os.path.expanduser(config.get('Metrics', 'meteor'))
         lang = config.get('Settings', 'tgt_lang')
-        my_file = config.get('Metrics', 'dir') + '/' + tgt_path.split('/')[-1] + '.meteor.scores'
+        my_file = os.path.expanduser(config.get('Metrics', 'dir')) + '/' + tgt_path.split('/')[-1] + '.meteor.scores'
 
         o = open(my_file, 'w')
         subprocess.call(['java', '-Xmx2G', '-jar', meteor, tgt_path, ref_path, '-l', lang, '-norm'], stdout=o)
@@ -424,8 +424,8 @@ class MeteorScorer(AbstractProcessor):
     def get(self, config):
 
         result = []
-        tgt_path = config.get('Data', 'tgt')
-        scores_file = config.get('Metrics', 'dir') + '/' + tgt_path.split('/')[-1] + '.meteor.scores'
+        tgt_path = os.path.expanduser(config.get('Data', 'tgt'))
+        scores_file = os.path.expanduser(config.get('Metrics', 'dir')) + '/' + tgt_path.split('/')[-1] + '.meteor.scores'
 
         for line in open(scores_file).readlines():
             if not line.startswith('Segment '):
@@ -458,29 +458,32 @@ class MeteorAligner(AbstractProcessor):
 
     def run(self, config):
 
-        tgt_path = config.get('Data', 'tgt')
-        ref_path = config.get('Data', 'ref')
+        tgt_path = os.path.expanduser(config.get('Data', 'tgt'))
+        ref_path = os.path.expanduser(config.get('Data', 'ref'))
         tgt_file_name = tgt_path.split('/')[-1]
         name = ''
         if len(config.get('Alignment', 'name')) > 0:
             name = '_' + config.get('Alignment', 'name')
 
-        prefix = config.get('Alignment', 'dir') + '/' + tgt_file_name + '.' + config.get('Alignment', 'aligner') + name
+        prefix = os.path.expanduser(config.get('Alignment', 'dir')) + '/' + tgt_file_name + '.' + config.get('Alignment', 'aligner') + name
 
         if os.path.exists(prefix + '-align.out'):
             print("Meteor alignments already exist!")
             return
 
-        meteor = config.get('Metrics', 'meteor')
+        meteor = os.path.expanduser(config.get('Metrics', 'meteor'))
         lang = config.get('Settings', 'tgt_lang')
 
-        subprocess.call(['java', '-Xmx2G', '-jar', meteor, tgt_path, ref_path, '-l', lang,
-                         '-norm', '-writeAlignments', '-f', prefix])
+        # subprocess.call(['java', '-Xmx2G', '-jar', meteor, tgt_path, ref_path, '-l', lang,
+        #                  '-norm', '-writeAlignments', '-f', prefix])
+
+        subprocess.call(['java', '-Xmx2G', '-jar', meteor, tgt_path + '.' + 'token', ref_path + '.' + 'token', '-l', lang,
+                         '-lower', '-writeAlignments', '-f', prefix])
 
     def get(self, config):
 
-        tgt_path = config.get('Data', 'tgt')
-        align_dir = config.get('Alignment', 'dir')
+        tgt_path = os.path.expanduser(config.get('Data', 'tgt'))
+        align_dir = os.path.expanduser(config.get('Alignment', 'dir'))
         aligner = config.get('Alignment', 'aligner')
         name = ''
         if len(config.get('Alignment', 'name')) > 0:
@@ -501,9 +504,9 @@ class CobaltAligner(AbstractProcessor):
 
     def run(self, config):
 
-        tgt_path = config.get('Data', 'tgt') + '.' + 'parse'
-        ref_path = config.get('Data', 'ref') + '.' + 'parse'
-        align_dir = config.get('Alignment', 'dir')
+        tgt_path = os.path.expanduser(config.get('Data', 'tgt')) + '.' + 'parse'
+        ref_path = os.path.expanduser(config.get('Data', 'ref')) + '.' + 'parse'
+        align_dir = os.path.expanduser(config.get('Alignment', 'dir'))
 
         align_cfg = AlignerConfig('english')
 
@@ -564,14 +567,14 @@ class Tokenizer(AbstractProcessor):
 
     def tokenize_from_aligner(self, config):
 
-        align_dir = config.get('Alignment', 'dir')
+        align_dir = os.path.expanduser(config.get('Alignment', 'dir'))
         aligner = 'meteor'
 
-        tgt_path = config.get('Data', 'tgt')
+        tgt_path = os.path.expanduser(config.get('Data', 'tgt'))
         input_file = align_dir + '/' + tgt_path.split('/')[-1] + '.' + aligner + '-align.out'
-        output_file_src = config.get('Data', 'src') + '.token'
-        output_file_tgt = config.get('Data', 'tgt') + '.token'
-        output_file_ref = config.get('Data', 'ref') + '.token'
+        output_file_src = os.path.expanduser(config.get('Data', 'src')) + '.token'
+        output_file_tgt = os.path.expanduser(config.get('Data', 'tgt')) + '.token'
+        output_file_ref = os.path.expanduser(config.get('Data', 'ref')) + '.token'
 
         # if os.path.exists(output_file_tgt):
         #     print("The file " + output_file_tgt + " is already tokenized.\n Tokenizer will not run.")
@@ -662,19 +665,19 @@ class Tokenizer(AbstractProcessor):
         tokenizer = config.get('Tokenizer', 'path')
         language = config.get('Settings', 'tgt_lang')
 
-        path_output_tgt = config.get('Data', 'tgt') + '.token'
-        path_output_ref = config.get('Data', 'ref') + '.token'
+        path_output_tgt = os.path.expanduser(config.get('Data', 'tgt')) + '.token'
+        path_output_ref = os.path.expanduser(config.get('Data', 'ref')) + '.token'
 
         if os.path.exists(path_output_tgt) and os.path.exists(path_output_ref):
             print("The file " + path_output_tgt + "already exists\nTokenizer will not run.")
             return
 
-        f_output_tgt = open(config.get('Data', 'tgt') + '.token', 'w')
-        f_output_ref = open(config.get('Data', 'ref') + '.token', 'w')
+        f_output_tgt = open(os.path.expanduser(config.get('Data', 'tgt')) + '.token', 'w')
+        f_output_ref = open(os.path.expanduser(config.get('Data', 'ref')) + '.token', 'w')
 
         # Process target
 
-        input_tgt = open(config.get('Data', 'tgt'), 'r')
+        input_tgt = open(os.path.expanduser(config.get('Data', 'tgt')), 'r')
 
         p = subprocess.Popen(['perl', tokenizer, '-q', '-l', language], stdin=input_tgt, stdout=f_output_tgt)
         p.wait()
@@ -682,14 +685,14 @@ class Tokenizer(AbstractProcessor):
 
         # Process reference
 
-        input_ref = open(config.get('Data', 'ref'), 'r')
+        input_ref = open(os.path.expanduser(config.get('Data', 'ref')), 'r')
 
         p = subprocess.Popen(['perl', tokenizer, '-q', '-l', language], stdin=input_ref, stdout=f_output_ref)
         p.wait()
         f_output_ref.flush()
 
         # Copy source (for quest)
-        shutil.copyfile(config.get('Data', 'tgt') + '.' + 'token', config.get('Data', 'src') + '.' + 'token')
+        shutil.copyfile(os.path.expanduser(config.get('Data', 'tgt')) + '.' + 'token', os.path.expanduser(config.get('Data', 'src')) + '.' + 'token')
 
 
         print("Tokenization finished!")
@@ -726,274 +729,6 @@ class Tokenizer(AbstractProcessor):
         AbstractProcessor.set_result_tgt(self, sents_tokens_tgt)
         AbstractProcessor.set_result_ref(self, sents_tokens_ref)
 
-class QuestSentence(AbstractProcessor):
-
-    def __init__(self):
-        AbstractProcessor.__init__(self)
-        AbstractProcessor.set_name(self, 'quest_sentence')
-        AbstractProcessor.set_output(self, True)
-
-    def run(self, config, sample):
-
-        # Plain files, no tokenization!
-        # Check quest configuration file!
-
-        quest_dir = config.get('Quest', 'path')
-        src_lang = config.get('Settings', 'src_lang')
-        tgt_lang = config.get('Settings', 'tgt_lang')
-        src_path = config.get('Data', 'src') + sample
-        tgt_path = config.get('Data', 'tgt') + sample
-        quest_config = config.get('Quest', 'config') + '/' + 'config.' + 'sl.' + tgt_lang + '.properties'
-        out_file = config.get('Quest', 'output') + '/' + 'quest.sl' + sample + '.out'
-
-        subprocess.call(['java',
-                         '-cp',
-                         quest_dir + '/' + 'dist/Quest__.jar',
-                         'shef.mt.SentenceLevelFeatureExtractor',
-                         '-lang',
-                         src_lang,
-                         tgt_lang,
-                         '-input',
-                         src_path,
-                         tgt_path,
-                         '-config',
-                         quest_config,
-                         '-tok',
-                         '-output_file',
-                         out_file
-        ])
-        shutil.rmtree(os.getcwd() + '/' + 'input')
-
-    def get(self, config, sample):
-
-        # Make sure feature file is the same as stated in quest config file
-
-        features_file = config.get('Quest', 'features_sent')
-        output_quest = config.get('Quest', 'output') + '/' + 'quest.sl' + sample + '.out'
-        reader = FeaturesReader()
-        features = reader.read_features(features_file)
-
-        sentences = open(output_quest, 'r').readlines()
-        result = []
-
-        for sent in sentences:
-            feats = {}
-
-            for i, val in enumerate(sent.strip().split('\t')):
-                feats[features[i]] = float(val)
-
-            result.append(feats)
-
-        AbstractProcessor.set_result_tgt(self, result)
-        AbstractProcessor.set_result_ref(self, result)
-
-
-class LanguageModelWordFeatures(AbstractProcessor):
-
-    # Language model word features extracted using SRILM: oov words
-
-    def __init__(self):
-        AbstractProcessor.__init__(self)
-        AbstractProcessor.set_name(self, 'language_model_word_features')
-        AbstractProcessor.set_output(self, True)
-
-    def run(self, config):
-
-        tgt_path = config.get('Data', 'tgt') + '.' + 'token'
-        output_path = tgt_path + '.' + 'ppl2'
-        lm = config.get('Language Model', 'path')
-        ngram_size = config.get('Language Model', 'ngram_size')
-        srilm = config.get('Language Model', 'srilm')
-
-        if os.path.exists(output_path):
-            print('File with lm perplexities already exist')
-            return
-
-        my_output = open(output_path, 'w')
-
-        SRILM = [srilm + '/' + 'ngram', '-lm', lm, '-order', ngram_size, '-debug', str(2), '-ppl', tgt_path]
-        subprocess.check_call(SRILM, stdout=my_output)
-
-    def get(self, config):
-
-        ppl_file = open(config.get('Data', 'tgt') + '.' + 'token' + '.' + 'ppl2', 'r')
-
-        result = []
-        tmp = []
-        tokens = []
-        counter = 0
-
-        lines = ppl_file.readlines()
-
-        for i, line in enumerate(lines):
-            if line.startswith('\n') or i == 0:
-                result.append(tmp)
-                counter = 0
-                tmp = []
-                if i == 0:
-                    tokens = lines[i].strip().split(' ')
-                else:
-                    tokens = lines[i + 1].strip().split(' ')
-            if 'p( ' in line:
-                if 'OOV' in line:
-                    tmp.append(tokens[counter])
-                counter += 1
-
-        AbstractProcessor.set_result_tgt(self, result)
-        AbstractProcessor.set_result_ref(self, result)
-
-
-# class LanguageModelSentenceFeaturesInformed(AbstractProcessor):
-#
-#     def __init__(self):
-#         AbstractProcessor.__init__(self)
-#         AbstractProcessor.set_name(self, 'language_model_sentence_features_informed')
-#
-#     def run(self, config):
-#
-#         tgt_path = config.get('Data', 'tgt') + '.' + 'token'
-#         output_path = tgt_path + '.' + 'ppl2'
-#         lm = config.get('Language Model', 'path')
-#         ngram_size = config.get('Language Model', 'ngram_size')
-#         srilm = config.get('Language Model', 'srilm')
-#
-#         if os.path.exists(output_path):
-#             print('File with lm perplexities already exist')
-#             return
-#
-#         my_output = open(output_path, 'w')
-#
-#         SRILM = [srilm + '/' + 'ngram', '-lm', lm, '-order', ngram_size, '-debug', str(2), '-ppl', tgt_path]
-#         subprocess.check_call(SRILM, stdout=my_output)
-#
-#     def get(self, config):
-#
-#         ppl_file = open(config.get('Data', 'tgt') + '.' + 'token' + '.' + 'ppl2', 'r')
-#
-#         result = []
-#         tmp = []
-#
-#         lines = ppl_file.readlines()
-#
-#         for i, line in enumerate(lines):
-#             if line.startswith('\n'):
-#                 result.append(numpy.sum(tmp))
-#                 tmp = []
-#             if 'p( ' in line:
-#                 if 'OOV' in line:
-#                     continue
-#                 ngram = int(re.sub(r'\[([1-3])gram\]', r'\1', line.strip().split(' ')[6]))
-#                 prob = float(line.strip().split(' ')[7])
-#                 tmp.append(numpy.log(prob * ngram))
-#         if len(tmp) > 0:
-#             result.append(numpy.sum(tmp))
-#
-#         AbstractProcessor.set_result_tgt(self, result)
-#         AbstractProcessor.set_result_ref(self, result)
-
-
-class LanguageModelWordFeaturesInformed(AbstractProcessor):
-
-    def __init__(self):
-        AbstractProcessor.__init__(self)
-        AbstractProcessor.set_name(self, 'language_model_word_features_informed')
-        AbstractProcessor.set_output(self, True)
-
-    def run(self, config):
-
-        tgt_path = config.get('Data', 'tgt') + '.' + 'token'
-        output_path = tgt_path + '.' + 'ppl2'
-        lm = config.get('Language Model', 'path')
-        ngram_size = config.get('Language Model', 'ngram_size')
-        srilm = config.get('Language Model', 'srilm')
-
-        if os.path.exists(output_path):
-            print('File with lm perplexities already exist')
-            return
-
-        my_output = open(output_path, 'w')
-
-        SRILM = [srilm + '/' + 'ngram', '-lm', lm, '-order', ngram_size, '-debug', str(2), '-ppl', tgt_path]
-        subprocess.check_call(SRILM, stdout=my_output)
-
-    def get(self, config):
-
-        ppl_file = open(config.get('Data', 'tgt') + '.' + 'token' + '.' + 'ppl2', 'r')
-
-        result = []
-        tmp = []
-
-        lines = ppl_file.readlines()
-
-        for i, line in enumerate(lines):
-            if line.startswith('\n'):
-                result.append(tmp)
-                tmp = []
-            if 'p( ' in line:
-                if 'p( </s> |' in line:
-                    continue
-                if 'OOV' in line:
-                    tmp.append([0, 0])
-                else:
-                    ngram = int(re.sub(r'\[([1-3])gram\]', r'\1', line.strip().split(' ')[6]))
-                    prob = float(line.strip().split(' ')[7])
-                    tmp.append([prob, ngram])
-        if len(tmp) > 0:
-            result.append(tmp)
-
-        AbstractProcessor.set_result_tgt(self, result)
-        AbstractProcessor.set_result_ref(self, result)
-
-
-
-class LanguageModelSentenceFeatures(AbstractProcessor):
-
-    # Language model sentence features extracted using SRILM: oov, probability, perplexity
-
-    def __init__(self):
-        AbstractProcessor.__init__(self)
-        AbstractProcessor.set_name(self, 'language_model_sentence_features')
-        AbstractProcessor.set_output(self, True)
-
-    def run(self, config):
-
-        tgt_path = config.get('Data', 'tgt') + '.' + 'token'
-        output_path = tgt_path + '.' + 'ppl'
-        lm = config.get('Language Model', 'path')
-        ngram_size = config.get('Language Model', 'ngram_size')
-        srilm = config.get('Language Model', 'srilm')
-
-        if os.path.exists(output_path):
-            print('File with lm perplexities already exist')
-            return
-
-        my_output = open(output_path, 'w')
-
-        SRILM = [srilm + '/' + 'ngram', '-lm', lm, '-order', ngram_size, '-debug', str(1), '-ppl', tgt_path]
-        subprocess.check_call(SRILM, stdout=my_output)
-
-    def get(self, config):
-
-        ppl_file = open(config.get('Data', 'tgt') + '.' + 'token' + '.' + 'ppl', 'r')
-
-        result = []
-        tmp = []
-
-        for line in ppl_file:
-            if config.get('Data', 'tgt') in line:
-                break
-            if 'OOVs' in line:
-                tmp.append(int(line.strip().split(' ')[4]))
-            if 'logprob' in line:
-                tmp += [float(line.strip().split(' ')[3]), float(line.strip().split(' ')[5])]
-                result.append(tmp)
-                tmp = []
-
-        ppl_file.close()
-
-        AbstractProcessor.set_result_tgt(self, result)
-        AbstractProcessor.set_result_ref(self, result)
-
 
 class QuestWord(AbstractProcessor):
 
@@ -1007,13 +742,13 @@ class QuestWord(AbstractProcessor):
         # Tokenized input files !
         # Check quest configuration file!
 
-        quest_dir = config.get('Quest', 'path')
+        quest_dir = os.path.expanduser(config.get('Quest', 'path'))
         src_lang = config.get('Settings', 'src_lang')
         tgt_lang = config.get('Settings', 'tgt_lang')
-        src_path = config.get('Data', 'src') + '.' + 'token'
-        tgt_path = config.get('Data', 'tgt') + '.' + 'token'
-        quest_config = config.get('Quest', 'config') + '/' + 'config.' + 'wl.' + tgt_lang + '.properties'
-        out_file = config.get('Quest', 'output') + '/' + 'quest.wl' + '.out'
+        src_path = os.path.expanduser(config.get('Data', 'src')) + '.' + 'token'
+        tgt_path = os.path.expanduser(config.get('Data', 'tgt')) + '.' + 'token'
+        quest_config = os.path.expanduser(config.get('Quest', 'config')) + '/' + 'config.' + 'wl.' + tgt_lang + '.properties'
+        out_file = os.path.expanduser(config.get('Quest', 'output')) + '/' + 'quest.wl' + '.out'
 
         subprocess.call(['java',
                          '-cp',
@@ -1041,9 +776,9 @@ class QuestWord(AbstractProcessor):
         # WCE1037 - Longest target n-gram length
         # WCE1041 - Backward language model backoff behavior value
 
-        features_file = config.get('Quest', 'features_word')
-        output_quest = config.get('Quest', 'output') + '/' + 'quest.wl' + '.out'
-        input_token = config.get('Data', 'tgt') + '.' + 'token'
+        features_file = os.path.expanduser(config.get('Quest', 'features_word'))
+        output_quest = os.path.expanduser(config.get('Quest', 'output')) + '/' + 'quest.wl' + '.out'
+        input_token = os.path.expanduser(config.get('Data', 'tgt')) + '.' + 'token'
 
         reader = FeaturesReader()
         features = reader.read_features(features_file)
@@ -1095,7 +830,6 @@ class QuestWord(AbstractProcessor):
         else:
             return 1
 
-
     @staticmethod
     def sent_length(file_):
 
@@ -1105,6 +839,178 @@ class QuestWord(AbstractProcessor):
             lengths.append(len(sent.split(' ')))
 
         return lengths
+
+
+class QuestSentence(AbstractProcessor):
+
+    def __init__(self):
+        AbstractProcessor.__init__(self)
+        AbstractProcessor.set_name(self, 'quest_sentence')
+        AbstractProcessor.set_output(self, True)
+
+    def run(self, config):
+
+        # Plain files, no tokenization!
+        # Check quest configuration file!
+
+        quest_dir = os.path.expanduser(config.get('Quest', 'path'))
+        src_lang = config.get('Settings', 'src_lang')
+        tgt_lang = config.get('Settings', 'tgt_lang')
+        src_path = os.path.expanduser(config.get('Data', 'src'))
+        tgt_path = os.path.expanduser(config.get('Data', 'tgt'))
+        quest_config = os.path.expanduser(config.get('Quest', 'config')) + '/' + 'config.' + 'sl.' + tgt_lang + '.properties'
+        out_file = os.path.expanduser(config.get('Quest', 'output')) + '/' + 'quest.sl' + '.out'
+
+        # Copy target to dummy source (for quest)
+        if not os.path.exists(src_path):
+            shutil.copyfile(tgt_path, src_path)
+
+        subprocess.call(['java',
+                         '-cp',
+                         quest_dir + '/' + 'dist/Quest__.jar',
+                         'shef.mt.SentenceLevelFeatureExtractor',
+                         '-lang',
+                         src_lang,
+                         tgt_lang,
+                         '-input',
+                         src_path,
+                         tgt_path,
+                         '-config',
+                         quest_config,
+                         '-tok',
+                         '-output_file',
+                         out_file
+        ])
+        shutil.rmtree(os.getcwd() + '/' + 'input')
+
+    def get(self, config):
+
+        # Make sure feature file is the same as stated in quest config file
+
+        features_file = os.path.expanduser(config.get('Quest', 'features_sent'))
+        output_quest = os.path.expanduser(config.get('Quest', 'output')) + '/' + 'quest.sl' + '.out'
+        reader = FeaturesReader()
+        features = reader.read_features(features_file)
+
+        sentences = open(output_quest, 'r').readlines()
+        result = []
+
+        for sent in sentences:
+            feats = {}
+
+            for i, val in enumerate(sent.strip().split('\t')):
+                feats[features[i]] = float(val)
+
+            result.append(feats)
+
+        AbstractProcessor.set_result_tgt(self, result)
+        AbstractProcessor.set_result_ref(self, result)
+
+
+class LanguageModelWordFeatures(AbstractProcessor):
+
+    def __init__(self):
+        AbstractProcessor.__init__(self)
+        AbstractProcessor.set_name(self, 'language_model_word_features')
+        AbstractProcessor.set_output(self, True)
+
+    def run(self, config):
+
+        tgt_path = os.path.expanduser(config.get('Data', 'tgt')) + '.' + 'token'
+        output_path = tgt_path + '.' + 'ppl2'
+        lm = os.path.expanduser(config.get('Language Model', 'path'))
+        ngram_size = config.get('Language Model', 'ngram_size')
+        srilm = os.path.expanduser(config.get('Language Model', 'srilm'))
+
+        if os.path.exists(output_path):
+            print('File with lm perplexities already exist')
+            return
+
+        my_output = open(output_path, 'w')
+
+        SRILM = [srilm + '/' + 'ngram', '-lm', lm, '-order', ngram_size, '-debug', str(2), '-ppl', tgt_path]
+        subprocess.check_call(SRILM, stdout=my_output)
+
+    def get(self, config):
+
+        ppl_file = open(os.path.expanduser(config.get('Data', 'tgt')) + '.' + 'token' + '.' + 'ppl2', 'r')
+
+        result = []
+        tmp = []
+
+        lines = ppl_file.readlines()
+
+        for i, line in enumerate(lines):
+            if line.startswith('\n'):
+                result.append(tmp)
+                tmp = []
+            elif 'p( ' in line:
+                if 'p( </s> |' in line:
+                    continue
+                if 'OOV' in line:
+                    tmp.append([np.nan, np.nan])
+                elif '<s>' in line:
+                    tmp.append([np.nan, np.nan])
+                else:
+                    ngram = int(re.sub(r'\[([1-3])gram\]', r'\1', line.strip().split(' ')[6]))
+                    prob = float(line.strip().split(' ')[7])
+                    tmp.append([prob, ngram])
+            else:
+                continue
+        if len(tmp) > 0:
+            result.append(tmp)
+
+        AbstractProcessor.set_result_tgt(self, result)
+        AbstractProcessor.set_result_ref(self, result)
+
+
+class LanguageModelSentenceFeatures(AbstractProcessor):
+
+    # Language model sentence features extracted using SRILM: oov, probability, perplexity
+
+    def __init__(self):
+        AbstractProcessor.__init__(self)
+        AbstractProcessor.set_name(self, 'language_model_sentence_features')
+        AbstractProcessor.set_output(self, True)
+
+    def run(self, config):
+
+        tgt_path = os.path.expanduser(config.get('Data', 'tgt') + '.' + 'token')
+        output_path = tgt_path + '.' + 'ppl'
+        lm = os.path.expanduser(config.get('Language Model', 'path'))
+        ngram_size = config.get('Language Model', 'ngram_size')
+        srilm = os.path.expanduser(config.get('Language Model', 'srilm'))
+
+        if os.path.exists(output_path):
+            print('File with lm perplexities already exist')
+            return
+
+        my_output = open(output_path, 'w')
+
+        SRILM = [srilm + '/' + 'ngram', '-lm', lm, '-order', ngram_size, '-debug', str(1), '-ppl', tgt_path]
+        subprocess.check_call(SRILM, stdout=my_output)
+
+    def get(self, config):
+
+        ppl_file = open(os.path.expanduser(config.get('Data', 'tgt')) + '.' + 'token' + '.' + 'ppl', 'r')
+
+        result = []
+        tmp = []
+
+        for line in ppl_file:
+            if config.get('Data', 'tgt') in line:
+                break
+            if 'OOVs' in line:
+                tmp.append(int(line.strip().split(' ')[4]))
+            if 'logprob' in line:
+                tmp += [float(line.strip().split(' ')[3]), float(line.strip().split(' ')[5])]
+                result.append(tmp)
+                tmp = []
+
+        ppl_file.close()
+
+        AbstractProcessor.set_result_tgt(self, result)
+        AbstractProcessor.set_result_ref(self, result)
 
 
 def main():

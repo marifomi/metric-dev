@@ -46,7 +46,7 @@ class CountContentTest(AbstractFeature):
         count = 0
 
         for word in candidate_parsed:
-            if not word_sim.functionWord(word.form):
+            if not word_sim.function_word(word.form):
                 count += 1
 
         AbstractFeature.set_value(self, count)
@@ -63,7 +63,7 @@ class CountContentRef(AbstractFeature):
         count = 0
 
         for word in reference_parsed:
-             if not word_sim.functionWord(word.form):
+             if not word_sim.function_word(word.form):
                  count += 1
 
         AbstractFeature.set_value(self, count)
@@ -80,7 +80,7 @@ class CountFunctionTest(AbstractFeature):
         count = 0
 
         for word in candidate_parsed:
-            if word_sim.functionWord(word.form):
+            if word_sim.function_word(word.form):
                 count += 1
 
         AbstractFeature.set_value(self, count)
@@ -97,7 +97,7 @@ class CountFunctionRef(AbstractFeature):
         count = 0
 
         for word in reference_parsed:
-            if word_sim.functionWord(word.form):
+            if word_sim.function_word(word.form):
                 count += 1
 
         AbstractFeature.set_value(self, count)
@@ -205,7 +205,7 @@ class PropAlignedExactExact(AbstractFeature):
                 word_candidate = candidate_parsed[index[0] - 1]
                 word_reference = reference_parsed[index[1] - 1]
 
-                if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Exact' and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
+                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Exact' and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
                     count += 1
 
             AbstractFeature.set_value(self, count / float(len(alignments[0])))
@@ -229,7 +229,7 @@ class PropAlignedSynExact(AbstractFeature):
                 word_candidate = candidate_parsed[index[0] - 1]
                 word_reference = reference_parsed[index[1] - 1]
 
-                if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Synonym' and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
+                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Synonym' and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
                     count += 1
 
             AbstractFeature.set_value(self, count / float(len(alignments[0])))
@@ -253,7 +253,7 @@ class PropAlignedParaExact(AbstractFeature):
                 word_candidate = candidate_parsed[index[0] - 1]
                 word_reference = reference_parsed[index[1] - 1]
 
-                if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Paraphrase' and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
+                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Paraphrase' and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
                     count += 1
 
             AbstractFeature.set_value(self, count / float(len(alignments[0])))
@@ -277,7 +277,7 @@ class PropAlignedExactCoarse(AbstractFeature):
                 word_candidate = candidate_parsed[index[0] - 1]
                 word_reference = reference_parsed[index[1] - 1]
 
-                if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Exact' and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Coarse':
+                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Exact' and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Coarse':
                     count += 1
 
             AbstractFeature.set_value(self, count / float(len(alignments[0])))
@@ -301,7 +301,7 @@ class PropAlignedSynCoarse(AbstractFeature):
                 word_candidate = candidate_parsed[index[0] - 1]
                 word_reference = reference_parsed[index[1] - 1]
 
-                if word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Coarse' and word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Synonym':
+                if word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Coarse' and word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Synonym':
                     count += 1
 
             AbstractFeature.set_value(self, count / float(len(alignments[0])))
@@ -325,7 +325,7 @@ class PropAlignedParaCoarse(AbstractFeature):
                 word_candidate = candidate_parsed[index[0] - 1]
                 word_reference = reference_parsed[index[1] - 1]
 
-                if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Paraphrase' and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Coarse':
+                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Paraphrase' and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Coarse':
                     count += 1
 
             AbstractFeature.set_value(self, count / float(len(alignments[0])))
@@ -349,7 +349,7 @@ class PropAlignedSynDiff(AbstractFeature):
                 word_candidate = candidate_parsed[index[0] - 1]
                 word_reference = reference_parsed[index[1] - 1]
 
-                if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Synonym' and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'None':
+                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Synonym' and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'None':
                     count += 1
 
             AbstractFeature.set_value(self, count / float(len(alignments[0])))
@@ -373,7 +373,7 @@ class PropAlignedParaDiff(AbstractFeature):
                 word_candidate = candidate_parsed[index[0] - 1]
                 word_reference = reference_parsed[index[1] - 1]
 
-                if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Paraphrase' and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'None':
+                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Paraphrase' and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'None':
                     count += 1
 
             AbstractFeature.set_value(self, count / float(len(alignments[0])))
@@ -397,7 +397,7 @@ class PropAlignedDistribExact(AbstractFeature):
                 word_candidate = candidate_parsed[index[0] - 1]
                 word_reference = reference_parsed[index[1] - 1]
 
-                if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Distributional' and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
+                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Distributional' and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
                     count += 1
 
             AbstractFeature.set_value(self, count / float(len(alignments[0])))
@@ -421,7 +421,7 @@ class PropAlignedDistribCoarse(AbstractFeature):
                 word_candidate = candidate_parsed[index[0] - 1]
                 word_reference = reference_parsed[index[1] - 1]
 
-                if word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Coarse' and word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Distributional':
+                if word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Coarse' and word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Distributional':
                     count += 1
 
             AbstractFeature.set_value(self, count / float(len(alignments[0])))
@@ -445,7 +445,7 @@ class PropAlignedDistribDiff(AbstractFeature):
                 word_candidate = candidate_parsed[index[0] - 1]
                 word_reference = reference_parsed[index[1] - 1]
 
-                if word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'None' and word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Distributional':
+                if word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'None' and word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Distributional':
                     count += 1
 
             AbstractFeature.set_value(self, count / float(len(alignments[0])))
@@ -476,7 +476,7 @@ class AvgPenExactTest(AbstractFeature):
             word_candidate = candidate_parsed[index[0] - 1]
             word_reference = reference_parsed[index[1] - 1]
 
-            if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Exact' and not word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'None':
+            if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Exact' and not word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'None':
 
                 for dep_label in alignments[2][i]['srcDiff']:
                     if not dep_label.split('_')[0] in my_scorer.noisy_types:
@@ -521,7 +521,7 @@ class AvgPenExactRef(AbstractFeature):
             word_candidate = candidate_parsed[index[0] - 1]
             word_reference = reference_parsed[index[1] - 1]
 
-            if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Exact' and not word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'None':
+            if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Exact' and not word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'None':
 
                 for dep_label in alignments[2][i]['tgtDiff']:
                     if not dep_label.split('_')[0] in my_scorer.noisy_types:
@@ -567,7 +567,7 @@ class AvgPenNoExactTest(AbstractFeature):
             word_candidate = candidate_parsed[index[0] - 1]
             word_reference = reference_parsed[index[1] - 1]
 
-            if not word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Exact' and not word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
+            if not word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Exact' and not word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
 
                 for dep_label in alignments[2][i]['srcDiff']:
                     if not dep_label.split('_')[0] in my_scorer.noisy_types:
@@ -612,7 +612,7 @@ class AvgPenNoExactRef(AbstractFeature):
             word_candidate = candidate_parsed[index[0] - 1]
             word_reference = reference_parsed[index[1] - 1]
 
-            if not word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Exact' and not word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
+            if not word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Exact' and not word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
 
                 for dep_label in alignments[2][i]['tgtDiff']:
                     if not dep_label.split('_')[0] in my_scorer.noisy_types:
@@ -656,7 +656,7 @@ class PropExactPenTest(AbstractFeature):
             word_candidate = candidate_parsed[index[0] - 1]
             word_reference = reference_parsed[index[1] - 1]
 
-            if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Exact' and not word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'None':
+            if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Exact' and not word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'None':
 
                 counter_words += 1
 
@@ -690,7 +690,7 @@ class PropExactPenRef(AbstractFeature):
             word_candidate = candidate_parsed[index[0] - 1]
             word_reference = reference_parsed[index[1] - 1]
 
-            if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Exact' and not word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'None':
+            if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Exact' and not word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'None':
 
                 counter_words += 1
 
@@ -724,7 +724,7 @@ class PropNoExactPenTest(AbstractFeature):
             word_candidate = candidate_parsed[index[0] - 1]
             word_reference = reference_parsed[index[1] - 1]
 
-            if not word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Exact' and not word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
+            if not word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Exact' and not word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
 
                 counter_words += 1
 
@@ -758,7 +758,7 @@ class PropNoExactPenRef(AbstractFeature):
             word_candidate = candidate_parsed[index[0] - 1]
             word_reference = reference_parsed[index[1] - 1]
 
-            if not word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Exact' and not word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
+            if not word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Exact' and not word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
 
                 counter_words += 1
 
@@ -792,7 +792,7 @@ class PropContentPenTest(AbstractFeature):
             word_candidate = candidate_parsed[index[0] - 1]
             word_reference = reference_parsed[index[1] - 1]
 
-            if not word_sim.functionWord(word_candidate.form):
+            if not word_sim.function_word(word_candidate.form):
 
                 counter_words += 1
 
@@ -826,7 +826,7 @@ class PropContentPenRef(AbstractFeature):
             word_candidate = candidate_parsed[index[0] - 1]
             word_reference = reference_parsed[index[1] - 1]
 
-            if not word_sim.functionWord(word_candidate.form):
+            if not word_sim.function_word(word_candidate.form):
 
                 counter_words += 1
 
@@ -859,7 +859,7 @@ class PropFunctionPenTest(AbstractFeature):
             word_candidate = candidate_parsed[index[0] - 1]
             word_reference = reference_parsed[index[1] - 1]
 
-            if word_sim.functionWord(word_candidate.form):
+            if word_sim.function_word(word_candidate.form):
 
                 counter_words += 1
 
@@ -892,7 +892,7 @@ class PropFunctionPenRef(AbstractFeature):
             word_candidate = candidate_parsed[index[0] - 1]
             word_reference = reference_parsed[index[1] - 1]
 
-            if word_sim.functionWord(word_reference.form):
+            if word_sim.function_word(word_reference.form):
 
                 counter_words += 1
 
@@ -992,7 +992,7 @@ class PropAlignedLexExact(AbstractFeature):
                 word_candidate = candidate_parsed[index[0] - 1]
                 word_reference = reference_parsed[index[1] - 1]
 
-                if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Exact':
+                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Exact':
                     count += 1
 
             AbstractFeature.set_value(self, count / float(len(alignments[0])))
@@ -1016,7 +1016,7 @@ class PropAlignedLexSyn(AbstractFeature):
                 word_candidate = candidate_parsed[index[0] - 1]
                 word_reference = reference_parsed[index[1] - 1]
 
-                if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Synonym':
+                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Synonym':
                     count += 1
 
             AbstractFeature.set_value(self, count / float(len(alignments[0])))
@@ -1040,7 +1040,7 @@ class PropAlignedLexPara(AbstractFeature):
                 word_candidate = candidate_parsed[index[0] - 1]
                 word_reference = reference_parsed[index[1] - 1]
 
-                if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Parahrase':
+                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Parahrase':
                     count += 1
 
             AbstractFeature.set_value(self, count / float(len(alignments[0])))
@@ -1064,7 +1064,7 @@ class PropAlignedLexDistrib(AbstractFeature):
                 word_candidate = candidate_parsed[index[0] - 1]
                 word_reference = reference_parsed[index[1] - 1]
 
-                if word_sim.wordRelatednessFeature(word_candidate, word_reference) == 'Distributional':
+                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Distributional':
                     count += 1
 
             AbstractFeature.set_value(self, count / float(len(alignments[0])))

@@ -1,4 +1,3 @@
-import numpy as np
 
 from src.utils.prepare_wmt import PrepareWmt
 from src.utils.human_ranking import HumanRanking
@@ -11,8 +10,11 @@ from sklearn.metrics import accuracy_score
 from sklearn.externals import joblib
 from configparser import ConfigParser
 from json import loads
+from collections import defaultdict
+from itertools import combinations
 import yaml
 import os
+import numpy as np
 
 __author__ = 'MarinaFomicheva'
 
@@ -49,12 +51,53 @@ class RankingTask(object):
 
         return data_structure2, human_rankings, extractor.vals
 
+    def test_set_for_rank_scores(self, data_structure, feature_values):
+
+        sentences_systems = defaultdict(list)
+
+        combination_methods = FeatureExtractor.get_combinations_from_config_file(self.config)
+        data_set_name = self.config.get('WMT', 'dataset')
+        f_features = open(os.path.expanduser(self.config.get('WMT', 'output_dir')) + '/' + 'x_' + data_set_name, 'w')
+
+        for data_set, lang_pair, system_name, phrase_number in data_structure:
+            sentences_systems[data_set, lang_pair, phrase_number].append(system_name)
+
+        for data_set, lang_pair, phrase_number in sorted(sentences_systems.keys()):
+
+            system_pairs = list(combinations(sentences_systems[data_set, lang_pair, phrase_number], 2))
+
+            for sys1, sys2 in system_pairs:
+
+                idx_sys1, idx_sys2 = self.get_sentence_idx(data_set, lang_pair, data_structure, phrase_number, sys1, sys2)
+
+                combined_features = []
+                for i in range(feature_values.shape[1]):
+                    combined_feature = self.combine_feature_values(combination_methods[i], feature_values[idx_sys1][i],
+                                                                   feature_values[idx_sys2][i])
+                    combined_features.append(combined_feature)
+
+                f_features.write('\t'.join([val for val in combined_features]) + '\n')
+
+        f_features.close()
+
+    def test_for_rank_scores(self, config):
+
+        learning_config = config.get("learning", None)
+        method_name = learning_config.get("method", None)
+        X_test = read_features_file(config.get("x_test", None), '\t')
+        estimator = joblib.load(config.get("save", None) + '/' + method_name + '.pkl')
+        confidence_scores = estimator.decision_function(X_test)
+
+        return confidence_scores
+
+
     def training_set_for_rank_direct(self, data_structure, human_rankings, feature_values, ignore_ties=True):
 
         combination_methods = FeatureExtractor.get_combinations_from_config_file(self.config)
         data_set_name = self.config.get('WMT', 'dataset')
-        f_features = open(self.config.get('WMT', 'output_dir') + '/' + 'x_' + data_set_name, 'w')
-        f_objective = open(self.config.get('WMT', 'output_dir') + '/' + 'y_' + data_set_name, 'w')
+        f_features = open(os.path.expanduser(self.config.get('WMT', 'output_dir')) + '/' + 'x_' + data_set_name, 'w')
+        f_objective = open(os.path.expanduser(self.config.get('WMT', 'output_dir')) + '/' + 'y_' + data_set_name, 'w')
+        f_meta_data = open(os.path.expanduser(self.config.get('WMT', 'output_dir')) + '/' + 'meta_' + data_set_name, 'w')
 
         for dataset, lang_pair in sorted(human_rankings.keys()):
 
@@ -70,6 +113,7 @@ class RankingTask(object):
                 sys1 = human_comparison.sys1
                 sys2 = human_comparison.sys2
                 idx_sys1, idx_sys2 = self.get_sentence_idx(dataset, lang_pair, data_structure, seg_id, sys1, sys2)
+                f_meta_data.write(str(idx_sys1) + '\t' + str(idx_sys2) + '\n')
 
                 combined_features = []
                 for i in range(feature_values.shape[1]):
@@ -210,11 +254,10 @@ class RankingTask(object):
         estimator = joblib.load(config.get('Learner', 'models') + '/' + 'logistic.pkl')
         return [x[0] for x in estimator.predict_proba(x_test)]
 
-    @staticmethod
-    def evaluate_predicted(predicted, gold_class_labels, score='accuracy'):
+    def evaluate_predicted(self, predicted, gold_class_labels, score='accuracy'):
         if score == 'accuracy':
             print("The accuracy score is " + str(accuracy_score(gold_class_labels, predicted)))
-            #print("The kappa is " + str(cohen_kappa_score(gold_class_labels, predicted)))
+            print("Kendall Tau is " + str(self.kendall_tau_direct(gold_class_labels, predicted, variant='wmt14')))
         else:
             print("Error! Unknown type of error metric!")
 
@@ -255,11 +298,11 @@ class RankingTask(object):
     @staticmethod
     def labels_to_signs(sign, ignore_ties=True):
 
-        if sign == '2':
+        if sign == 2.0:
             return '<'
-        elif sign == '0':
+        elif sign == 0.0:
             return '>'
-        elif ignore_ties is False and sign == '1':
+        elif ignore_ties is False and sign == 1.0:
             return '='
         else:
             return None

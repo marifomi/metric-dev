@@ -1,7 +1,7 @@
 from __future__ import division
 
 # -*- coding: utf-8 -*-
-# Natural Language Toolkit: BLEU
+# Natural Language Toolkit: SentBleu
 #
 # Copyright (C) 2001-2013 NLTK Project
 # Authors: Chin Yee Lee, Hengfeng Li, Ruxin Hou, Calvin Tanujaya Lim
@@ -16,7 +16,7 @@ from nltk.compat import Counter
 from nltk.util import ngrams
 
 
-class BLEU(object):
+class SentBleu(object):
 
     @staticmethod
     def compute(candidate, references):
@@ -24,12 +24,12 @@ class BLEU(object):
         references = [[r.lower() for r in reference] for reference in references]
         ps = []
         for i in range(1, 5):
-            ps.append(BLEU.modified_precision(candidate, references, i))
+            ps.append(SentBleu.modified_precision(candidate, references, i))
 
-        smoothed_ps = BLEU.smooth(ps)
+        smoothed_ps = SentBleu.smooth(ps)
         p = np.prod(smoothed_ps) ** 0.25
 
-        bp = BLEU.brevity_penalty(candidate, references)
+        bp = SentBleu.brevity_penalty(candidate, references)
         return p * bp
 
     @staticmethod
@@ -84,9 +84,9 @@ if __name__ == "__main__":
     #
     # for i, sentence in enumerate(candidate):
     #
-    #     bleu = BLEU.compute(sentence.strip().split(' '), [reference[i].strip().split(' ')])
+    #     bleu = SentBleu.compute(sentence.strip().split(' '), [reference[i].strip().split(' ')])
     #     output.write(str(bleu) + '\n')
 
     candidate1 = ["it", "'s", "not", ",", "mr", ".", "hašku", "."]
     reference1 = ["this", "is", "not", "the", "way", ",", "mr", "hašek", "."]
-    print(str(BLEU.compute(candidate1, [reference1])))
+    print(str(SentBleu.compute(candidate1, [reference1])))

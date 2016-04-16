@@ -13,7 +13,7 @@ __word_relatedness_alignment__ = dict()
 __word_relatedness_scoring__ = dict()
 
 
-def wordRelatednessAlignment(word1, word2, config):
+def word_relatedness_alignment(word1, word2, config):
 
     if word1.form + '__' + word2.form in __word_relatedness_alignment__:
         return __word_relatedness_alignment__[word1.form + '__' + word2.form]
@@ -55,7 +55,7 @@ def wordRelatednessAlignment(word1, word2, config):
     elif presentInPPDB(canonical_word1, canonical_word2) and 'paraphrases' in config.selected_lexical_resources:
         similarity = config.paraphrase
 
-    elif ((not functionWord(word1.form) and not functionWord(word2.form)) or word1.pos[0] == word2.pos[0]) and cosine_similarity(word1.form, word2.form) > config.related_threshold and 'distributional' in config.selected_lexical_resources:
+    elif ((not function_word(word1.form) and not function_word(word2.form)) or word1.pos[0] == word2.pos[0]) and cosine_similarity(word1.form, word2.form) > config.related_threshold and 'distributional' in config.selected_lexical_resources:
 
         if word1.form not in punctuations and word2.form not in punctuations:
             similarity = config.related
@@ -70,7 +70,7 @@ def wordRelatednessAlignment(word1, word2, config):
     return similarity
 
 
-def wordRelatednessScoring(word1, word2, scorer):
+def word_relatedness_scoring(word1, word2, scorer):
 
     if word1.form + '__' + word2.form in __word_relatedness_scoring__:
         return __word_relatedness_scoring__[word1.form + '__' + word2.form]
@@ -104,7 +104,7 @@ def wordRelatednessScoring(word1, word2, scorer):
     return similarity
 
 
-def wordRelatednessFeature(word1, word2):
+def word_relatedness_feature(word1, word2):
 
     canonical_word1 = canonize_word(word1.form)
     canonical_word2 = canonize_word(word2.form)
@@ -147,7 +147,7 @@ def presentInPPDB(word1, word2):
     if (word2.lower(), word1.lower()) in ppdb_dict:
         return True
 
-def functionWord(word):
+def function_word(word):
     return (word.lower() in stopwords) or (word.lower() in punctuations) or (word.lower().isdigit())
 
 

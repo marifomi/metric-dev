@@ -25,8 +25,6 @@ class FeatureExtractor(object):
 
         for name, my_class in sorted(inspect.getmembers(feature_module)):
 
-            print(name)
-
             if not inspect.isclass(my_class):
                 continue
 
@@ -37,6 +35,8 @@ class FeatureExtractor(object):
 
             if instance.get_name() not in features_to_extract:
                 continue
+
+            print(name)
 
             feature_vector = []
 
@@ -70,7 +70,7 @@ class FeatureExtractor(object):
     def get_combinations_from_config_file(config):
 
         config_features = []
-        f_features = open(config.get('Features', 'feature_set'), 'r').readlines()
+        f_features = open(os.path.expanduser(config.get('Features', 'feature_set')), 'r').readlines()
         for line in sorted(f_features):
             config_features.append(line.strip().split(':')[1])
 
@@ -80,7 +80,6 @@ class FeatureExtractor(object):
     def get_features_group_name(config):
         file_name = config.get('Features', 'feature_set')
         return file_name.split('/')[-1]
-
 
     @staticmethod
     def write_feature_names(feature_names):
@@ -100,6 +99,25 @@ class FeatureExtractor(object):
 
             instance = my_class()
             my_features.append(instance.get_name())
+
+        return my_features
+
+    @staticmethod
+    def get_feature_names_group(module, group):
+
+        my_features = []
+        for name, my_class in sorted(inspect.getmembers(module)):
+
+            if not inspect.isclass(my_class):
+                continue
+
+            if not my_class.__module__ == module.__name__:
+                continue
+
+            instance = my_class()
+
+            if instance.get_group() == group:
+                my_features.append(instance.get_name())
 
         return my_features
 

@@ -7,6 +7,7 @@ class AbstractFeature(object):
         self.value = float
         self.description = str
         self.name = str
+        self.group = str
 
     def set_value(self, value):
         self.value = value
@@ -25,3 +26,9 @@ class AbstractFeature(object):
 
     def get_name(self):
         return self.name
+
+    def set_group(self, group):
+        self.group = group
+
+    def get_group(self):
+        return self.group

@@ -106,10 +106,10 @@ def split_dataset(input_path_x, input_path_y, output_dir):
 
     x_train, x_test, y_train, y_test = train_test_split(read_data_x, read_data_y)
 
-    write_lines_to_file(output_dir + '/' + 'x_train', x_train)
-    write_lines_to_file(output_dir + '/' + 'y_train', y_train)
-    write_lines_to_file(output_dir + '/' + 'x_test', x_test)
-    write_lines_to_file(output_dir + '/' + 'y_test', y_test)
+    write_lines_to_file(output_dir + '/' + 'x_train' + '.' + 'tsv', x_train)
+    write_lines_to_file(output_dir + '/' + 'y_train' + '.' + 'tsv', y_train)
+    write_lines_to_file(output_dir + '/' + 'x_test' + '.' + 'tsv', x_test)
+    write_lines_to_file(output_dir + '/' + 'y_test' + '.' + 'tsv', y_test)
 
 
 def write_lines_to_file(file_path, lines):

@@ -129,7 +129,7 @@ class Scorer(object):
 
         for i, a in enumerate(alignments[0]):
             word_info = WordInformation()
-            word_info.similarity = word_sim.wordRelatednessScoring(sentence1[a[0] - 1], sentence2[a[1] - 1], self)
+            word_info.similarity = word_sim.word_relatedness_scoring(sentence1[a[0] - 1], sentence2[a[1] - 1], self)
             word_info.penalty_test = self.get_penalties(alignments[2][i], 'test')
             word_info.penalty_ref = self.get_penalties(alignments[2][i], 'ref')
             word_info.penalty_mean = self.get_penalties(alignments[2][i], 'mean')
@@ -140,8 +140,8 @@ class Scorer(object):
 
     def sentence_score_cobalt(self, sentence1, sentence2, alignments, word_level_scores):
 
-        functional_words1 = filter(lambda x: word_sim.functionWord(x.form), sentence1)
-        functional_words2 = filter(lambda x: word_sim.functionWord(x.form), sentence2)
+        functional_words1 = filter(lambda x: word_sim.function_word(x.form), sentence1)
+        functional_words2 = filter(lambda x: word_sim.function_word(x.form), sentence2)
 
         weighted_length1 = self.delta * (len(sentence1) - len(functional_words1)) + ((1.0 - self.delta) * len(functional_words1))
         weighted_length2 = self.delta * (len(sentence2) - len(functional_words2)) + ((1.0 - self.delta) * len(functional_words2))
@@ -151,12 +151,12 @@ class Scorer(object):
 
         for i, a in enumerate(alignments[0]):
 
-            if not word_sim.functionWord(sentence1[a[0] - 1].form):
+            if not word_sim.function_word(sentence1[a[0] - 1].form):
                 weighted_matches1 += self.delta * (max(word_level_scores[i].similarity - word_level_scores[i].penalty_mean, self.minimal_aligned_relatedness))
             else:
                 weighted_matches1 += (1 - self.delta) * (max(word_level_scores[i].similarity - word_level_scores[i].penalty_mean, self.minimal_aligned_relatedness))
 
-            if not word_sim.functionWord(sentence2[a[1] - 1].form):
+            if not word_sim.function_word(sentence2[a[1] - 1].form):
                 weighted_matches2 += self.delta * (max(word_level_scores[i].similarity - word_level_scores[i].penalty_mean, self.minimal_aligned_relatedness))
             else:
                 weighted_matches2 += (1 - self.delta) * (max(word_level_scores[i].similarity - word_level_scores[i].penalty_mean, self.minimal_aligned_relatedness))

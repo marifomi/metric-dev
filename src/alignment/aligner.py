@@ -44,7 +44,7 @@ class Aligner(object):
                 word1 = Word(ktem[0], ktem[1], sourceLemmas[ktem[0]-1], sourcePosTags[ktem[0]-1], ktem[2])
                 word2 = Word(ltem[0], ltem[1], targetLemmas[ltem[0]-1], targetPosTags[ltem[0]-1], ltem[2])
 
-                if ([ktem[0], ltem[0]] in existingAlignments or wordRelatednessAlignment(word1, word2, self.config) >= self.config.alignment_similarity_threshold) and (
+                if ([ktem[0], ltem[0]] in existingAlignments or word_relatedness_alignment(word1, word2, self.config) >= self.config.alignment_similarity_threshold) and (
                     #(ktem[2] == ltem[2])):
                     (ktem[2] == ltem[2]) or
                         ((pos != '' and relationDirection != 'child_parent') and (
@@ -59,7 +59,7 @@ class Aligner(object):
                             self.is_similar(ltem[2], ktem[2], pos, 'adverb', opposite, relationDirection)))):
 
                     relativeAlignments.append([ktem[0], ltem[0]])
-                    wordSimilarities.append(wordRelatednessAlignment(word1, word2, self.config))
+                    wordSimilarities.append(word_relatedness_alignment(word1, word2, self.config))
 
         alignmentResults = {}
 
@@ -95,7 +95,7 @@ class Aligner(object):
                             self.is_similar(ltem[2], ktem[2], pos, 'adverb', opposite, relationDirection)))):
 
                     relativeAlignments.append([ktem[0], ltem[0]])
-                    wordSimilarities.append(wordRelatednessAlignment(word1, word2, self.config))
+                    wordSimilarities.append(word_relatedness_alignment(word1, word2, self.config))
 
         alignmentResults = {}
 
@@ -275,10 +275,10 @@ class Aligner(object):
                 word1 = Word(i, sourceWords[i-1], sourceLemmas[i-1], sourcePosTags[i-1], '')
                 word2 = Word(j, targetWords[j-1], targetLemmas[j-1], targetPosTags[j-1], '')
 
-                if wordRelatednessAlignment(word1, word2, self.config) < self.config.alignment_similarity_threshold:
+                if word_relatedness_alignment(word1, word2, self.config) < self.config.alignment_similarity_threshold:
                     continue
 
-                wordSimilarities[(i, j)] = wordRelatednessAlignment(word1, word2, self.config)
+                wordSimilarities[(i, j)] = word_relatedness_alignment(word1, word2, self.config)
 
                 dependencySimilarity = self.findDependencySimilarity(pos, source, i, target, j, sourceDParse, targetDParse, existingAlignments + posAlignments, sourcePosTags, targetPosTags, sourceLemmas, targetLemmas)
 
@@ -726,7 +726,7 @@ class Aligner(object):
                 word1 = Word(i, sourceWords[i-1], sourceLemmas[i-1], sourcePosTags[i-1], '')
                 word2 = Word(j, targetWords[j-1], targetLemmas[j-1], targetPosTags[j-1], '')
 
-                wordSimilarities[(i, j)] = wordRelatednessAlignment(word1, word2, self.config)
+                wordSimilarities[(i, j)] = word_relatedness_alignment(word1, word2, self.config)
                 sourceWordIndicesBeingConsidered.append(i)
                 targetWordIndicesBeingConsidered.append(j)
 
@@ -740,8 +740,8 @@ class Aligner(object):
                     for l in range(len(targetNeighborhood[0])):
                         neighbor1 = Word(sourceNeighborhood[0][k], sourceNeighborhood[1][k], sourceLemmas[sourceNeighborhood[0][k]-1], sourcePosTags[sourceNeighborhood[0][k]-1], '')
                         neighbor2 = Word(targetNeighborhood[0][l], targetNeighborhood[1][l], targetLemmas[targetNeighborhood[0][l]-1], targetPosTags[targetNeighborhood[0][l]-1], '')
-                        if (sourceNeighborhood[1][k] not in stopwords + punctuations) and ((sourceNeighborhood[0][k], targetNeighborhood[0][l]) in alignments or (wordRelatednessAlignment(neighbor1, neighbor2, self.config) >= self.config.alignment_similarity_threshold)):
-                            evidence += wordRelatednessAlignment(neighbor1, neighbor2, self.config)
+                        if (sourceNeighborhood[1][k] not in stopwords + punctuations) and ((sourceNeighborhood[0][k], targetNeighborhood[0][l]) in alignments or (word_relatedness_alignment(neighbor1, neighbor2, self.config) >= self.config.alignment_similarity_threshold)):
+                            evidence += word_relatedness_alignment(neighbor1, neighbor2, self.config)
                 textualNeighborhoodSimilarities[(i, j)] = evidence
 
         numOfUnalignedWordsInSource = len(set(sourceWordIndicesBeingConsidered))
@@ -832,10 +832,10 @@ class Aligner(object):
                 word1 = Word(i, sourceWords[i-1], sourceLemmas[i-1], sourcePosTags[i-1], '')
                 word2 = Word(j, targetWords[j-1], targetLemmas[j-1], targetPosTags[j-1], '')
 
-                if (sourceLemmas[i-1] != targetLemmas[j-1]) and (wordRelatednessAlignment(word1, word2, self.config) < self.config.alignment_similarity_threshold):
+                if (sourceLemmas[i-1] != targetLemmas[j-1]) and (word_relatedness_alignment(word1, word2, self.config) < self.config.alignment_similarity_threshold):
                     continue
 
-                wordSimilarities[(i, j)] = wordRelatednessAlignment(word1, word2, self.config)
+                wordSimilarities[(i, j)] = word_relatedness_alignment(word1, word2, self.config)
 
                 sourceWordIndicesBeingConsidered.append(i)
                 targetWordIndicesBeingConsidered.append(j)
@@ -906,11 +906,11 @@ class Aligner(object):
                 word1 = Word(i, sourceWords[i-1], sourceLemmas[i-1], sourcePosTags[i-1], '')
                 word2 = Word(j, targetWords[j-1], targetLemmas[j-1], targetPosTags[j-1], '')
 
-                if wordRelatednessAlignment(word1, word2, self.config) < self.config.alignment_similarity_threshold:
+                if word_relatedness_alignment(word1, word2, self.config) < self.config.alignment_similarity_threshold:
                     continue
 
 
-                wordSimilarities[(i, j)] = wordRelatednessAlignment(word1, word2, self.config)
+                wordSimilarities[(i, j)] = word_relatedness_alignment(word1, word2, self.config)
 
                 sourceWordIndicesBeingConsidered.append(i)
                 targetWordIndicesBeingConsidered.append(j)
