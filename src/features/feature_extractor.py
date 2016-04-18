@@ -78,7 +78,6 @@ class FeatureExtractor(object):
         file_name = config.get('Features', 'feature_set')
         return file_name.split('/')[-1]
 
-
     @staticmethod
     def write_feature_names(feature_names):
         print('\n'.join(feature_names))

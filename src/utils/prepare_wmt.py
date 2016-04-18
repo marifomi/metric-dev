@@ -21,30 +21,31 @@ class PrepareWmt(object):
     def __init__(self, data_type='plain'):
         self.data_type = data_type
 
-    def read_wmt_format_into_features_data(self, config, output_dir, data_set, features):
+    @staticmethod
+    def read_wmt_format_into_features_data(config, feature_name):
 
-        features_data = defaultdict(dict)
+        feature_data = []
 
-        for feature in features:
-            my_file = open(output_dir + '/' + data_set + '.' + feature + '.' + 'out', 'r')
+        my_file = open(os.path.expanduser(config.get("WMT", "output_dir")) + '/' + config.get("WMT", "dataset") + '.' + feature_name + '.' + 'out', 'r')
 
-            for line in my_file:
+        for line in my_file:
 
-                feature, data_set, lang_pair, system_name, seg_id, value = line.strip().split('\t')
+            feature, data_set, lang_pair, system_name, seg_id, value = line.strip().split('\t')
 
-                if not config.get('WMT', 'directions') == 'None' and lang_pair not in loads(config.get('WMT', 'directions')):
-                    continue
+            if not config.get('WMT', 'directions') == 'None' and lang_pair not in loads(config.get('WMT', 'directions')):
+                continue
 
-                if not '-en' in lang_pair:
-                    continue
+            if not '-en' in lang_pair:
+                continue
 
-                if len(lang_pair.split('-')[0]) == 3:
-                    source = LANGUAGE_THREE_TO_TWO[lang_pair.split('-')[0]]
-                    target = LANGUAGE_THREE_TO_TWO[lang_pair.split('-')[1]]
-                    lang_pair = source + '-' + target
-                features_data[data_set, lang_pair, system_name, int(seg_id)][feature] = float(value)
+            if len(lang_pair.split('-')[0]) == 3:
+                source = LANGUAGE_THREE_TO_TWO[lang_pair.split('-')[0]]
+                target = LANGUAGE_THREE_TO_TWO[lang_pair.split('-')[1]]
+                lang_pair = source + '-' + target
 
-        return features_data
+            feature_data.append([feature, data_set, lang_pair, system_name, int(seg_id), float(value)])
+
+        return [x[-1] for x in sorted(feature_data)]
 
     @staticmethod
     def order_feature_data(feature_data):
@@ -78,7 +79,7 @@ class PrepareWmt(object):
 
     def wmt_format(self, config, feature_name, data_set, scores, data_structure):
 
-        f_output = config.get('WMT', 'output_dir') + '/' + data_set + '.' + feature_name + '.' + 'out'
+        f_output = os.path.expanduser(config.get('WMT', 'output_dir')) + '/' + data_set + '.' + feature_name + '.' + 'out'
 
         if os.path.exists(f_output):
             print("Feature file already exist.")

@@ -35,12 +35,14 @@ from sklearn.svm.classes import SVR, SVC
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.preprocessing import scale
 from src.learning.customize_scorer import pearson_corrcoef, binary_precision, classify_report_bin, classify_report_bin_regression, classify_report_regression
+from sklearn.externals import joblib
 import logging as log
 import numpy as np
 import os
 import sys
 import yaml
 import codecs
+
 
 __all__ = []
 __version__ = 0.1
@@ -222,12 +224,11 @@ def set_learning_method(config, X_train, y_train):
             if o:
                 tune_params = set_optimization_params(o)
                 estimator = optimize_model(SVC(), X_train, y_train,
-                                           tune_params,
-                                           scorers,
-                                           o.get('cv', 5),
-                                           o.get('verbose', True),
-                                           o.get('n_jobs', 1))
-                
+                                            tune_params,
+                                            scorers,
+                                            o.get('cv', 5),
+                                            o.get('verbose', True),
+                                            o.get('n_jobs', 1))
             elif p:
                 estimator = SVC(C=p.get('C', 1.0),
                                 kernel=p.get('kernel', 'rbf'), 
@@ -346,10 +347,18 @@ def fit_predict(config, X_train, y_train, X_test=None, y_test=None, ref_thd=None
     estimator, scorers = set_learning_method(config, X_train, y_train)
     log.info("Running learning algorithm %s" % str(estimator))
     estimator.fit(X_train, y_train)
+
+    if config.get("save", None) is not None:
+        learning_cfg = config.get("learning", None)
+        method_name = learning_cfg.get("method", None)
+        joblib.dump(estimator, config.get("save", None) + '/' + method_name + '.pkl')
+
+        return
     
     if (X_test is not None) and (y_test is not None):
         log.info("Predicting unseen mtc using the trained model...")
         y_hat = estimator.predict(X_test)
+
         log.info("Evaluating prediction on the test set...")
         for scorer_name, scorer_func in scorers:
             v = scorer_func(y_test, y_hat, average=None)

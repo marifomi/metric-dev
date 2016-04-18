@@ -27,6 +27,12 @@ class AbstractFeature(object):
     def get_name(self):
         return self.name
 
+    def set_group(self, group):
+        self.group = group
+
+    def get_group(self):
+        return self.group
+
     def __str__(self):
         return self.name
 
