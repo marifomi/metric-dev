@@ -15,6 +15,7 @@ from itertools import combinations
 import yaml
 import os
 import numpy as np
+import itertools
 
 __author__ = 'MarinaFomicheva'
 
@@ -51,13 +52,14 @@ class RankingTask(object):
 
         return data_structure2, human_rankings, extractor.vals
 
-    def test_set_for_rank_scores(self, data_structure, feature_values):
+    def test_set_for_rank_to_scores(self, data_structure, feature_values, config_path_learning):
 
         sentences_systems = defaultdict(list)
 
         combination_methods = FeatureExtractor.get_combinations_from_config_file(self.config)
         data_set_name = self.config.get('WMT', 'dataset')
         f_features = open(os.path.expanduser(self.config.get('WMT', 'output_dir')) + '/' + 'x_' + data_set_name, 'w')
+        meta_data = defaultdict(list)
 
         for data_set, lang_pair, system_name, phrase_number in data_structure:
             sentences_systems[data_set, lang_pair, phrase_number].append(system_name)
@@ -66,38 +68,65 @@ class RankingTask(object):
 
             system_pairs = list(combinations(sentences_systems[data_set, lang_pair, phrase_number], 2))
 
-            for sys1, sys2 in system_pairs:
+            for sys1, sys2 in sorted(system_pairs):
 
                 idx_sys1, idx_sys2 = self.get_sentence_idx(data_set, lang_pair, data_structure, phrase_number, sys1, sys2)
 
                 combined_features = []
-                for i in range(feature_values.shape[1]):
+                for i in range(len(feature_values[0])):
                     combined_feature = self.combine_feature_values(combination_methods[i], feature_values[idx_sys1][i],
                                                                    feature_values[idx_sys2][i])
                     combined_features.append(combined_feature)
 
                 f_features.write('\t'.join([val for val in combined_features]) + '\n')
+                meta_data[data_set, lang_pair, phrase_number].append([sys1, sys2])
 
         f_features.close()
 
-    def test_for_rank_scores(self, config):
+        results = defaultdict(list)
+        confidence_scores = self.get_confidence_scores(config_path_learning)
+        count = 0
+        for data_set, lang_pair, phrase_number in sorted(meta_data.keys()):
+            for sys1, sys2 in sorted(meta_data[data_set, lang_pair, phrase_number]):
+                results[data_set, lang_pair, phrase_number].append([sys1, sys2, confidence_scores[count]])
+                count += 1
+
+        return results
+
+    def convert_rank_to_scores(self, meta_data):
+
+        for data_set, lang_pair, phrase_number in sorted(meta_data.keys()):
+            system_names = set(self.flatten([(x[0], x[1]) for x in meta_data[data_set, lang_pair, phrase_number]]))
+            for system_name in system_names:
+                system_score = 0
+                for sys_pair in meta_data[data_set, lang_pair, phrase_number]:
+                    if system_name in sys_pair:
+                        if sys_pair.index(system_name) == 0:
+                            system_score += sys_pair[2]
+                        else:
+                            system_score -= sys_pair[2]
+                print('\t'.join([data_set, lang_pair, system_name, str(phrase_number), str(system_score)]))
+
+    @staticmethod
+    def get_confidence_scores(config_path):
+
+        with open(config_path, 'r') as cfg_file:
+            config = yaml.load(cfg_file.read())
 
         learning_config = config.get("learning", None)
         method_name = learning_config.get("method", None)
-        X_test = read_features_file(config.get("x_test", None), '\t')
+        x_test = read_features_file(config.get("x_test", None), '\t')
         estimator = joblib.load(config.get("save", None) + '/' + method_name + '.pkl')
-        confidence_scores = estimator.decision_function(X_test)
-
+        confidence_scores = estimator.decision_function(x_test)
         return confidence_scores
-
 
     def training_set_for_rank_direct(self, data_structure, human_rankings, feature_values, ignore_ties=True):
 
         combination_methods = FeatureExtractor.get_combinations_from_config_file(self.config)
         data_set_name = self.config.get('WMT', 'dataset')
-        f_features = open(os.path.expanduser(self.config.get('WMT', 'output_dir')) + '/' + 'x_' + data_set_name, 'w')
-        f_objective = open(os.path.expanduser(self.config.get('WMT', 'output_dir')) + '/' + 'y_' + data_set_name, 'w')
-        f_meta_data = open(os.path.expanduser(self.config.get('WMT', 'output_dir')) + '/' + 'meta_' + data_set_name, 'w')
+        f_features = open(os.path.expanduser(self.config.get('WMT', 'output_dir')) + '/' + 'x_' + data_set_name + '.tsv', 'w')
+        f_objective = open(os.path.expanduser(self.config.get('WMT', 'output_dir')) + '/' + 'y_' + data_set_name + '.tsv', 'w')
+        f_meta_data = open(os.path.expanduser(self.config.get('WMT', 'output_dir')) + '/' + 'meta_' + data_set_name + '.tsv', 'w')
 
         for dataset, lang_pair in sorted(human_rankings.keys()):
 
@@ -256,11 +285,14 @@ class RankingTask(object):
         with open(config_path, 'r') as cfg_file:
             config = yaml.load(cfg_file.read())
 
+        learning_config = config.get("learning", None)
+        method_name = learning_config.get("method", None)
+
         x_train = read_features_file(config.get('x_train'), '\t')
         y_train = read_reference_file(config.get('y_train'), '\t')
         estimator, scorers = learn_model.set_learning_method(config, x_train, y_train)
         estimator.fit(x_train, y_train)
-        joblib.dump(estimator, config.get('Learner', 'models') + '/' + 'logistic.pkl')
+        joblib.dump(estimator, config.get('Learner', 'models') + '/' + method_name + '.pkl')
 
     @staticmethod
     def test_learn_to_rank(config_path):
@@ -324,3 +356,8 @@ class RankingTask(object):
             return '='
         else:
             return None
+
+    @staticmethod
+    def flatten(list_of_lists):
+        "Flatten one level of nesting"
+        return list(itertools.chain.from_iterable(list_of_lists))
