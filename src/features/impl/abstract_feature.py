@@ -8,6 +8,7 @@ class AbstractFeature(object):
         self.value = None
         self.description = None
         self.name = 'abstract_feature'
+        self.group = None
 
     def set_value(self, value):
         self.value = value
