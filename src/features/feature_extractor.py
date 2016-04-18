@@ -49,6 +49,20 @@ class FeatureExtractor(object):
 
         print("Finished extracting features")
 
+
+    @staticmethod
+    def get_feature_names_by_group(group):
+
+        for my_class in sorted(list(FeatureExtractor.__iter_subclasses__(AbstractFeature)),
+                                   key=lambda x: str(x)):
+
+            instance = my_class()
+
+            if instance.get_group() != group:
+                continue
+
+            print(instance.get_name())
+
     @staticmethod
     def get_len(my_file):
         return sum(1 for line in open(my_file))
