@@ -14,5 +14,4 @@ synonymDictionary = SynonymDictionary('english')
 contractionDictionary = ContractionDictionary('english')
 
 punctuations = ['%', '(', '-lrb-', '.', ',', '-', '?', '!', ';', '_', ':', '{', '}', '[', '/', ']', '...', '"', '\'', ')', '-rrb-']
-stopwords = stopwords.words('english')
-
+cobalt_stopwords = stopwords.words('english')

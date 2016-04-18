@@ -335,7 +335,7 @@ class PropNonAlignedFunction(AbstractFeature):
         count = 0
         for i, word in enumerate(cand['tokens']):
             if i + 1 not in [x[0] for x in cand['alignments'][0]]:
-                if word.lower() in config.stopwords and word.lower() not in config.punctuations:
+                if word.lower() in config.cobalt_stopwords and word.lower() not in config.punctuations:
                     count += 1
 
         AbstractFeature.set_value(self, count / float(len(cand['tokens']) - len(cand['alignments'][0])))
@@ -3468,8 +3468,8 @@ class LongestNgramMin(AbstractFeature):
             if word.lower().isdigit():
                 continue
 
-            cnt += 1
-            backoffs.append(cand['quest_word'][i]['WCE1037'])
+            if cand['tokens'][i] in config.stopwords:
+                penalty1 = 0.3
 
         if cnt > 0:
             AbstractFeature.set_value(self, numpy.min(backoffs))
@@ -4759,7 +4759,7 @@ class MedianCosineDifference(AbstractFeature):
         content_words_indexes = []
 
         for idx, token in enumerate(tokens):
-            if token.lower() not in config.punctuations and token.lower() not in config.stopwords:
+            if token.lower() not in config.punctuations and token.lower() not in config.cobalt_stopwords:
                 content_words_indexes.append(idx)
 
         return content_words_indexes

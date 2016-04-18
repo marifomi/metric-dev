@@ -55,15 +55,19 @@ class HumanRanking(defaultdict):
             self[dataset, direction] += extracted_comparisons
             counter += 1
 
-    def clean_data(self, directions):
+    def clean_data(self, config):
 
         comparisons = defaultdict(list)
 
         systems_signs = defaultdict(list)
 
+        directions = loads(config.get('WMT', 'directions')) if config.get('WMT', 'directions') != 'None' else 'None'
+
+        dataset = config.get('WMT', 'dataset')
+
         for direction in directions:
 
-            for comp in self[direction]:
+            for comp in self[dataset, direction]:
                 systems_signs[comp.phrase, comp.sys1, comp.sys2].append(comp.sign)
 
             ties = 0
@@ -72,29 +76,32 @@ class HumanRanking(defaultdict):
                 if sign == '=':
                     ties += 1
 
-            counts = [len(x) for x in systems_signs.values()]
-            max_count = max(counts)
-            avg_count = np.mean(counts)
-            all_counts = np.sum(counts)
+            total_counts = [len(x) for x in systems_signs.values()]
+            max_count = max(total_counts)
+            avg_count = np.mean(total_counts)
+            all_counts = np.sum(total_counts)
 
             for dpoint in systems_signs.keys():
 
                 c = Counter(systems_signs[dpoint])
 
+                items = list(c.items())
+
                 if len(c) == 1:
                     comparisons[direction].append(HumanComparison(dpoint[0], dpoint[1], dpoint[2], systems_signs[dpoint][0]))
                 else:
                     competing = False
-                    for i, (sign, count) in enumerate(sorted(c.items(), key=lambda x: x[1], reverse=True)):
-                        if count == c.items()[i + 1][1]:
+                    counts = []
+                    for i, (sign, count) in enumerate(sorted(items, key=lambda x: x[1], reverse=True)):
+                        counts.append(count)
+                        if count == items[i + 1][1]:
                             competing = True
                         break
                     if competing is True:
                         continue
 
-                    counts = c.items()
-                    idx = np.argmax([x[1] for x in counts])
-                    my_sign = counts[idx][0]
+                    idx = np.argmax(counts)
+                    my_sign = items[idx][0]
                     comparisons[direction].append(HumanComparison(dpoint[0], dpoint[1], dpoint[2], my_sign))
 
             print(direction + ' ' + str(max_count) + ' ' + str(avg_count) + ' ' + str(all_counts) + ' ' + str(ties/float(all_counts)) + ' ' + str(len(comparisons[direction])))
