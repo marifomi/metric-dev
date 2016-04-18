@@ -33,8 +33,6 @@ class FeatureExtractor(object):
             if str(instance) not in features_to_extract:
                 continue
 
-            print(name)
-
             feature_vector = []
 
             print("Running " + str(instance))
