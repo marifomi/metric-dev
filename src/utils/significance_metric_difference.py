@@ -56,9 +56,9 @@ def main():
     signif = SignificanceMetricDifference()
     m1, m2, hum = signif.get_scores(fm1, fm2, fhum)
     r13, r23, pvalue = signif.test_significance(m1, m2, hum)
-    print str(r13)
-    print str(r23)
-    print str(pvalue)
+    print(str(r13))
+    print(str(r23))
+    print(str(pvalue))
 
 
 if __name__ == '__main__':
