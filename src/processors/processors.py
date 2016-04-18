@@ -37,7 +37,7 @@ class PosLangModel(AbstractProcessor):
         AbstractProcessor.set_name(self, 'pos_lang_model')
         AbstractProcessor.set_output(self, True)
 
-    def run(self, config):
+    def run(self, config, from_file=False):
 
         tagger = PosTagger()
         tagger.run(config)
@@ -49,7 +49,7 @@ class PosLangModel(AbstractProcessor):
         lm.set_path_to_tools('/Users/MarinaFomicheva/workspace/srilm-1.7.1/bin/macosx/')
         lm.produce_ppl(f_in, f_out, f_lm, 3)
 
-    def get(self, config):
+    def get(self, config, from_file=False):
 
         f_token = open(os.path.expanduser(config.get('Data', 'tgt')) + '.token', 'r')
         f_probs = open(os.path.expanduser(config.get('Data', 'tgt')) + '.pos.join' + '.ppl', 'r')
@@ -105,7 +105,7 @@ class PosTagger(AbstractProcessor):
         AbstractProcessor.set_name(self, 'pos_tagger')
         AbstractProcessor.set_output(self, True)
 
-    def run(self, config):
+    def run(self, config, from_file=False):
 
         self.split_token(config)
         tagger = os.path.expanduser(config.get('PosTagger', 'path'))
@@ -184,10 +184,10 @@ class WordVectors(AbstractProcessor):
         AbstractProcessor.set_name(self, 'word_vectors')
         AbstractProcessor.set_output(self, True)
 
-    def run(self, config):
+    def run(self, config, from_file=False):
         print("Loading word vectors")
 
-    def get(self, config):
+    def get(self, config, from_file=False):
 
         lines_ref = codecs.open(os.path.expanduser(config.get('Data', 'ref')) + '.' + 'token', 'r', 'utf-8').readlines()
         lines_tgt = codecs.open(os.path.expanduser(config.get('Data', 'tgt')) + '.' + 'token', 'r', 'utf-8').readlines()
@@ -252,10 +252,10 @@ class SentVector(AbstractProcessor):
         AbstractProcessor.set_name(self, 'sent_vector')
         AbstractProcessor.set_output(self, True)
 
-    def run(self, config):
+    def run(self, config, from_file=False):
         print("Loading word vectors")
 
-    def get(self, config):
+    def get(self, config, from_file=False):
 
         print("Getting sentence vectors")
 
@@ -302,10 +302,10 @@ class Parse(AbstractProcessor):
         AbstractProcessor.set_name(self, 'parse')
         AbstractProcessor.set_output(self, True)
 
-    def run(self, config):
+    def run(self, config, from_file=False):
         print("Parse already exist!")
 
-    def get(self, config):
+    def get(self, config, from_file=False):
 
         result_tgt = read_parsed_sentences(codecs.open(os.path.expanduser(config.get('Data', 'tgt') + '.' + 'parse'), 'r', 'utf-8'))
         result_ref = read_parsed_sentences(codecs.open(os.path.expanduser(config.get('Data', 'ref') + '.' + 'parse'), 'r', 'utf-8'))
@@ -330,10 +330,10 @@ class Parse2(AbstractProcessor):
         AbstractProcessor.set_name(self, 'parse2')
         AbstractProcessor.set_output(self, True)
 
-    def run(self, config):
+    def run(self, config, from_file=False):
         print("Parse already exist!")
 
-    def get(self, config):
+    def get(self, config, from_file=False):
 
         result_tgt = read_parsed_sentences(codecs.open(os.path.expanduser(config.get('Data', 'tgt')) + '.' + 'parse', 'r', 'utf-8'))
         result_ref = read_parsed_sentences(codecs.open(os.path.expanduser(config.get('Data', 'ref')) + '.' + 'parse', 'r', 'utf-8'))
@@ -478,10 +478,10 @@ class Paraphrases(AbstractProcessor):
         AbstractProcessor.set_name(self, 'paraphrases')
         AbstractProcessor.set_output(self, None)
 
-    def run(self, config):
+    def run(self, config, from_file=False):
         load_ppdb(config.get("Paraphrases", "path"))
 
-    def get(self, config):
+    def get(self, config, from_file=False):
         pass
 
 class MeteorAligner(AbstractProcessor):
@@ -491,7 +491,7 @@ class MeteorAligner(AbstractProcessor):
         AbstractProcessor.set_name(self, 'meteor_aligner')
         AbstractProcessor.set_output(self, True)
 
-    def run(self, config):
+    def run(self, config, from_file=False):
 
         tgt_path = os.path.expanduser(config.get('Data', 'tgt'))
         ref_path = os.path.expanduser(config.get('Data', 'ref'))
@@ -509,13 +509,13 @@ class MeteorAligner(AbstractProcessor):
         meteor = os.path.expanduser(config.get('Metrics', 'meteor'))
         lang = config.get('Settings', 'tgt_lang')
 
-        # subprocess.call(['java', '-Xmx2G', '-jar', meteor, tgt_path, ref_path, '-l', lang,
-        #                  '-norm', '-writeAlignments', '-f', prefix])
+        subprocess.call(['java', '-Xmx2G', '-jar', meteor, tgt_path, ref_path, '-l', lang,
+                         '-norm', '-writeAlignments', '-f', prefix])
 
-        subprocess.call(['java', '-Xmx2G', '-jar', meteor, tgt_path + '.' + 'token', ref_path + '.' + 'token', '-l', lang,
-                         '-lower', '-writeAlignments', '-f', prefix])
+        # subprocess.call(['java', '-Xmx2G', '-jar', meteor, tgt_path + '.' + 'token', ref_path + '.' + 'token', '-l', lang,
+        #                  '-lower', '-writeAlignments', '-f', prefix])
 
-    def get(self, config):
+    def get(self, config, from_file=False):
 
         tgt_path = os.path.expanduser(config.get('Data', 'tgt'))
         align_dir = os.path.expanduser(config.get('Alignment', 'dir'))
@@ -537,7 +537,7 @@ class CobaltAligner(AbstractProcessor):
         AbstractProcessor.set_name(self, 'cobalt_aligner')
         AbstractProcessor.set_output(self, True)
 
-    def run(self, config):
+    def run(self, config, from_file=False):
 
         tgt_path = os.path.expanduser(config.get('Data', 'tgt') + '.' + 'parse')
         ref_path = os.path.expanduser(config.get('Data', 'ref') + '.' + 'parse')
@@ -559,7 +559,7 @@ class CobaltAligner(AbstractProcessor):
         aligner.align_documents(tgt_path, ref_path)
         aligner.write_alignments(align_dir + '/' + tgt_path.split('/')[-1] + '.' + ref_path.split('/')[-1] + '.cobalt-align.out')
 
-    def get(self, config):
+    def get(self, config, from_file=False):
 
         tgt_path = os.path.expanduser(config.get('Data', 'tgt') + '.' + 'parse')
         ref_path = os.path.expanduser(config.get('Data', 'ref') + '.' + 'parse')
@@ -578,7 +578,7 @@ class Tokenizer(AbstractProcessor):
         AbstractProcessor.set_name(self, 'tokenizer')
         AbstractProcessor.set_output(self, True)
 
-    def run(self, config):
+    def run(self, config, from_file=False):
 
         method = config.get('Tokenizer', 'method')
 
@@ -750,7 +750,7 @@ class Tokenizer(AbstractProcessor):
         myinput.close()
         myoutput.close()
 
-    def get(self, config):
+    def get(self, config, from_file=False):
 
         sents_tokens_ref = []
         sents_tokens_tgt = []
@@ -772,7 +772,7 @@ class QuestWord(AbstractProcessor):
         AbstractProcessor.set_name(self, 'quest_word')
         AbstractProcessor.set_output(self, True)
 
-    def run(self, config):
+    def run(self, config, from_file=False):
 
         # Tokenized input files !
         # Check quest configuration file!
@@ -804,7 +804,7 @@ class QuestWord(AbstractProcessor):
         ])
         shutil.rmtree(os.getcwd() + '/' + 'input')
 
-    def get(self, config, map_backoff=False):
+    def get(self, config, map_backoff=False, from_file=False):
 
         # Word-level quest features
         # WCE1015 - Language model backoff behavior value
@@ -883,7 +883,7 @@ class QuestSentence(AbstractProcessor):
         AbstractProcessor.set_name(self, 'quest_sentence')
         AbstractProcessor.set_output(self, True)
 
-    def run(self, config):
+    def run(self, config, from_file=False):
 
         # Plain files, no tokenization!
         # Check quest configuration file!
@@ -918,7 +918,7 @@ class QuestSentence(AbstractProcessor):
         ])
         shutil.rmtree(os.getcwd() + '/' + 'input')
 
-    def get(self, config):
+    def get(self, config, from_file=False):
 
         # Make sure feature file is the same as stated in quest config file
 
@@ -949,7 +949,7 @@ class LanguageModelWordFeatures(AbstractProcessor):
         AbstractProcessor.set_name(self, 'language_model_word_features')
         AbstractProcessor.set_output(self, True)
 
-    def run(self, config):
+    def run(self, config, from_file=False):
 
         tgt_path = os.path.expanduser(config.get('Data', 'tgt')) + '.' + 'token'
         output_path = tgt_path + '.' + 'ppl2'
@@ -966,7 +966,7 @@ class LanguageModelWordFeatures(AbstractProcessor):
         SRILM = [srilm + '/' + 'ngram', '-lm', lm, '-order', ngram_size, '-debug', str(2), '-ppl', tgt_path]
         subprocess.check_call(SRILM, stdout=my_output)
 
-    def get(self, config):
+    def get(self, config, from_file=False):
 
         ppl_file = open(os.path.expanduser(config.get('Data', 'tgt')) + '.' + 'token' + '.' + 'ppl2', 'r')
 
@@ -1008,7 +1008,7 @@ class LanguageModelSentenceFeatures(AbstractProcessor):
         AbstractProcessor.set_name(self, 'language_model_sentence_features')
         AbstractProcessor.set_output(self, True)
 
-    def run(self, config):
+    def run(self, config, from_file=False):
 
         tgt_path = os.path.expanduser(config.get('Data', 'tgt') + '.' + 'token')
         output_path = tgt_path + '.' + 'ppl'
@@ -1025,7 +1025,7 @@ class LanguageModelSentenceFeatures(AbstractProcessor):
         SRILM = [srilm + '/' + 'ngram', '-lm', lm, '-order', ngram_size, '-debug', str(1), '-ppl', tgt_path]
         subprocess.check_call(SRILM, stdout=my_output)
 
-    def get(self, config):
+    def get(self, config, from_file=False):
 
         ppl_file = open(os.path.expanduser(config.get('Data', 'tgt')) + '.' + 'token' + '.' + 'ppl', 'r')
 
