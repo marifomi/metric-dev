@@ -300,11 +300,11 @@ class Aligner(object):
             indexPairWithStrongestTieForCurrentPass = [-1, -1]
 
             for i in sourceWordIndices:
-                if i in sourceWordIndicesAlreadyAligned or sourcePosTags[i-1][0].lower() != posCode or sourceLemmas[i-1].lower() in stopwords:
+                if i in sourceWordIndicesAlreadyAligned or sourcePosTags[i-1][0].lower() != posCode or sourceLemmas[i-1].lower() in cobalt_stopwords:
                     continue
 
                 for j in targetWordIndices:
-                    if j in targetWordIndicesAlreadyAligned or targetPosTags[j-1][0].lower() != posCode or targetLemmas[j-1].lower() in stopwords:
+                    if j in targetWordIndicesAlreadyAligned or targetPosTags[j-1][0].lower() != posCode or targetLemmas[j-1].lower() in cobalt_stopwords:
                         continue
 
                     if (i, j) in evidenceCountsMatrix and self.config.theta * wordSimilarities[(i, j)] + (1 - self.config.theta) * evidenceCountsMatrix[(i, j)] > maxOverallValueForCurrentPass:
@@ -620,7 +620,7 @@ class Aligner(object):
         for item in commonContiguousSublists:
             allStopWords = True
             for jtem in item:
-                if jtem not in stopwords and jtem not in punctuations:
+                if jtem not in cobalt_stopwords and jtem not in punctuations:
                     allStopWords = False
                     break
             if len(item[0]) >= 2 and not allStopWords:
@@ -716,11 +716,11 @@ class Aligner(object):
         targetWordIndicesBeingConsidered = []
 
         for i in sourceWordIndices:
-            if i in sourceWordIndicesAlreadyAligned or sourceLemmas[i-1].lower() in stopwords + punctuations + ['\'s', '\'d', '\'ll']:
+            if i in sourceWordIndicesAlreadyAligned or sourceLemmas[i-1].lower() in cobalt_stopwords + punctuations + ['\'s', '\'d', '\'ll']:
                 continue
 
             for j in targetWordIndices:
-                if j in targetWordIndicesAlreadyAligned or targetLemmas[j-1].lower() in stopwords + punctuations + ['\'s', '\'d', '\'ll']:
+                if j in targetWordIndicesAlreadyAligned or targetLemmas[j-1].lower() in cobalt_stopwords + punctuations + ['\'s', '\'d', '\'ll']:
                     continue
 
                 word1 = Word(i, sourceWords[i-1], sourceLemmas[i-1], sourcePosTags[i-1], '')
@@ -740,7 +740,7 @@ class Aligner(object):
                     for l in range(len(targetNeighborhood[0])):
                         neighbor1 = Word(sourceNeighborhood[0][k], sourceNeighborhood[1][k], sourceLemmas[sourceNeighborhood[0][k]-1], sourcePosTags[sourceNeighborhood[0][k]-1], '')
                         neighbor2 = Word(targetNeighborhood[0][l], targetNeighborhood[1][l], targetLemmas[targetNeighborhood[0][l]-1], targetPosTags[targetNeighborhood[0][l]-1], '')
-                        if (sourceNeighborhood[1][k] not in stopwords + punctuations) and ((sourceNeighborhood[0][k], targetNeighborhood[0][l]) in alignments or (wordRelatednessAlignment(neighbor1, neighbor2, self.config) >= self.config.alignment_similarity_threshold)):
+                        if (sourceNeighborhood[1][k] not in cobalt_stopwords + punctuations) and ((sourceNeighborhood[0][k], targetNeighborhood[0][l]) in alignments or (wordRelatednessAlignment(neighbor1, neighbor2, self.config) >= self.config.alignment_similarity_threshold)):
                             evidence += wordRelatednessAlignment(neighbor1, neighbor2, self.config)
                 textualNeighborhoodSimilarities[(i, j)] = evidence
 
@@ -776,7 +776,7 @@ class Aligner(object):
                         bestTextNeighborhoodSim = textualNeighborhoodSimilarities[(i, j)]
 
             if bestWordSim >= self.config.alignment_similarity_threshold and [bestSourceIndex, bestTargetIndex] not in alignments and bestSourceIndex not in sourceWordIndicesAlreadyAligned and bestTargetIndex not in targetWordIndicesAlreadyAligned:
-                if sourceLemmas[bestSourceIndex-1].lower() not in stopwords:
+                if sourceLemmas[bestSourceIndex-1].lower() not in cobalt_stopwords:
                     alignments.append([bestSourceIndex, bestTargetIndex])
                     sourceWordIndicesAlreadyAligned.append(bestSourceIndex)
                     targetWordIndicesAlreadyAligned.append(bestTargetIndex)
@@ -794,7 +794,7 @@ class Aligner(object):
                 tokens = sourceWords[i-1].split('-')
                 commonContiguousSublists = findAllCommonContiguousSublists(tokens, targetWords)
                 for item in commonContiguousSublists:
-                    if len(item[0]) == 1 and target[item[1][0]][3] not in stopwords:
+                    if len(item[0]) == 1 and target[item[1][0]][3] not in cobalt_stopwords:
                         for jtem in item[1]:
                             if [i, jtem+1] not in alignments and jtem+1 not in targetWordIndicesAlreadyAligned:
                                 alignments.append([i, jtem+1])
@@ -808,7 +808,7 @@ class Aligner(object):
                 tokens = target[i-1][2].split('-')
                 commonContiguousSublists = findAllCommonContiguousSublists(sourceWords, tokens)
                 for item in commonContiguousSublists:
-                    if len(item[0]) == 1 and source[item[0][0]][3] not in stopwords:
+                    if len(item[0]) == 1 and source[item[0][0]][3] not in cobalt_stopwords:
                         for jtem in item[0]:
                             if [jtem+1, i] not in alignments and i not in targetWordIndicesAlreadyAligned:
                                 alignments.append([jtem+1, i])
@@ -822,11 +822,11 @@ class Aligner(object):
         targetWordIndicesBeingConsidered = []
 
         for i in sourceWordIndices:
-            if sourceLemmas[i-1].lower() not in stopwords or i in sourceWordIndicesAlreadyAligned:
+            if sourceLemmas[i-1].lower() not in cobalt_stopwords or i in sourceWordIndicesAlreadyAligned:
                 continue
 
             for j in targetWordIndices:
-                if targetLemmas[j-1].lower() not in stopwords or j in targetWordIndicesAlreadyAligned:
+                if targetLemmas[j-1].lower() not in cobalt_stopwords or j in targetWordIndicesAlreadyAligned:
                     continue
 
                 word1 = Word(i, sourceWords[i-1], sourceLemmas[i-1], sourcePosTags[i-1], '')
@@ -896,11 +896,11 @@ class Aligner(object):
         targetWordIndicesBeingConsidered = []
 
         for i in sourceWordIndices:
-            if (sourceLemmas[i-1].lower() not in stopwords + punctuations + ['\'s', '\'d', '\'ll']) or i in sourceWordIndicesAlreadyAligned:
+            if (sourceLemmas[i-1].lower() not in cobalt_stopwords + punctuations + ['\'s', '\'d', '\'ll']) or i in sourceWordIndicesAlreadyAligned:
                 continue
 
             for j in targetWordIndices:
-                if (targetLemmas[j-1].lower() not in stopwords + punctuations + ['\'s', '\'d', '\'ll']) or j in targetWordIndicesAlreadyAligned:
+                if (targetLemmas[j-1].lower() not in cobalt_stopwords + punctuations + ['\'s', '\'d', '\'ll']) or j in targetWordIndicesAlreadyAligned:
                     continue
 
                 word1 = Word(i, sourceWords[i-1], sourceLemmas[i-1], sourcePosTags[i-1], '')
@@ -922,12 +922,12 @@ class Aligner(object):
                 l = j
 
                 while k > 0:
-                    if sourceLemmas[k-1].lower() in stopwords + punctuations + ['\'s', '\'d', '\'ll']:
+                    if sourceLemmas[k-1].lower() in cobalt_stopwords + punctuations + ['\'s', '\'d', '\'ll']:
                         k -= 1
                     else:
                         break
                 while l > 0:
-                    if targetLemmas[l-1].lower() in stopwords + punctuations + ['\'s', '\'d', '\'ll']:
+                    if targetLemmas[l-1].lower() in cobalt_stopwords + punctuations + ['\'s', '\'d', '\'ll']:
                         l -= 1
                     else:
                         break
@@ -937,13 +937,13 @@ class Aligner(object):
 
 
                 while m < len(sourceLemmas) - 1:
-                    if sourceLemmas[m - 1].lower() in stopwords + punctuations + ['\'s', '\'d', '\'ll']:
+                    if sourceLemmas[m - 1].lower() in cobalt_stopwords + punctuations + ['\'s', '\'d', '\'ll']:
 
                         m += 1
                     else:
                         break
                 while n < len(targetLemmas) - 1:
-                    if targetLemmas[n - 1].lower() in stopwords + punctuations + ['\'s', '\'d', '\'ll']:
+                    if targetLemmas[n - 1].lower() in cobalt_stopwords + punctuations + ['\'s', '\'d', '\'ll']:
                         n += 1
                     else:
                         break

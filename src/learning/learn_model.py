@@ -396,7 +396,7 @@ def fit_predict(config, X_train, y_train, X_test=None, y_test=None, ref_thd=None
         predictions = []
         with open("predicted.csv", 'w') as _fout:
             for _x,  _y in zip(y_test, y_hat):
-                print("%f\t%f" % (_x,  _y), _fout)
+                print("%f\t%f" % (_x,  _y), file=_fout)
                 predictions.append(_y)
             _fout.close()
 

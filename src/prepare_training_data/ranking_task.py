@@ -38,6 +38,7 @@ class RankingTask(object):
         f_judgements = self.config.get('WMT', 'human_ranking')
         human_rankings = HumanRanking()
         human_rankings.add_human_data(f_judgements, self.config)
+        human_rankings.clean_data(self.config)
 
         process = RunProcessors(self.config)
         sents_tgt, sents_ref = process.run_processors()

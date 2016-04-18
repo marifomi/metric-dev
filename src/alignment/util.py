@@ -87,11 +87,11 @@ def findTextualNeighborhood(sentenceDetails, wordIndex, leftSpan, rightSpan):
     lemmas = []
     wordIndices = []
     for item in sentenceDetails[startWordIndex-1:wordIndex-1]:
-        if item[3] not in stopwords + punctuations:
+        if item[3] not in cobalt_stopwords + punctuations:
             lemmas.append(item[3])
             wordIndices.append(item[1])
     for item in sentenceDetails[wordIndex:endWordIndex]:
-        if item[3] not in stopwords + punctuations:
+        if item[3] not in cobalt_stopwords + punctuations:
             lemmas.append(item[3])
             wordIndices.append(item[1])
     return [wordIndices, lemmas, wordIndex-startWordIndex, endWordIndex-wordIndex]

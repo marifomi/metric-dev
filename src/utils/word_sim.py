@@ -7,7 +7,7 @@ from gensim import matutils
 global stemmer
 global punctuations
 global ppdb_dict
-
+global cobalt_stopwords
 
 __word_relatedness_alignment__ = dict()
 __word_relatedness_scoring__ = dict()
@@ -33,7 +33,7 @@ def wordRelatednessAlignment(word1, word2, config):
         similarity = config.exact
 
     # stopwords can be similar to only stopwords
-    if similarity is not None and (canonical_word1 in stopwords and canonical_word2 not in stopwords) or (canonical_word1 not in stopwords and canonical_word2 in stopwords):
+    if similarity is not None and (canonical_word1 in cobalt_stopwords and canonical_word2 not in cobalt_stopwords) or (canonical_word1 not in cobalt_stopwords and canonical_word2 in cobalt_stopwords):
         similarity = 0
 
     # punctuations can only be either identical or totally dissimilar
@@ -147,8 +147,9 @@ def presentInPPDB(word1, word2):
     if (word2.lower(), word1.lower()) in ppdb_dict:
         return True
 
+
 def functionWord(word):
-    return (word.lower() in stopwords) or (word.lower() in punctuations) or (word.lower().isdigit())
+    return (word.lower() in cobalt_stopwords) or (word.lower() in punctuations) or (word.lower().isdigit())
 
 
 def canonize_word(word):
