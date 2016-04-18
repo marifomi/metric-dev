@@ -14,14 +14,9 @@ from collections import Counter
 __author__ = 'marina'
 
 
-class CountWordsTarget(AbstractFeature):
-
 ###########################################<Common Alignment Features>##################################################
 ########################################################################################################################
-
-
 class CountWordsCandidate(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'count_words_candidate')
@@ -33,7 +28,6 @@ class CountWordsCandidate(AbstractFeature):
 
 
 class CountWordsReference(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'count_words_reference')
@@ -41,11 +35,10 @@ class CountWordsReference(AbstractFeature):
         AbstractFeature.set_group(self, "miscellaneous")
 
     def run(self, cand, ref):
-         AbstractFeature.set_value(self, len(ref['tokens']))
+        AbstractFeature.set_value(self, len(ref['tokens']))
 
 
 class CountContentCandidate(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'count_content_candidate')
@@ -63,7 +56,6 @@ class CountContentCandidate(AbstractFeature):
 
 
 class CountContentReference(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'count_content_reference')
@@ -74,14 +66,13 @@ class CountContentReference(AbstractFeature):
         count = 0
 
         for word in ref['tokens']:
-              if not word_sim.function_word(word):
-                  count += 1
+            if not word_sim.function_word(word):
+                count += 1
 
         AbstractFeature.set_value(self, count)
 
 
 class CountFunctionCandidate(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'count_function_candidate')
@@ -99,7 +90,6 @@ class CountFunctionCandidate(AbstractFeature):
 
 
 class CountFunctionReference(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'count_function_reference')
@@ -117,7 +107,6 @@ class CountFunctionReference(AbstractFeature):
 
 
 class CountAligned(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'count_aligned')
@@ -129,7 +118,6 @@ class CountAligned(AbstractFeature):
 
 
 class CountNonAlignedCandidate(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'count_non_aligned_candidate')
@@ -141,7 +129,6 @@ class CountNonAlignedCandidate(AbstractFeature):
 
 
 class CountNonAlignedReference(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'count_non_aligned_reference')
@@ -153,7 +140,6 @@ class CountNonAlignedReference(AbstractFeature):
 
 
 class PropNonAlignedCandidate(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_non_aligned_candidate')
@@ -163,13 +149,13 @@ class PropNonAlignedCandidate(AbstractFeature):
     def run(self, cand, ref):
 
         if len(cand['tokens']) > 0:
-            AbstractFeature.set_value(self, (len(cand['tokens']) - len(cand['alignments'][0])) / float(len(cand['tokens'])))
+            AbstractFeature.set_value(self,
+                                      (len(cand['tokens']) - len(cand['alignments'][0])) / float(len(cand['tokens'])))
         else:
             AbstractFeature.set_value(self, 0)
 
 
 class PropNonAlignedReference(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_non_aligned_reference')
@@ -179,12 +165,13 @@ class PropNonAlignedReference(AbstractFeature):
     def run(self, cand, ref):
 
         if len(ref['tokens']) > 0:
-            AbstractFeature.set_value(self, (len(ref['tokens']) - len(cand['alignments'][0])) / float(len(ref['tokens'])))
+            AbstractFeature.set_value(self,
+                                      (len(ref['tokens']) - len(cand['alignments'][0])) / float(len(ref['tokens'])))
         else:
             AbstractFeature.set_value(self, 0)
 
-class PropAlignedCandidate(AbstractFeature):
 
+class PropAlignedCandidate(AbstractFeature):
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_aligned_candidate')
@@ -200,7 +187,6 @@ class PropAlignedCandidate(AbstractFeature):
 
 
 class PropAlignedReference(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_aligned_reference')
@@ -216,7 +202,6 @@ class PropAlignedReference(AbstractFeature):
 
 
 class CountAlignedContent(AbstractFeature):
-
     # Supposing content words can only be aligned to content words
 
     def __init__(self):
@@ -241,7 +226,6 @@ class CountAlignedContent(AbstractFeature):
 
 
 class CountAlignedFunction(AbstractFeature):
-
     # Supposing content words can only be aligned to content words
 
     def __init__(self):
@@ -266,7 +250,6 @@ class CountAlignedFunction(AbstractFeature):
 
 
 class CountNonAlignedContentCandidate(AbstractFeature):
-
     # Supposing content words can only be aligned to content words
 
     def __init__(self):
@@ -291,7 +274,6 @@ class CountNonAlignedContentCandidate(AbstractFeature):
 
 
 class CountNonAlignedFunctionCandidate(AbstractFeature):
-
     # Supposing content words can only be aligned to content words
 
     def __init__(self):
@@ -316,7 +298,6 @@ class CountNonAlignedFunctionCandidate(AbstractFeature):
 
 
 class PropNonAlignedContent(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_non_aligned_content_candidate')
@@ -335,11 +316,10 @@ class PropNonAlignedContent(AbstractFeature):
                 if not word_sim.function_word(word):
                     count += 1
 
-        AbstractFeature.set_value(self, count/float(len(cand['tokens']) - len(cand['alignments'][0])))
+        AbstractFeature.set_value(self, count / float(len(cand['tokens']) - len(cand['alignments'][0])))
 
 
 class PropNonAlignedFunction(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_non_aligned_function_candidate')
@@ -358,11 +338,10 @@ class PropNonAlignedFunction(AbstractFeature):
                 if word.lower() in config.stopwords and word.lower() not in config.punctuations:
                     count += 1
 
-        AbstractFeature.set_value(self, count/float(len(cand['tokens']) - len(cand['alignments'][0])))
+        AbstractFeature.set_value(self, count / float(len(cand['tokens']) - len(cand['alignments'][0])))
 
 
 class PropAlignedContentCandidate(AbstractFeature):
-
     # Supposing content words can only be aligned to content words
 
     def __init__(self):
@@ -379,11 +358,11 @@ class PropAlignedContentCandidate(AbstractFeature):
         if len(content_words) == 0:
             AbstractFeature.set_value(self, -1)
         else:
-            AbstractFeature.set_value(self, len(set(content_words).intersection(aligned_words))/float(len(content_words)))
+            AbstractFeature.set_value(self,
+                                      len(set(content_words).intersection(aligned_words)) / float(len(content_words)))
 
 
 class PropAlignedFunctionCandidate(AbstractFeature):
-
     # Supposing content words can only be aligned to content words
 
     def __init__(self):
@@ -400,11 +379,11 @@ class PropAlignedFunctionCandidate(AbstractFeature):
         if len(function_words) == 0:
             AbstractFeature.set_value(self, -1)
         else:
-            AbstractFeature.set_value(self, len(set(function_words).intersection(aligned_words))/float(len(function_words)))
+            AbstractFeature.set_value(self,
+                                      len(set(function_words).intersection(aligned_words)) / float(len(function_words)))
 
 
 class PropAlignedContentReference(AbstractFeature):
-
     # Supposing content words can only be aligned to content words
 
     def __init__(self):
@@ -421,11 +400,11 @@ class PropAlignedContentReference(AbstractFeature):
         if len(content_words) == 0:
             AbstractFeature.set_value(self, -1)
         else:
-            AbstractFeature.set_value(self, len(set(content_words).intersection(aligned_words))/float(len(content_words)))
+            AbstractFeature.set_value(self,
+                                      len(set(content_words).intersection(aligned_words)) / float(len(content_words)))
 
 
 class PropAlignedFunctionReference(AbstractFeature):
-
     # Supposing content words can only be aligned to content words
 
     def __init__(self):
@@ -442,7 +421,8 @@ class PropAlignedFunctionReference(AbstractFeature):
         if len(function_words) == 0:
             AbstractFeature.set_value(self, -1)
         else:
-            AbstractFeature.set_value(self, len(set(function_words).intersection(aligned_words))/float(len(function_words)))
+            AbstractFeature.set_value(self,
+                                      len(set(function_words).intersection(aligned_words)) / float(len(function_words)))
 
 
 ###########################################</Common Alignment Features>#################################################
@@ -453,11 +433,11 @@ class PropAlignedFunctionReference(AbstractFeature):
 
 
 class CobaltPropExactLexExactPos(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'cobalt_prop_exact_lex_exact_pos')
-        AbstractFeature.set_description(self, "Proportion of aligned words with exact lexical match and exact POS match")
+        AbstractFeature.set_description(self,
+                                        "Proportion of aligned words with exact lexical match and exact POS match")
         AbstractFeature.set_group(self, "cobalt_lexical_similarity")
 
     def run(self, cand, ref):
@@ -469,7 +449,7 @@ class CobaltPropExactLexExactPos(AbstractFeature):
                 word_candidate = cand['parse'][index[0] - 1]
                 word_reference = ref['parse'][index[1] - 1]
 
-                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Exact'\
+                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Exact' \
                         and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
                     count += 1
 
@@ -479,7 +459,6 @@ class CobaltPropExactLexExactPos(AbstractFeature):
 
 
 class CountExactLexExactPos(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'count_exact_lex_exact_pos')
@@ -495,7 +474,7 @@ class CountExactLexExactPos(AbstractFeature):
                 word_candidate = cand['parse'][index[0] - 1]
                 word_reference = ref['parse'][index[1] - 1]
 
-                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Exact'\
+                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Exact' \
                         and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
                     count += 1
 
@@ -505,11 +484,11 @@ class CountExactLexExactPos(AbstractFeature):
 
 
 class PropSynLexExactPos(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_syn_lex_exact_pos')
-        AbstractFeature.set_description(self, "Proportion of aligned words with synonym lexical match and exact POS match")
+        AbstractFeature.set_description(self,
+                                        "Proportion of aligned words with synonym lexical match and exact POS match")
         AbstractFeature.set_group(self, 'cobalt_lexical_similarity')
 
     def run(self, cand, ref):
@@ -521,7 +500,7 @@ class PropSynLexExactPos(AbstractFeature):
                 word_candidate = cand['parse'][index[0] - 1]
                 word_reference = ref['parse'][index[1] - 1]
 
-                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Synonym'\
+                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Synonym' \
                         and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
                     count += 1
 
@@ -531,7 +510,6 @@ class PropSynLexExactPos(AbstractFeature):
 
 
 class CountSynLexExactPos(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'count_syn_lex_exact_pos')
@@ -547,7 +525,7 @@ class CountSynLexExactPos(AbstractFeature):
                 word_candidate = cand['parse'][index[0] - 1]
                 word_reference = ref['parse'][index[1] - 1]
 
-                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Synonym'\
+                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Synonym' \
                         and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
                     count += 1
 
@@ -557,11 +535,11 @@ class CountSynLexExactPos(AbstractFeature):
 
 
 class PropParaLexExactPos(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_para_lex_exact_pos')
-        AbstractFeature.set_description(self, "Proportion of aligned words with paraphrase lexical match and exact POS match")
+        AbstractFeature.set_description(self,
+                                        "Proportion of aligned words with paraphrase lexical match and exact POS match")
         AbstractFeature.set_group(self, 'cobalt_lexical_similarity')
 
     def run(self, cand, ref):
@@ -573,7 +551,7 @@ class PropParaLexExactPos(AbstractFeature):
                 word_candidate = cand['parse'][index[0] - 1]
                 word_reference = ref['parse'][index[1] - 1]
 
-                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Paraphrase'\
+                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Paraphrase' \
                         and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
                     count += 1
 
@@ -583,11 +561,11 @@ class PropParaLexExactPos(AbstractFeature):
 
 
 class CountParaLexExactPos(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'count_para_lex_exact_pos')
-        AbstractFeature.set_description(self, "Count of aligned words with paraphrase lexical match and exact POS match")
+        AbstractFeature.set_description(self,
+                                        "Count of aligned words with paraphrase lexical match and exact POS match")
         AbstractFeature.set_group(self, 'cobalt_lexical_similarity')
 
     def run(self, cand, ref):
@@ -599,7 +577,7 @@ class CountParaLexExactPos(AbstractFeature):
                 word_candidate = cand['parse'][index[0] - 1]
                 word_reference = ref['parse'][index[1] - 1]
 
-                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Paraphrase'\
+                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Paraphrase' \
                         and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
                     count += 1
 
@@ -609,11 +587,11 @@ class CountParaLexExactPos(AbstractFeature):
 
 
 class PropExactLexCoarsePos(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_exact_lex_coarse_pos')
-        AbstractFeature.set_description(self, "Proportion of aligned words with exact lexical match and coarse POS match")
+        AbstractFeature.set_description(self,
+                                        "Proportion of aligned words with exact lexical match and coarse POS match")
         AbstractFeature.set_group(self, 'cobalt_lexical_similarity')
 
     def run(self, cand, ref):
@@ -625,7 +603,7 @@ class PropExactLexCoarsePos(AbstractFeature):
                 word_candidate = cand['parse'][index[0] - 1]
                 word_reference = ref['parse'][index[1] - 1]
 
-                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Exact'\
+                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Exact' \
                         and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Coarse':
                     count += 1
 
@@ -635,7 +613,6 @@ class PropExactLexCoarsePos(AbstractFeature):
 
 
 class CountExactLexCoarsePos(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'count_exact_lex_coarse_pos')
@@ -651,7 +628,7 @@ class CountExactLexCoarsePos(AbstractFeature):
                 word_candidate = cand['parse'][index[0] - 1]
                 word_reference = ref['parse'][index[1] - 1]
 
-                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Exact'\
+                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Exact' \
                         and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Coarse':
                     count += 1
 
@@ -661,11 +638,11 @@ class CountExactLexCoarsePos(AbstractFeature):
 
 
 class PropSynLexCoarsePos(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_syn_lex_coarse_pos')
-        AbstractFeature.set_description(self, "Proportion of aligned words with synonym lexical match and coarse POS match")
+        AbstractFeature.set_description(self,
+                                        "Proportion of aligned words with synonym lexical match and coarse POS match")
         AbstractFeature.set_group(self, 'cobalt_lexical_similarity')
 
     def run(self, cand, ref):
@@ -677,7 +654,7 @@ class PropSynLexCoarsePos(AbstractFeature):
                 word_candidate = cand['parse'][index[0] - 1]
                 word_reference = ref['parse'][index[1] - 1]
 
-                if word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Coarse'\
+                if word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Coarse' \
                         and word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Synonym':
                     count += 1
 
@@ -687,7 +664,6 @@ class PropSynLexCoarsePos(AbstractFeature):
 
 
 class CountSynLexCoarsePos(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'count_syn_lex_coarse_pos')
@@ -703,7 +679,7 @@ class CountSynLexCoarsePos(AbstractFeature):
                 word_candidate = cand['parse'][index[0] - 1]
                 word_reference = ref['parse'][index[1] - 1]
 
-                if word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Coarse'\
+                if word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Coarse' \
                         and word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Synonym':
                     count += 1
 
@@ -713,11 +689,11 @@ class CountSynLexCoarsePos(AbstractFeature):
 
 
 class PropParaLexCoarsePos(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_para_lex_coarse_pos')
-        AbstractFeature.set_description(self, "Proportion of aligned words with paraphrase lexical match and coarse POS match")
+        AbstractFeature.set_description(self,
+                                        "Proportion of aligned words with paraphrase lexical match and coarse POS match")
         AbstractFeature.set_group(self, 'cobalt_lexical_similarity')
 
     def run(self, cand, ref):
@@ -729,7 +705,7 @@ class PropParaLexCoarsePos(AbstractFeature):
                 word_candidate = cand['parse'][index[0] - 1]
                 word_reference = ref['parse'][index[1] - 1]
 
-                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Paraphrase'\
+                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Paraphrase' \
                         and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Coarse':
                     count += 1
 
@@ -739,11 +715,11 @@ class PropParaLexCoarsePos(AbstractFeature):
 
 
 class CountParaLexCoarsePos(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'count_para_lex_coarse_pos')
-        AbstractFeature.set_description(self, "Count of aligned words with paraphrase lexical match and coarse POS match")
+        AbstractFeature.set_description(self,
+                                        "Count of aligned words with paraphrase lexical match and coarse POS match")
         AbstractFeature.set_group(self, 'cobalt_lexical_similarity')
 
     def run(self, cand, ref):
@@ -765,11 +741,11 @@ class CountParaLexCoarsePos(AbstractFeature):
 
 
 class PropSynLexDiffPos(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_syn_lex_diff_pos')
-        AbstractFeature.set_description(self, "Proportion of aligned words with synonym lexical match and different POS")
+        AbstractFeature.set_description(self,
+                                        "Proportion of aligned words with synonym lexical match and different POS")
         AbstractFeature.set_group(self, 'cobalt_lexical_similarity')
 
     def run(self, cand, ref):
@@ -781,7 +757,7 @@ class PropSynLexDiffPos(AbstractFeature):
                 word_candidate = cand['parse'][index[0] - 1]
                 word_reference = ref['parse'][index[1] - 1]
 
-                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Synonym'\
+                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Synonym' \
                         and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'None':
                     count += 1
 
@@ -791,7 +767,6 @@ class PropSynLexDiffPos(AbstractFeature):
 
 
 class CountSynLexDiffPos(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'count_syn_lex_diff_pos')
@@ -807,7 +782,7 @@ class CountSynLexDiffPos(AbstractFeature):
                 word_candidate = cand['parse'][index[0] - 1]
                 word_reference = ref['parse'][index[1] - 1]
 
-                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Synonym'\
+                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Synonym' \
                         and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'None':
                     count += 1
 
@@ -817,11 +792,11 @@ class CountSynLexDiffPos(AbstractFeature):
 
 
 class PropParaLexDiffPos(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_para_lex_diff_pos')
-        AbstractFeature.set_description(self, "Proportion of aligned words with paraphrase lexical match and different POS")
+        AbstractFeature.set_description(self,
+                                        "Proportion of aligned words with paraphrase lexical match and different POS")
         AbstractFeature.set_group(self, 'cobalt_lexical_similarity')
 
     def run(self, cand, ref):
@@ -833,7 +808,7 @@ class PropParaLexDiffPos(AbstractFeature):
                 word_candidate = cand['parse'][index[0] - 1]
                 word_reference = ref['parse'][index[1] - 1]
 
-                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Paraphrase'\
+                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Paraphrase' \
                         and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'None':
                     count += 1
 
@@ -843,7 +818,6 @@ class PropParaLexDiffPos(AbstractFeature):
 
 
 class CountParaLexDiffPos(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'count_para_lex_diff_pos')
@@ -859,7 +833,7 @@ class CountParaLexDiffPos(AbstractFeature):
                 word_candidate = cand['parse'][index[0] - 1]
                 word_reference = ref['parse'][index[1] - 1]
 
-                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Paraphrase'\
+                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Paraphrase' \
                         and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'None':
                     count += 1
 
@@ -869,11 +843,11 @@ class CountParaLexDiffPos(AbstractFeature):
 
 
 class PropDistribLexExactPos(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_distrib_lex_exact_pos')
-        AbstractFeature.set_description(self, "Proportion of aligned words with distributional similarity and exact POS match")
+        AbstractFeature.set_description(self,
+                                        "Proportion of aligned words with distributional similarity and exact POS match")
         AbstractFeature.set_group(self, 'cobalt_lexical_similarity')
 
     def run(self, cand, ref):
@@ -885,7 +859,7 @@ class PropDistribLexExactPos(AbstractFeature):
                 word_candidate = cand['parse'][index[0] - 1]
                 word_reference = ref['parse'][index[1] - 1]
 
-                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Distributional'\
+                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Distributional' \
                         and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
                     count += 1
 
@@ -895,11 +869,11 @@ class PropDistribLexExactPos(AbstractFeature):
 
 
 class CountDistribLexExactPos(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'count_distrib_lex_exact_pos')
-        AbstractFeature.set_description(self, "Count of aligned words with distributional similarity and exact POS match")
+        AbstractFeature.set_description(self,
+                                        "Count of aligned words with distributional similarity and exact POS match")
         AbstractFeature.set_group(self, 'cobalt_lexical_similarity')
 
     def run(self, cand, ref):
@@ -911,7 +885,7 @@ class CountDistribLexExactPos(AbstractFeature):
                 word_candidate = cand['parse'][index[0] - 1]
                 word_reference = ref['parse'][index[1] - 1]
 
-                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Distributional'\
+                if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Distributional' \
                         and word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
                     count += 1
 
@@ -921,11 +895,11 @@ class CountDistribLexExactPos(AbstractFeature):
 
 
 class PropDistribLexCoarsePos(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_distrib_lex_coarse_pos')
-        AbstractFeature.set_description(self, "Proportion of aligned words with distributional similarity and coarse POS match")
+        AbstractFeature.set_description(self,
+                                        "Proportion of aligned words with distributional similarity and coarse POS match")
         AbstractFeature.set_group(self, 'cobalt_lexical_similarity')
 
     def run(self, cand, ref):
@@ -937,7 +911,7 @@ class PropDistribLexCoarsePos(AbstractFeature):
                 word_candidate = cand['parse'][index[0] - 1]
                 word_reference = ref['parse'][index[1] - 1]
 
-                if word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Coarse'\
+                if word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Coarse' \
                         and word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Distributional':
                     count += 1
 
@@ -947,11 +921,11 @@ class PropDistribLexCoarsePos(AbstractFeature):
 
 
 class CountDistribLexCoarsePos(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'count_distrib_lex_coarse_pos')
-        AbstractFeature.set_description(self, "Count of aligned words with distributional similarity and coarse POS match")
+        AbstractFeature.set_description(self,
+                                        "Count of aligned words with distributional similarity and coarse POS match")
         AbstractFeature.set_group(self, 'cobalt_lexical_similarity')
 
     def run(self, cand, ref):
@@ -963,7 +937,7 @@ class CountDistribLexCoarsePos(AbstractFeature):
                 word_candidate = cand['parse'][index[0] - 1]
                 word_reference = ref['parse'][index[1] - 1]
 
-                if word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Coarse'\
+                if word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Coarse' \
                         and word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Distributional':
                     count += 1
 
@@ -973,11 +947,11 @@ class CountDistribLexCoarsePos(AbstractFeature):
 
 
 class PropDistribLexDiffPos(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_distrib_lex_diff_pos')
-        AbstractFeature.set_description(self, "Proportion of aligned words with distributional similarity and different POS")
+        AbstractFeature.set_description(self,
+                                        "Proportion of aligned words with distributional similarity and different POS")
         AbstractFeature.set_group(self, 'cobalt_lexical_similarity')
 
     def run(self, cand, ref):
@@ -989,7 +963,7 @@ class PropDistribLexDiffPos(AbstractFeature):
                 word_candidate = cand['parse'][index[0] - 1]
                 word_reference = ref['parse'][index[1] - 1]
 
-                if word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'None'\
+                if word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'None' \
                         and word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Distributional':
                     count += 1
 
@@ -999,7 +973,6 @@ class PropDistribLexDiffPos(AbstractFeature):
 
 
 class CountDistribLexDiffPos(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'count_distrib_lex_diff_pos')
@@ -1015,7 +988,7 @@ class CountDistribLexDiffPos(AbstractFeature):
                 word_candidate = cand['parse'][index[0] - 1]
                 word_reference = ref['parse'][index[1] - 1]
 
-                if word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'None'\
+                if word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'None' \
                         and word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Distributional':
                     count += 1
 
@@ -1025,7 +998,6 @@ class CountDistribLexDiffPos(AbstractFeature):
 
 
 class PropPosExact(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_pos_exact')
@@ -1050,7 +1022,6 @@ class PropPosExact(AbstractFeature):
 
 
 class PropPosCoarse(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_pos_coarse')
@@ -1075,7 +1046,6 @@ class PropPosCoarse(AbstractFeature):
 
 
 class PropPosDiff(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_pos_diff')
@@ -1100,7 +1070,6 @@ class PropPosDiff(AbstractFeature):
 
 
 class PropLexExact(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_lex_exact')
@@ -1125,7 +1094,6 @@ class PropLexExact(AbstractFeature):
 
 
 class PropLexSyn(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_lex_syn')
@@ -1150,7 +1118,6 @@ class PropLexSyn(AbstractFeature):
 
 
 class PropLexPara(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_lex_para')
@@ -1175,7 +1142,6 @@ class PropLexPara(AbstractFeature):
 
 
 class PropLexDistrib(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_lex_distrib')
@@ -1206,7 +1172,6 @@ class PropLexDistrib(AbstractFeature):
 ########################################################################################################################
 
 class AvgPenExactCandidate(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'avg_pen_exact_candidate')
@@ -1230,7 +1195,7 @@ class AvgPenExactCandidate(AbstractFeature):
             word_candidate = cand['parse'][index[0] - 1]
             word_reference = ref['parse'][index[1] - 1]
 
-            if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Exact'\
+            if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Exact' \
                     and not word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'None':
 
                 for dep_label in cand['alignments'][2][i]['srcDiff']:
@@ -1255,7 +1220,6 @@ class AvgPenExactCandidate(AbstractFeature):
 
 
 class AvgPenExactReference(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'avg_pen_exact_reference')
@@ -1280,7 +1244,7 @@ class AvgPenExactReference(AbstractFeature):
             word_candidate = cand['parse'][index[0] - 1]
             word_reference = ref['parse'][index[1] - 1]
 
-            if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Exact'\
+            if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Exact' \
                     and not word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'None':
 
                 for dep_label in cand['alignments'][2][i]['tgtDiff']:
@@ -1305,7 +1269,6 @@ class AvgPenExactReference(AbstractFeature):
 
 
 class AvgPenNonExactCandidate(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'avg_pen_non_exact_candidate')
@@ -1329,7 +1292,7 @@ class AvgPenNonExactCandidate(AbstractFeature):
             word_candidate = cand['parse'][index[0] - 1]
             word_reference = ref['parse'][index[1] - 1]
 
-            if not word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Exact'\
+            if not word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Exact' \
                     and not word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
 
                 for dep_label in cand['alignments'][2][i]['srcDiff']:
@@ -1354,7 +1317,6 @@ class AvgPenNonExactCandidate(AbstractFeature):
 
 
 class AvgPenNonExactReference(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'avg_pen_non_exact_reference')
@@ -1378,7 +1340,7 @@ class AvgPenNonExactReference(AbstractFeature):
             word_candidate = cand['parse'][index[0] - 1]
             word_reference = ref['parse'][index[1] - 1]
 
-            if not word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Exact'\
+            if not word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Exact' \
                     and not word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
 
                 for dep_label in cand['alignments'][2][i]['tgtDiff']:
@@ -1403,7 +1365,6 @@ class AvgPenNonExactReference(AbstractFeature):
 
 
 class PropPenExactCandidate(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_pen_exact_candidate')
@@ -1425,7 +1386,7 @@ class PropPenExactCandidate(AbstractFeature):
             word_candidate = cand['parse'][index[0] - 1]
             word_reference = ref['parse'][index[1] - 1]
 
-            if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Exact'\
+            if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Exact' \
                     and not word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'None':
 
                 counter_words += 1
@@ -1434,13 +1395,12 @@ class PropPenExactCandidate(AbstractFeature):
                     counter_penalties += 1
 
         if counter_words > 0:
-             AbstractFeature.set_value(self, counter_penalties / float(counter_words))
+            AbstractFeature.set_value(self, counter_penalties / float(counter_words))
         else:
-             AbstractFeature.set_value(self, 0.0)
+            AbstractFeature.set_value(self, 0.0)
 
 
 class PropPenExactReference(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_pen_exact_reference')
@@ -1462,7 +1422,7 @@ class PropPenExactReference(AbstractFeature):
             word_candidate = cand['parse'][index[0] - 1]
             word_reference = ref['parse'][index[1] - 1]
 
-            if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Exact'\
+            if word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Exact' \
                     and not word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'None':
 
                 counter_words += 1
@@ -1471,13 +1431,12 @@ class PropPenExactReference(AbstractFeature):
                     counter_penalties += 1
 
         if counter_words > 0:
-             AbstractFeature.set_value(self, counter_penalties / float(counter_words))
+            AbstractFeature.set_value(self, counter_penalties / float(counter_words))
         else:
-             AbstractFeature.set_value(self, 0.0)
+            AbstractFeature.set_value(self, 0.0)
 
 
 class PropPenNonExactCandidate(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_pen_non_exact_candidate')
@@ -1499,7 +1458,7 @@ class PropPenNonExactCandidate(AbstractFeature):
             word_candidate = cand['parse'][index[0] - 1]
             word_reference = ref['parse'][index[1] - 1]
 
-            if not word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Exact'\
+            if not word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Exact' \
                     and not word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
 
                 counter_words += 1
@@ -1508,13 +1467,12 @@ class PropPenNonExactCandidate(AbstractFeature):
                     counter_penalties += 1
 
         if counter_words > 0:
-             AbstractFeature.set_value(self, counter_penalties / float(counter_words))
+            AbstractFeature.set_value(self, counter_penalties / float(counter_words))
         else:
-             AbstractFeature.set_value(self, 0.0)
+            AbstractFeature.set_value(self, 0.0)
 
 
 class PropPenNonExactReference(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_pen_non_exact_reference')
@@ -1536,7 +1494,7 @@ class PropPenNonExactReference(AbstractFeature):
             word_candidate = cand['parse'][index[0] - 1]
             word_reference = ref['parse'][index[1] - 1]
 
-            if not word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Exact'\
+            if not word_sim.word_relatedness_feature(word_candidate, word_reference) == 'Exact' \
                     and not word_sim.comparePos(word_candidate.pos, word_reference.pos) == 'Exact':
 
                 counter_words += 1
@@ -1545,13 +1503,12 @@ class PropPenNonExactReference(AbstractFeature):
                     counter_penalties += 1
 
         if counter_words > 0:
-             AbstractFeature.set_value(self, counter_penalties / float(counter_words))
+            AbstractFeature.set_value(self, counter_penalties / float(counter_words))
         else:
-             AbstractFeature.set_value(self, 0.0)
+            AbstractFeature.set_value(self, 0.0)
 
 
 class AvgPenCandidate(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'avg_pen_candidate')
@@ -1594,7 +1551,6 @@ class AvgPenCandidate(AbstractFeature):
 
 
 class AvgPentReference(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'avg_pen_reference')
@@ -1637,7 +1593,6 @@ class AvgPentReference(AbstractFeature):
 
 
 class MinPenCandidate(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'min_pen_candidate')
@@ -1680,7 +1635,6 @@ class MinPenCandidate(AbstractFeature):
 
 
 class MinPentReference(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'min_pen_reference')
@@ -1723,7 +1677,6 @@ class MinPentReference(AbstractFeature):
 
 
 class MaxPenCandidate(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'max_pen_candidate')
@@ -1766,7 +1719,6 @@ class MaxPenCandidate(AbstractFeature):
 
 
 class MaxPentReference(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'max_pen_reference')
@@ -1807,8 +1759,8 @@ class MaxPentReference(AbstractFeature):
         else:
             AbstractFeature.set_value(self, 0)
 
-class PropPen(AbstractFeature):
 
+class PropPen(AbstractFeature):
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_pen')
@@ -1832,13 +1784,12 @@ class PropPen(AbstractFeature):
                 counter_penalties += 1
 
         if counter_words > 0:
-             AbstractFeature.set_value(self, counter_penalties / float(counter_words))
+            AbstractFeature.set_value(self, counter_penalties / float(counter_words))
         else:
-             AbstractFeature.set_value(self, 0.0)
+            AbstractFeature.set_value(self, 0.0)
 
 
 class CountPen(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'count_pen')
@@ -1862,11 +1813,11 @@ class CountPen(AbstractFeature):
 
 
 class PropPenHigh(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_pen_high')
-        AbstractFeature.set_description(self, "Prop of words with penalty higher than avg over the number of aligned words")
+        AbstractFeature.set_description(self,
+                                        "Prop of words with penalty higher than avg over the number of aligned words")
 
         # This should be higher than average context penalty estimated over some big dataset
 
@@ -1916,7 +1867,6 @@ class PropPenHigh(AbstractFeature):
 
 
 class FragmentationPenalty(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'fragmentation_penalty')
@@ -1949,7 +1899,6 @@ class FragmentationPenalty(AbstractFeature):
 
 
 class CountChunks(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'count_chunks')
@@ -1977,7 +1926,6 @@ class CountChunks(AbstractFeature):
 
 
 class MeteorPropExactCandidate(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'meteor_prop_exact_candidate')
@@ -2001,7 +1949,6 @@ class MeteorPropExactCandidate(AbstractFeature):
 
 
 class MeteorPropExactReference(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'meteor_prop_exact_reference')
@@ -2025,7 +1972,6 @@ class MeteorPropExactReference(AbstractFeature):
 
 
 class MeteorPropExactContentCandidate(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'meteor_prop_exact_content_candidate')
@@ -2041,11 +1987,11 @@ class MeteorPropExactContentCandidate(AbstractFeature):
         if len(content_words) == 0:
             AbstractFeature.set_value(self, -1)
         else:
-            AbstractFeature.set_value(self, len(set(content_words).intersection(exact_words))/float(len(content_words)))
+            AbstractFeature.set_value(self,
+                                      len(set(content_words).intersection(exact_words)) / float(len(content_words)))
 
 
 class MeteorPropExactContentReference(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'meteor_prop_exact_content_reference')
@@ -2061,11 +2007,11 @@ class MeteorPropExactContentReference(AbstractFeature):
         if len(content_words) == 0:
             AbstractFeature.set_value(self, -1)
         else:
-            AbstractFeature.set_value(self, len(set(content_words).intersection(exact_words))/float(len(content_words)))
+            AbstractFeature.set_value(self,
+                                      len(set(content_words).intersection(exact_words)) / float(len(content_words)))
 
 
 class MeteorPropExactFunctionCandidate(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'meteor_prop_exact_function_candidate')
@@ -2081,11 +2027,11 @@ class MeteorPropExactFunctionCandidate(AbstractFeature):
         if len(function_words) == 0:
             AbstractFeature.set_value(self, -1)
         else:
-            AbstractFeature.set_value(self, len(set(function_words).intersection(exact_words))/float(len(function_words)))
+            AbstractFeature.set_value(self,
+                                      len(set(function_words).intersection(exact_words)) / float(len(function_words)))
 
 
 class MeteorPropExactFunctionReference(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'meteor_prop_exact_function_reference')
@@ -2101,11 +2047,11 @@ class MeteorPropExactFunctionReference(AbstractFeature):
         if len(function_words) == 0:
             AbstractFeature.set_value(self, -1)
         else:
-            AbstractFeature.set_value(self, len(set(function_words).intersection(exact_words))/float(len(function_words)))
+            AbstractFeature.set_value(self,
+                                      len(set(function_words).intersection(exact_words)) / float(len(function_words)))
 
 
 class MeteorPropFuzzyCandidate(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'meteor_prop_fuzzy_candidate')
@@ -2129,7 +2075,6 @@ class MeteorPropFuzzyCandidate(AbstractFeature):
 
 
 class MeteorPropFuzzyReference(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'meteor_prop_fuzzy_reference')
@@ -2153,7 +2098,6 @@ class MeteorPropFuzzyReference(AbstractFeature):
 
 
 class MeteorPropFuzzyContentCandidate(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'meteor_prop_fuzzy_content_candidate')
@@ -2169,11 +2113,11 @@ class MeteorPropFuzzyContentCandidate(AbstractFeature):
         if len(content_words) == 0:
             AbstractFeature.set_value(self, -1)
         else:
-            AbstractFeature.set_value(self, len(set(content_words).intersection(fuzzy_words))/float(len(content_words)))
+            AbstractFeature.set_value(self,
+                                      len(set(content_words).intersection(fuzzy_words)) / float(len(content_words)))
 
 
 class MeteorPropFuzzyContentReference(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'meteor_prop_fuzzy_content_reference')
@@ -2189,11 +2133,11 @@ class MeteorPropFuzzyContentReference(AbstractFeature):
         if len(content_words) == 0:
             AbstractFeature.set_value(self, -1)
         else:
-            AbstractFeature.set_value(self, len(set(content_words).intersection(fuzzy_words))/float(len(content_words)))
+            AbstractFeature.set_value(self,
+                                      len(set(content_words).intersection(fuzzy_words)) / float(len(content_words)))
 
 
 class MeteorPropFuzzyFunctionCandidate(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'meteor_prop_fuzzy_function_candidate')
@@ -2209,11 +2153,11 @@ class MeteorPropFuzzyFunctionCandidate(AbstractFeature):
         if len(function_words) == 0:
             AbstractFeature.set_value(self, -1)
         else:
-            AbstractFeature.set_value(self, len(set(function_words).intersection(fuzzy_words))/float(len(function_words)))
+            AbstractFeature.set_value(self,
+                                      len(set(function_words).intersection(fuzzy_words)) / float(len(function_words)))
 
 
 class MeteorPropFuzzyFunctionReference(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'meteor_prop_fuzzy_function_reference')
@@ -2229,11 +2173,11 @@ class MeteorPropFuzzyFunctionReference(AbstractFeature):
         if len(function_words) == 0:
             AbstractFeature.set_value(self, -1)
         else:
-            AbstractFeature.set_value(self, len(set(function_words).intersection(fuzzy_words))/float(len(function_words)))
+            AbstractFeature.set_value(self,
+                                      len(set(function_words).intersection(fuzzy_words)) / float(len(function_words)))
 
 
 class MeteorPropStemCandidate(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'meteor_prop_stem_candidate')
@@ -2257,7 +2201,6 @@ class MeteorPropStemCandidate(AbstractFeature):
 
 
 class MeteorPropStemReference(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'meteor_prop_stem_reference')
@@ -2281,7 +2224,6 @@ class MeteorPropStemReference(AbstractFeature):
 
 
 class MeteorPropStemContentCandidate(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'meteor_prop_stem_content_candidate')
@@ -2297,11 +2239,11 @@ class MeteorPropStemContentCandidate(AbstractFeature):
         if len(content_words) == 0:
             AbstractFeature.set_value(self, -1)
         else:
-            AbstractFeature.set_value(self, len(set(content_words).intersection(stem_words))/float(len(content_words)))
+            AbstractFeature.set_value(self,
+                                      len(set(content_words).intersection(stem_words)) / float(len(content_words)))
 
 
 class MeteorPropStemContentReference(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'meteor_prop_stem_content_reference')
@@ -2317,11 +2259,11 @@ class MeteorPropStemContentReference(AbstractFeature):
         if len(content_words) == 0:
             AbstractFeature.set_value(self, -1)
         else:
-            AbstractFeature.set_value(self, len(set(content_words).intersection(stem_words))/float(len(content_words)))
+            AbstractFeature.set_value(self,
+                                      len(set(content_words).intersection(stem_words)) / float(len(content_words)))
 
 
 class MeteorPropStemFunctionCandidate(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'meteor_prop_stem_function_candidate')
@@ -2337,11 +2279,11 @@ class MeteorPropStemFunctionCandidate(AbstractFeature):
         if len(function_words) == 0:
             AbstractFeature.set_value(self, -1)
         else:
-            AbstractFeature.set_value(self, len(set(function_words).intersection(stem_words))/float(len(function_words)))
+            AbstractFeature.set_value(self,
+                                      len(set(function_words).intersection(stem_words)) / float(len(function_words)))
 
 
 class MeteorPropStemFunctionReference(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'meteor_prop_stem_function_reference')
@@ -2357,11 +2299,11 @@ class MeteorPropStemFunctionReference(AbstractFeature):
         if len(function_words) == 0:
             AbstractFeature.set_value(self, -1)
         else:
-            AbstractFeature.set_value(self, len(set(function_words).intersection(stem_words))/float(len(function_words)))
+            AbstractFeature.set_value(self,
+                                      len(set(function_words).intersection(stem_words)) / float(len(function_words)))
 
 
 class MeteorPropSynonymCandidate(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'meteor_prop_synonym_candidate')
@@ -2385,7 +2327,6 @@ class MeteorPropSynonymCandidate(AbstractFeature):
 
 
 class MeteorPropSynonymReference(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'meteor_prop_synonym_reference')
@@ -2409,12 +2350,12 @@ class MeteorPropSynonymReference(AbstractFeature):
 
 
 class MeteorPropSynonymContentCandidate(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'meteor_prop_synonym_content_candidate')
-        AbstractFeature.set_description(self, "Proportion of aligned content words with synonym lexical match for Meteor"
-                                              "in the candidate translation")
+        AbstractFeature.set_description(self,
+                                        "Proportion of aligned content words with synonym lexical match for Meteor"
+                                        "in the candidate translation")
         AbstractFeature.set_group(self, 'meteor_lexical_similarity')
 
     def run(self, cand, ref):
@@ -2425,16 +2366,17 @@ class MeteorPropSynonymContentCandidate(AbstractFeature):
         if len(content_words) == 0:
             AbstractFeature.set_value(self, -1)
         else:
-            AbstractFeature.set_value(self, len(set(content_words).intersection(synonym_words))/float(len(content_words)))
+            AbstractFeature.set_value(self,
+                                      len(set(content_words).intersection(synonym_words)) / float(len(content_words)))
 
 
 class MeteorPropSynonymContentReference(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'meteor_prop_synonym_content_reference')
-        AbstractFeature.set_description(self, "Proportion of aligned content words with synonym lexical match for Meteor"
-                                              "in the reference translation")
+        AbstractFeature.set_description(self,
+                                        "Proportion of aligned content words with synonym lexical match for Meteor"
+                                        "in the reference translation")
         AbstractFeature.set_group(self, 'meteor_lexical_similarity')
 
     def run(self, cand, ref):
@@ -2445,16 +2387,17 @@ class MeteorPropSynonymContentReference(AbstractFeature):
         if len(content_words) == 0:
             AbstractFeature.set_value(self, -1)
         else:
-            AbstractFeature.set_value(self, len(set(content_words).intersection(synonym_words))/float(len(content_words)))
+            AbstractFeature.set_value(self,
+                                      len(set(content_words).intersection(synonym_words)) / float(len(content_words)))
 
 
 class MeteorPropSynonymFunctionCandidate(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'meteor_prop_synonym_function_candidate')
-        AbstractFeature.set_description(self, "Proportion of aligned function words with synonym lexical match for Meteor"
-                                              "in the candidate translation")
+        AbstractFeature.set_description(self,
+                                        "Proportion of aligned function words with synonym lexical match for Meteor"
+                                        "in the candidate translation")
         AbstractFeature.set_group(self, 'meteor_lexical_similarity')
 
     def run(self, cand, ref):
@@ -2465,16 +2408,17 @@ class MeteorPropSynonymFunctionCandidate(AbstractFeature):
         if len(function_words) == 0:
             AbstractFeature.set_value(self, -1)
         else:
-            AbstractFeature.set_value(self, len(set(function_words).intersection(synonym_words))/float(len(function_words)))
+            AbstractFeature.set_value(self,
+                                      len(set(function_words).intersection(synonym_words)) / float(len(function_words)))
 
 
 class MeteorPropSynonymFunctionReference(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'meteor_prop_synonym_function_reference')
-        AbstractFeature.set_description(self, "Proportion of aligned function words with synonym lexical match for Meteor"
-                                              "in the reference translation")
+        AbstractFeature.set_description(self,
+                                        "Proportion of aligned function words with synonym lexical match for Meteor"
+                                        "in the reference translation")
         AbstractFeature.set_group(self, 'meteor_lexical_similarity')
 
     def run(self, cand, ref):
@@ -2485,11 +2429,11 @@ class MeteorPropSynonymFunctionReference(AbstractFeature):
         if len(function_words) == 0:
             AbstractFeature.set_value(self, -1)
         else:
-            AbstractFeature.set_value(self, len(set(function_words).intersection(synonym_words))/float(len(function_words)))
+            AbstractFeature.set_value(self,
+                                      len(set(function_words).intersection(synonym_words)) / float(len(function_words)))
 
 
 class MeteorPropParaphraseCandidate(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'meteor_prop_paraphrase_candidate')
@@ -2513,7 +2457,6 @@ class MeteorPropParaphraseCandidate(AbstractFeature):
 
 
 class MeteorPropParaphraseReference(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'meteor_prop_paraphrase_reference')
@@ -2537,12 +2480,12 @@ class MeteorPropParaphraseReference(AbstractFeature):
 
 
 class MeteorPropParaphraseContentCandidate(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'meteor_prop_paraphrase_content_candidate')
-        AbstractFeature.set_description(self, "Proportion of aligned content words with paraphrase lexical match for Meteor"
-                                              "in the candidate translation")
+        AbstractFeature.set_description(self,
+                                        "Proportion of aligned content words with paraphrase lexical match for Meteor"
+                                        "in the candidate translation")
         AbstractFeature.set_group(self, 'meteor_lexical_similarity')
 
     def run(self, cand, ref):
@@ -2553,16 +2496,17 @@ class MeteorPropParaphraseContentCandidate(AbstractFeature):
         if len(content_words) == 0:
             AbstractFeature.set_value(self, -1)
         else:
-            AbstractFeature.set_value(self, len(set(content_words).intersection(paraphrase_words))/float(len(content_words)))
+            AbstractFeature.set_value(self, len(set(content_words).intersection(paraphrase_words)) / float(
+                len(content_words)))
 
 
 class MeteorPropParaphraseContentReference(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'meteor_prop_paraphrase_content_reference')
-        AbstractFeature.set_description(self, "Proportion of aligned content words with paraphrase lexical match for Meteor"
-                                              "in the reference translation")
+        AbstractFeature.set_description(self,
+                                        "Proportion of aligned content words with paraphrase lexical match for Meteor"
+                                        "in the reference translation")
         AbstractFeature.set_group(self, 'meteor_lexical_similarity')
 
     def run(self, cand, ref):
@@ -2573,16 +2517,17 @@ class MeteorPropParaphraseContentReference(AbstractFeature):
         if len(content_words) == 0:
             AbstractFeature.set_value(self, -1)
         else:
-            AbstractFeature.set_value(self, len(set(content_words).intersection(paraphrase_words))/float(len(content_words)))
+            AbstractFeature.set_value(self, len(set(content_words).intersection(paraphrase_words)) / float(
+                len(content_words)))
 
 
 class MeteorPropParaphraseFunctionCandidate(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'meteor_prop_paraphrase_function_candidate')
-        AbstractFeature.set_description(self, "Proportion of aligned function words with paraphrase lexical match for Meteor"
-                                              "in the candidate translation")
+        AbstractFeature.set_description(self,
+                                        "Proportion of aligned function words with paraphrase lexical match for Meteor"
+                                        "in the candidate translation")
         AbstractFeature.set_group(self, 'meteor_lexical_similarity')
 
     def run(self, cand, ref):
@@ -2593,16 +2538,17 @@ class MeteorPropParaphraseFunctionCandidate(AbstractFeature):
         if len(function_words) == 0:
             AbstractFeature.set_value(self, -1)
         else:
-            AbstractFeature.set_value(self, len(set(function_words).intersection(paraphrase_words))/float(len(function_words)))
+            AbstractFeature.set_value(self, len(set(function_words).intersection(paraphrase_words)) / float(
+                len(function_words)))
 
 
 class MeteorPropParaphraseFunctionReference(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'meteor_prop_paraphrase_function_reference')
-        AbstractFeature.set_description(self, "Proportion of aligned function words with paraphrase lexical match for Meteor"
-                                              "in the reference translation")
+        AbstractFeature.set_description(self,
+                                        "Proportion of aligned function words with paraphrase lexical match for Meteor"
+                                        "in the reference translation")
         AbstractFeature.set_group(self, 'meteor_lexical_similarity')
 
     def run(self, cand, ref):
@@ -2613,7 +2559,8 @@ class MeteorPropParaphraseFunctionReference(AbstractFeature):
         if len(function_words) == 0:
             AbstractFeature.set_value(self, -1)
         else:
-            AbstractFeature.set_value(self, len(set(function_words).intersection(paraphrase_words))/float(len(function_words)))
+            AbstractFeature.set_value(self, len(set(function_words).intersection(paraphrase_words)) / float(
+                len(function_words)))
 
 
 #################################################</Meteor Decomposed>###################################################
@@ -2623,7 +2570,6 @@ class MeteorPropParaphraseFunctionReference(AbstractFeature):
 ########################################################################################################################
 
 class BleuPrecisionUnigram(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'bleu_precision_unigram')
@@ -2640,8 +2586,8 @@ class BleuPrecisionUnigram(AbstractFeature):
         else:
             AbstractFeature.set_value(self, matches / float(total))
 
-class BleuPrecisionBigram(AbstractFeature):
 
+class BleuPrecisionBigram(AbstractFeature):
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'bleu_precision_bigram')
@@ -2658,8 +2604,8 @@ class BleuPrecisionBigram(AbstractFeature):
         else:
             AbstractFeature.set_value(self, matches / float(total))
 
-class BleuPrecisionTrigram(AbstractFeature):
 
+class BleuPrecisionTrigram(AbstractFeature):
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'bleu_precision_trigram')
@@ -2676,8 +2622,8 @@ class BleuPrecisionTrigram(AbstractFeature):
         else:
             AbstractFeature.set_value(self, matches / float(total))
 
-class BleuPrecisionFourgram(AbstractFeature):
 
+class BleuPrecisionFourgram(AbstractFeature):
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'bleu_precision_fourgram')
@@ -2696,7 +2642,6 @@ class BleuPrecisionFourgram(AbstractFeature):
 
 
 class BleuBrevityPenalty(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'bleu_brevity_penalty')
@@ -2704,7 +2649,6 @@ class BleuBrevityPenalty(AbstractFeature):
         AbstractFeature.set_group(self, "bleu_brevity_penalty")
 
     def run(self, cand, ref):
-
         bp = SentBleu.brevity_penalty(cand['tokens'], [ref['tokens']])
         AbstractFeature.set_value(self, bp)
 
@@ -2717,7 +2661,6 @@ class BleuBrevityPenalty(AbstractFeature):
 
 
 class BackoffNonAlignedAvg(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_non_aligned_avg')
@@ -2741,12 +2684,12 @@ class BackoffNonAlignedAvg(AbstractFeature):
                 backoffs.append(cand['quest_word'][i]['WCE1015'])
 
         if cnt > 0:
-             AbstractFeature.set_value(self, numpy.mean(backoffs))
+            AbstractFeature.set_value(self, numpy.mean(backoffs))
         else:
-             AbstractFeature.set_value(self, -1)
+            AbstractFeature.set_value(self, -1)
+
 
 class BackoffNonAlignedMin(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_non_aligned_min')
@@ -2770,13 +2713,12 @@ class BackoffNonAlignedMin(AbstractFeature):
                 backoffs.append(cand['quest_word'][i]['WCE1015'])
 
         if cnt > 0:
-             AbstractFeature.set_value(self, min(backoffs))
+            AbstractFeature.set_value(self, min(backoffs))
         else:
-             AbstractFeature.set_value(self, -1)
+            AbstractFeature.set_value(self, -1)
 
 
 class BackoffNonAlignedMax(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_non_aligned_max')
@@ -2800,13 +2742,12 @@ class BackoffNonAlignedMax(AbstractFeature):
                 backoffs.append(cand['quest_word'][i]['WCE1015'])
 
         if cnt > 0:
-             AbstractFeature.set_value(self, max(backoffs))
+            AbstractFeature.set_value(self, max(backoffs))
         else:
-             AbstractFeature.set_value(self, -1)
+            AbstractFeature.set_value(self, -1)
 
 
 class BackoffNonAlignedMedian(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_non_aligned_median')
@@ -2830,13 +2771,12 @@ class BackoffNonAlignedMedian(AbstractFeature):
                 backoffs.append(cand['quest_word'][i]['WCE1015'])
 
         if cnt > 0:
-             AbstractFeature.set_value(self, max(backoffs))
+            AbstractFeature.set_value(self, max(backoffs))
         else:
-             AbstractFeature.set_value(self, -1)
+            AbstractFeature.set_value(self, -1)
 
 
 class BackoffNonAlignedMode(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_non_aligned_mode')
@@ -2875,7 +2815,6 @@ class BackoffNonAlignedMode(AbstractFeature):
 
 
 class BackoffBackNonAlignedAvg(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_back_non_aligned_avg')
@@ -2899,13 +2838,12 @@ class BackoffBackNonAlignedAvg(AbstractFeature):
                 backoffs.append(cand['quest_word'][i]['WCE1041'])
 
         if cnt > 0:
-             AbstractFeature.set_value(self, numpy.mean(backoffs))
+            AbstractFeature.set_value(self, numpy.mean(backoffs))
         else:
-             AbstractFeature.set_value(self, -1)
+            AbstractFeature.set_value(self, -1)
 
 
 class BackoffBackNonAlignedMin(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_back_non_aligned_min')
@@ -2929,13 +2867,12 @@ class BackoffBackNonAlignedMin(AbstractFeature):
                 backoffs.append(cand['quest_word'][i]['WCE1041'])
 
         if cnt > 0:
-             AbstractFeature.set_value(self, numpy.min(backoffs))
+            AbstractFeature.set_value(self, numpy.min(backoffs))
         else:
-             AbstractFeature.set_value(self, -1)
+            AbstractFeature.set_value(self, -1)
 
 
 class BackoffBackNonAlignedMax(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_back_non_aligned_max')
@@ -2959,13 +2896,12 @@ class BackoffBackNonAlignedMax(AbstractFeature):
                 backoffs.append(cand['quest_word'][i]['WCE1041'])
 
         if cnt > 0:
-             AbstractFeature.set_value(self, numpy.max(backoffs))
+            AbstractFeature.set_value(self, numpy.max(backoffs))
         else:
-             AbstractFeature.set_value(self, -1)
+            AbstractFeature.set_value(self, -1)
 
 
 class BackoffBackNonAlignedMedian(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_back_non_aligned_median')
@@ -2989,13 +2925,12 @@ class BackoffBackNonAlignedMedian(AbstractFeature):
                 backoffs.append(cand['quest_word'][i]['WCE1041'])
 
         if cnt > 0:
-             AbstractFeature.set_value(self, numpy.median(backoffs))
+            AbstractFeature.set_value(self, numpy.median(backoffs))
         else:
-             AbstractFeature.set_value(self, -1)
+            AbstractFeature.set_value(self, -1)
 
 
 class BackoffBackNonAlignedMode(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_back_non_aligned_mode')
@@ -3034,7 +2969,6 @@ class BackoffBackNonAlignedMode(AbstractFeature):
 
 
 class BackoffAvg(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_avg')
@@ -3058,12 +2992,12 @@ class BackoffAvg(AbstractFeature):
             backoffs.append(cand['quest_word'][i]['WCE1015'])
 
         if cnt > 0:
-             AbstractFeature.set_value(self, numpy.mean(backoffs))
+            AbstractFeature.set_value(self, numpy.mean(backoffs))
         else:
-             AbstractFeature.set_value(self, -1)
+            AbstractFeature.set_value(self, -1)
+
 
 class BackoffMin(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_min')
@@ -3082,18 +3016,16 @@ class BackoffMin(AbstractFeature):
             if word.lower().isdigit():
                 continue
 
-
             cnt += 1
             backoffs.append(cand['quest_word'][i]['WCE1015'])
 
         if cnt > 0:
-             AbstractFeature.set_value(self, min(backoffs))
+            AbstractFeature.set_value(self, min(backoffs))
         else:
-             AbstractFeature.set_value(self, -1)
+            AbstractFeature.set_value(self, -1)
 
 
 class BackoffMax(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_max')
@@ -3116,13 +3048,12 @@ class BackoffMax(AbstractFeature):
             backoffs.append(cand['quest_word'][i]['WCE1015'])
 
         if cnt > 0:
-             AbstractFeature.set_value(self, max(backoffs))
+            AbstractFeature.set_value(self, max(backoffs))
         else:
-             AbstractFeature.set_value(self, -1)
+            AbstractFeature.set_value(self, -1)
 
 
 class BackoffMedian(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_median')
@@ -3145,13 +3076,12 @@ class BackoffMedian(AbstractFeature):
             backoffs.append(cand['quest_word'][i]['WCE1015'])
 
         if cnt > 0:
-             AbstractFeature.set_value(self, max(backoffs))
+            AbstractFeature.set_value(self, max(backoffs))
         else:
-             AbstractFeature.set_value(self, -1)
+            AbstractFeature.set_value(self, -1)
 
 
 class BackoffMode(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_mode')
@@ -3187,8 +3117,8 @@ class BackoffMode(AbstractFeature):
         else:
             AbstractFeature.set_value(self, counter_sorted[0][0])
 
-class BackoffBackAvg(AbstractFeature):
 
+class BackoffBackAvg(AbstractFeature):
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_back_avg')
@@ -3211,13 +3141,12 @@ class BackoffBackAvg(AbstractFeature):
             backoffs.append(cand['quest_word'][i]['WCE1041'])
 
         if cnt > 0:
-             AbstractFeature.set_value(self, numpy.mean(backoffs))
+            AbstractFeature.set_value(self, numpy.mean(backoffs))
         else:
-             AbstractFeature.set_value(self, -1)
+            AbstractFeature.set_value(self, -1)
 
 
 class BackoffBackMin(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_back_min')
@@ -3240,13 +3169,12 @@ class BackoffBackMin(AbstractFeature):
             backoffs.append(cand['quest_word'][i]['WCE1041'])
 
         if cnt > 0:
-             AbstractFeature.set_value(self, numpy.min(backoffs))
+            AbstractFeature.set_value(self, numpy.min(backoffs))
         else:
-             AbstractFeature.set_value(self, -1)
+            AbstractFeature.set_value(self, -1)
 
 
 class BackoffBackMax(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_back_max')
@@ -3269,13 +3197,12 @@ class BackoffBackMax(AbstractFeature):
             backoffs.append(cand['quest_word'][i]['WCE1041'])
 
         if cnt > 0:
-             AbstractFeature.set_value(self, numpy.max(backoffs))
+            AbstractFeature.set_value(self, numpy.max(backoffs))
         else:
-             AbstractFeature.set_value(self, -1)
+            AbstractFeature.set_value(self, -1)
 
 
 class BackoffBackMedian(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_back_median')
@@ -3298,13 +3225,12 @@ class BackoffBackMedian(AbstractFeature):
             backoffs.append(cand['quest_word'][i]['WCE1041'])
 
         if cnt > 0:
-             AbstractFeature.set_value(self, numpy.median(backoffs))
+            AbstractFeature.set_value(self, numpy.median(backoffs))
         else:
-             AbstractFeature.set_value(self, -1)
+            AbstractFeature.set_value(self, -1)
 
 
 class BackoffBackMode(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_back_mode')
@@ -3342,7 +3268,6 @@ class BackoffBackMode(AbstractFeature):
 
 
 class LongestNgramNonAlignedAvg(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'longest_ngram_non_aligned_avg')
@@ -3366,13 +3291,12 @@ class LongestNgramNonAlignedAvg(AbstractFeature):
                 backoffs.append(cand['quest_word'][i]['WCE1037'])
 
         if cnt > 0:
-             AbstractFeature.set_value(self, numpy.mean(backoffs))
+            AbstractFeature.set_value(self, numpy.mean(backoffs))
         else:
-             AbstractFeature.set_value(self, -1)
+            AbstractFeature.set_value(self, -1)
 
 
 class LongestNgramNonAlignedMin(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'longest_ngram_non_aligned_min')
@@ -3396,13 +3320,12 @@ class LongestNgramNonAlignedMin(AbstractFeature):
                 backoffs.append(cand['quest_word'][i]['WCE1037'])
 
         if cnt > 0:
-             AbstractFeature.set_value(self, numpy.min(backoffs))
+            AbstractFeature.set_value(self, numpy.min(backoffs))
         else:
-             AbstractFeature.set_value(self, -1)
+            AbstractFeature.set_value(self, -1)
 
 
 class LongestNgramNonAlignedMax(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'longest_ngram_non_aligned_max')
@@ -3426,13 +3349,12 @@ class LongestNgramNonAlignedMax(AbstractFeature):
                 backoffs.append(cand['quest_word'][i]['WCE1037'])
 
         if cnt > 0:
-             AbstractFeature.set_value(self, numpy.max(backoffs))
+            AbstractFeature.set_value(self, numpy.max(backoffs))
         else:
-             AbstractFeature.set_value(self, -1)
+            AbstractFeature.set_value(self, -1)
 
 
 class LongestNgramNonAlignedMedian(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'longest_ngram_non_aligned_median')
@@ -3456,13 +3378,12 @@ class LongestNgramNonAlignedMedian(AbstractFeature):
                 backoffs.append(cand['quest_word'][i]['WCE1037'])
 
         if cnt > 0:
-             AbstractFeature.set_value(self, numpy.median(backoffs))
+            AbstractFeature.set_value(self, numpy.median(backoffs))
         else:
-             AbstractFeature.set_value(self, -1)
+            AbstractFeature.set_value(self, -1)
 
 
 class LongestNgramNonAlignedMode(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'longest_ngram_non_aligned_mode')
@@ -3501,7 +3422,6 @@ class LongestNgramNonAlignedMode(AbstractFeature):
 
 
 class LongestNgramAvg(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'longest_ngram_avg')
@@ -3524,13 +3444,12 @@ class LongestNgramAvg(AbstractFeature):
             backoffs.append(cand['quest_word'][i]['WCE1037'])
 
         if cnt > 0:
-             AbstractFeature.set_value(self, numpy.mean(backoffs))
+            AbstractFeature.set_value(self, numpy.mean(backoffs))
         else:
-             AbstractFeature.set_value(self, -1)
+            AbstractFeature.set_value(self, -1)
 
 
 class LongestNgramMin(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'longest_ngram_min')
@@ -3553,13 +3472,12 @@ class LongestNgramMin(AbstractFeature):
             backoffs.append(cand['quest_word'][i]['WCE1037'])
 
         if cnt > 0:
-             AbstractFeature.set_value(self, numpy.min(backoffs))
+            AbstractFeature.set_value(self, numpy.min(backoffs))
         else:
-             AbstractFeature.set_value(self, -1)
+            AbstractFeature.set_value(self, -1)
 
 
 class LongestNgramMax(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'longest_ngram_max')
@@ -3582,13 +3500,12 @@ class LongestNgramMax(AbstractFeature):
             backoffs.append(cand['quest_word'][i]['WCE1037'])
 
         if cnt > 0:
-             AbstractFeature.set_value(self, numpy.max(backoffs))
+            AbstractFeature.set_value(self, numpy.max(backoffs))
         else:
-             AbstractFeature.set_value(self, -1)
+            AbstractFeature.set_value(self, -1)
 
 
 class LongestNgramMedian(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'longest_ngram_median')
@@ -3611,13 +3528,12 @@ class LongestNgramMedian(AbstractFeature):
             backoffs.append(cand['quest_word'][i]['WCE1037'])
 
         if cnt > 0:
-             AbstractFeature.set_value(self, numpy.median(backoffs))
+            AbstractFeature.set_value(self, numpy.median(backoffs))
         else:
-             AbstractFeature.set_value(self, -1)
+            AbstractFeature.set_value(self, -1)
 
 
 class LongestNgramMode(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'longest_ngram_mode')
@@ -3655,7 +3571,6 @@ class LongestNgramMode(AbstractFeature):
 
 
 class BackoffDirectAvg(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_direct_avg')
@@ -3682,8 +3597,8 @@ class BackoffDirectAvg(AbstractFeature):
 
         AbstractFeature.set_value(self, numpy.nanmean(ngram_lengths))
 
-class BackoffDirectMedian(AbstractFeature):
 
+class BackoffDirectMedian(AbstractFeature):
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_direct_median')
@@ -3712,7 +3627,6 @@ class BackoffDirectMedian(AbstractFeature):
 
 
 class BackoffDirectMin(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_direct_min')
@@ -3741,7 +3655,6 @@ class BackoffDirectMin(AbstractFeature):
 
 
 class BackoffDirectMax(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_direct_max')
@@ -3770,7 +3683,6 @@ class BackoffDirectMax(AbstractFeature):
 
 
 class BackoffDirectMode(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_direct_mode')
@@ -3803,7 +3715,6 @@ class BackoffDirectMode(AbstractFeature):
 
 
 class BackDirectNonAlignedAvg(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'back_direct_non_aligned_avg')
@@ -3839,7 +3750,6 @@ class BackDirectNonAlignedAvg(AbstractFeature):
 
 
 class BackDirectNonAlignedMedian(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'back_direct_non_aligned_median')
@@ -3875,7 +3785,6 @@ class BackDirectNonAlignedMedian(AbstractFeature):
 
 
 class BackDirectNonAlignedMin(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'back_direct_non_aligned_min')
@@ -3911,7 +3820,6 @@ class BackDirectNonAlignedMin(AbstractFeature):
 
 
 class BackDirectNonAlignedMax(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'back_direct_non_aligned_max')
@@ -3947,7 +3855,6 @@ class BackDirectNonAlignedMax(AbstractFeature):
 
 
 class BackDirectNonAlignedMode(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'back_direct_non_aligned_mode')
@@ -3991,7 +3898,6 @@ class BackDirectNonAlignedMode(AbstractFeature):
 
 
 class CountShortNgramNonAligned(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'count_short_ngram_non_aligned')
@@ -4018,7 +3924,6 @@ class CountShortNgramNonAligned(AbstractFeature):
 
 
 class PropShortNgramNonAligned(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_short_ngram_non_aligned')
@@ -4041,11 +3946,10 @@ class PropShortNgramNonAligned(AbstractFeature):
             if cand['language_model_word_features'][i][1] == 1:
                 count += 1
 
-        AbstractFeature.set_value(self, count/float(len(cand['tokens']) - len(cand['alignments'])))
+        AbstractFeature.set_value(self, count / float(len(cand['tokens']) - len(cand['alignments'])))
 
 
 class PropShortNgram(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_short_ngram')
@@ -4061,11 +3965,10 @@ class PropShortNgram(AbstractFeature):
             if cand['language_model_word_features'][i][1] == 1:
                 count += 1
 
-        AbstractFeature.set_value(self, count/float(len(cand['tokens'])))
+        AbstractFeature.set_value(self, count / float(len(cand['tokens'])))
 
 
 class CountShortNgram(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'count_short_ngram')
@@ -4085,7 +3988,6 @@ class CountShortNgram(AbstractFeature):
 
 
 class CountBackoffLowNonAligned(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'count_backoff_low_non_aligned')
@@ -4112,7 +4014,6 @@ class CountBackoffLowNonAligned(AbstractFeature):
 
 
 class PropBackoffLowNonAligned(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_backoff_low_non_aligned')
@@ -4135,12 +4036,11 @@ class PropBackoffLowNonAligned(AbstractFeature):
                 if cand['quest_word'][i]['WCE1015'] == 2 or cand['quest_word'][i]['WCE1041'] == 2:
                     errors += 1
 
-        result = errors/float(len(cand['tokens']))
+        result = errors / float(len(cand['tokens']))
         AbstractFeature.set_value(self, result)
 
 
 class CountBackoffMediumNonAligned(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'count_backoff_medium_non_aligned')
@@ -4167,7 +4067,6 @@ class CountBackoffMediumNonAligned(AbstractFeature):
 
 
 class PropBackoffMediumNonAligned(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_backoff_medium_non_aligned')
@@ -4188,15 +4087,13 @@ class PropBackoffMediumNonAligned(AbstractFeature):
             if i + 1 not in [x[0] for x in cand['alignments'][0]]:
 
                 if cand['quest_word'][i]['WCE1015'] == 3 or cand['quest_word'][i]['WCE1041'] == 3:
-
                     errors += 1
 
-        result = errors/float(len(cand['tokens']))
+        result = errors / float(len(cand['tokens']))
         AbstractFeature.set_value(self, result)
 
 
 class CountBackoffHighNonAligned(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'count_backoff_high_non_aligned')
@@ -4221,8 +4118,8 @@ class CountBackoffHighNonAligned(AbstractFeature):
 
         AbstractFeature.set_value(self, errors)
 
-class PropBackoffHighNonAligned(AbstractFeature):
 
+class PropBackoffHighNonAligned(AbstractFeature):
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_backoff_high_non_aligned')
@@ -4245,12 +4142,11 @@ class PropBackoffHighNonAligned(AbstractFeature):
                 if cand['quest_word'][i]['WCE1015'] == 4 or cand['quest_word'][i]['WCE1041'] == 4:
                     errors += 1
 
-        result = errors/float(len(cand['tokens']))
+        result = errors / float(len(cand['tokens']))
         AbstractFeature.set_value(self, result)
 
 
 class LangModProbSrilm(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'lang_mod_prob_srilm')
@@ -4262,7 +4158,6 @@ class LangModProbSrilm(AbstractFeature):
 
 
 class LangModPerlexSrilm(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'lang_mod_perplex_srilm')
@@ -4274,7 +4169,6 @@ class LangModPerlexSrilm(AbstractFeature):
 
 
 class LangModProb(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'lang_mod_prob')
@@ -4286,7 +4180,6 @@ class LangModProb(AbstractFeature):
 
 
 class LangModPerlex(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'lang_mod_perplex')
@@ -4298,7 +4191,6 @@ class LangModPerlex(AbstractFeature):
 
 
 class LangModPerlex2(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'lang_mod_perplex2')
@@ -4310,7 +4202,6 @@ class LangModPerlex2(AbstractFeature):
 
 
 class CountNonAlignedOOV(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'count_non_aligned_oov')
@@ -4336,7 +4227,6 @@ class CountNonAlignedOOV(AbstractFeature):
 
 
 class PropNonAlignedOOV(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_non_aligned_oov')
@@ -4359,13 +4249,12 @@ class PropNonAlignedOOV(AbstractFeature):
                     oov += 1
 
         if len(cand['alignments'][0]) != len(cand['tokens']):
-            AbstractFeature.set_value(self, oov/float(len(cand['tokens']) - len(cand['alignments'][0])))
+            AbstractFeature.set_value(self, oov / float(len(cand['tokens']) - len(cand['alignments'][0])))
         else:
             AbstractFeature.set_value(self, -1)
 
 
 class CountOOVSrilm(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'count_oov_srilm')
@@ -4377,7 +4266,6 @@ class CountOOVSrilm(AbstractFeature):
 
 
 class PropOOVSrilm(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_oov_srilm')
@@ -4385,11 +4273,10 @@ class PropOOVSrilm(AbstractFeature):
         AbstractFeature.set_group(self, "fluency_features")
 
     def run(self, cand, ref):
-        AbstractFeature.set_value(self, cand['language_model_sentence_features'][0]/float(len(cand['tokens'])))
+        AbstractFeature.set_value(self, cand['language_model_sentence_features'][0] / float(len(cand['tokens'])))
 
 
 class CountOOV(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'count_oov')
@@ -4414,7 +4301,6 @@ class CountOOV(AbstractFeature):
 
 
 class PropOOV(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_oov')
@@ -4436,7 +4322,7 @@ class PropOOV(AbstractFeature):
             if cand['quest_word'][i]['WCE1015'] == 1:
                 oov += 1
 
-        result = oov/float(len(cand['tokens']))
+        result = oov / float(len(cand['tokens']))
         AbstractFeature.set_value(self, result)
 
 
@@ -4445,11 +4331,11 @@ class PropOOV(AbstractFeature):
 
 
 class ContextMatch(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'context_match')
-        AbstractFeature.set_description(self, "Number of cases with non-aligned function words in exactly matching contexts")
+        AbstractFeature.set_description(self,
+                                        "Number of cases with non-aligned function words in exactly matching contexts")
         AbstractFeature.set_group(self, "miscellaneous")
 
     def run(self, cand, ref):
@@ -4504,7 +4390,6 @@ class ContextMatch(AbstractFeature):
 
 
 class MatchContextSimilarity(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'match_context_similarity')
@@ -4559,7 +4444,8 @@ class MatchContextSimilarity(AbstractFeature):
                         if match_bwd[0] + 1 in align_dict.values():
                             similarities.append(1.0)
                         else:
-                            similarities.append(1 - dot(matutils.unitvec(cl_cand['word_vectors'][i]), matutils.unitvec(cl_ref['word_vectors'][match_bwd[0] + 1])))
+                            similarities.append(1 - dot(matutils.unitvec(cl_cand['word_vectors'][i]),
+                                                        matutils.unitvec(cl_ref['word_vectors'][match_bwd[0] + 1])))
 
         if len(similarities) == 0:
             AbstractFeature.set_value(self, 0.0)
@@ -4575,7 +4461,6 @@ class MatchContextSimilarity(AbstractFeature):
 
 
 class LengthsRatio(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'lengths_ratio')
@@ -4583,11 +4468,10 @@ class LengthsRatio(AbstractFeature):
         AbstractFeature.set_group(self, "miscellaneous")
 
     def run(self, cand, ref):
-        AbstractFeature.set_value(self, len(cand['tokens'])/float(len(ref['tokens'])))
+        AbstractFeature.set_value(self, len(cand['tokens']) / float(len(ref['tokens'])))
 
 
 class AvgPosProb(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'avg_pos_prob')
@@ -4610,13 +4494,12 @@ class AvgPosProb(AbstractFeature):
                 back_props.append(cand['pos_lang_model'][i])
 
         if cnt > 0:
-             AbstractFeature.set_value(self, numpy.mean(back_props))
+            AbstractFeature.set_value(self, numpy.mean(back_props))
         else:
-             AbstractFeature.set_value(self, 0.0)
+            AbstractFeature.set_value(self, 0.0)
 
 
 class MinPosProb(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'min_pos_prob')
@@ -4639,13 +4522,12 @@ class MinPosProb(AbstractFeature):
                 back_props.append(cand['pos_lang_model'][i])
 
         if cnt > 0:
-             AbstractFeature.set_value(self, min(back_props))
+            AbstractFeature.set_value(self, min(back_props))
         else:
-             AbstractFeature.set_value(self, 0.0)
+            AbstractFeature.set_value(self, 0.0)
 
 
 class MaxPosProb(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'max_pos_prob')
@@ -4668,13 +4550,12 @@ class MaxPosProb(AbstractFeature):
                 back_props.append(cand['pos_lang_model'][i])
 
         if cnt > 0:
-             AbstractFeature.set_value(self, max(back_props))
+            AbstractFeature.set_value(self, max(back_props))
         else:
-             AbstractFeature.set_value(self, 0.0)
+            AbstractFeature.set_value(self, 0.0)
 
 
 class CountPosProb(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'count_pos_prob')
@@ -4698,13 +4579,12 @@ class CountPosProb(AbstractFeature):
 
         threshold = 0.01
         if cnt > 0:
-             AbstractFeature.set_value(self, len([x for x in back_props if x < threshold]))
+            AbstractFeature.set_value(self, len([x for x in back_props if x < threshold]))
         else:
-             AbstractFeature.set_value(self, -1)
+            AbstractFeature.set_value(self, -1)
 
 
 class PropPosProb(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_pos_prob')
@@ -4724,13 +4604,12 @@ class PropPosProb(AbstractFeature):
 
         threshold = 0.01
         if cnt > 0:
-             AbstractFeature.set_value(self, len([x for x in back_props if x < threshold])/float(len(cand['tokens'])))
+            AbstractFeature.set_value(self, len([x for x in back_props if x < threshold]) / float(len(cand['tokens'])))
         else:
-             AbstractFeature.set_value(self, -1)
+            AbstractFeature.set_value(self, -1)
 
 
 class Bleu(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'bleu')
@@ -4741,7 +4620,6 @@ class Bleu(AbstractFeature):
 
 
 class Meteor(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'meteor')
@@ -4752,22 +4630,29 @@ class Meteor(AbstractFeature):
 
 
 class Cobalt(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'cobalt')
         AbstractFeature.set_description(self, "Cobalt score")
 
     def run(self, cand, ref):
-
         my_scorer = Scorer()
         word_level_scores = my_scorer.word_scores(cand['parse'], ref['parse'], cand['alignments'])
         score = my_scorer.sentence_score_cobalt(cand['parse'], ref['parse'], cand['alignments'], word_level_scores)
         AbstractFeature.set_value(self, score)
 
 
-class VizWordQuest(AbstractFeature):
+class Cobalt(AbstractFeature):
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'cobalt_from_file')
+        AbstractFeature.set_description(self, "Cobalt scores read from file")
 
+    def run(self, cand, ref):
+        AbstractFeature.set_value(self, cand['cobalt'])
+
+
+class VizWordQuest(AbstractFeature):
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'viz_word_quest')
@@ -4783,14 +4668,13 @@ class VizWordQuest(AbstractFeature):
             return
 
         for i, word in enumerate(cand['tokens']):
-            print(word + '\t' + str(cand['quest_word'][i]['WCE1015']) + '\t' + str(cand['quest_word'][i]['WCE1041']) +\
-            '\t' + str((cand['quest_word'][i]['WCE1015'] + cand['quest_word'][i]['WCE1041'])/float(2)))
+            print(word + '\t' + str(cand['quest_word'][i]['WCE1015']) + '\t' + str(cand['quest_word'][i]['WCE1041']) + \
+                  '\t' + str((cand['quest_word'][i]['WCE1015'] + cand['quest_word'][i]['WCE1041']) / float(2)))
 
         AbstractFeature.set_value(self, 'NaN')
 
 
 class AvgDistanceNonAlignedTest(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'avg_distance_non_aligned_test')
@@ -4804,7 +4688,6 @@ class AvgDistanceNonAlignedTest(AbstractFeature):
         for i, word in enumerate(cand['tokens'], start=1):
 
             if i not in [x[0] for x in cand['alignments'][0]]:
-
                 non_aligned.append(i)
 
         if not len(non_aligned) > 1:
@@ -4818,11 +4701,10 @@ class AvgDistanceNonAlignedTest(AbstractFeature):
             else:
                 break
 
-        AbstractFeature.set_value(self, numpy.sum(distances)/len(distances))
+        AbstractFeature.set_value(self, numpy.sum(distances) / len(distances))
 
 
 class AvgDistanceNonAlignedReference(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'avg_distance_non_aligned_reference')
@@ -4836,7 +4718,6 @@ class AvgDistanceNonAlignedReference(AbstractFeature):
         for i, word in enumerate(ref['tokens'], start=1):
 
             if i not in [x[0] for x in cand['alignments'][0]]:
-
                 non_aligned.append(i)
 
         if not len(non_aligned) > 1:
@@ -4850,15 +4731,15 @@ class AvgDistanceNonAlignedReference(AbstractFeature):
             else:
                 break
 
-        AbstractFeature.set_value(self, numpy.sum(distances)/len(distances))
+        AbstractFeature.set_value(self, numpy.sum(distances) / len(distances))
 
 
 class MedianCosineDifference(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'median_cosine_difference')
-        AbstractFeature.set_description(self, "Median cosine similarity between adjacent words in the candidate vs in the reference")
+        AbstractFeature.set_description(self,
+                                        "Median cosine similarity between adjacent words in the candidate vs in the reference")
 
     def run(self, cand, ref):
 
@@ -4892,14 +4773,14 @@ class MedianCosineDifference(AbstractFeature):
             if i >= len(content_words_indexes) - 1:
                 break
 
-            sim = dot(matutils.unitvec(sentence_object['word_vectors'][idx]), matutils.unitvec(sentence_object['word_vectors'][content_words_indexes[i + 1]]))
+            sim = dot(matutils.unitvec(sentence_object['word_vectors'][idx]),
+                      matutils.unitvec(sentence_object['word_vectors'][content_words_indexes[i + 1]]))
             similarities.append(sim)
 
         return similarities
 
 
 class MedianCosineCandidate(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'median_cosine_candidate')
@@ -4920,11 +4801,11 @@ class MedianCosineCandidate(AbstractFeature):
 
 
 class MedianCosineReference(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'median_cosine_reference')
-        AbstractFeature.set_description(self, "Median cosine similarity between adjacent words in the reference translation")
+        AbstractFeature.set_description(self,
+                                        "Median cosine similarity between adjacent words in the reference translation")
 
     def run(self, cand, ref):
 
@@ -4941,11 +4822,11 @@ class MedianCosineReference(AbstractFeature):
 
 
 class MedianCosineCandidateNonAligned(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'median_cosine_candidate_non_aligned')
-        AbstractFeature.set_description(self, "Median cosine similarity between adjacent words in the candidate for non-aligned words")
+        AbstractFeature.set_description(self,
+                                        "Median cosine similarity between adjacent words in the candidate for non-aligned words")
 
     def run(self, cand, ref):
 
@@ -4999,12 +4880,15 @@ class MedianCosineCandidateNonAligned(AbstractFeature):
 
         similarities = []
         for context_words_idx in context_words_idxs:
-            similarity = dot(matutils.unitvec(sentence_object['word_vectors'][target_word_idx]), matutils.unitvec(sentence_object['word_vectors'][context_words_idx]))
+            similarity = dot(matutils.unitvec(sentence_object['word_vectors'][target_word_idx]),
+                             matutils.unitvec(sentence_object['word_vectors'][context_words_idx]))
             similarities.append(similarity)
-            print("Candidate word: " + sentence_object['tokens'][target_word_idx] + " similarity to context word " + sentence_object['tokens'][context_words_idx] + " is " + str(similarity))
+            print("Candidate word: " + sentence_object['tokens'][target_word_idx] + " similarity to context word " +
+                  sentence_object['tokens'][context_words_idx] + " is " + str(similarity))
 
         average = numpy.mean(similarities)
-        print("Average context similarity for the word " + sentence_object['tokens'][target_word_idx] + " is " + str(average))
+        print("Average context similarity for the word " + sentence_object['tokens'][target_word_idx] + " is " + str(
+            average))
         return average
 
     @staticmethod
@@ -5019,38 +4903,34 @@ class MedianCosineCandidateNonAligned(AbstractFeature):
 
 
 class CosineSimilarity(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'cosine_similarity')
         AbstractFeature.set_description(self, "Cosine similarity between candidate and reference sentence vectors")
 
     def run(self, cand, ref):
-
-        AbstractFeature.set_value(self, dot(matutils.unitvec(cand['sent_vector']), matutils.unitvec(ref['sent_vector'])))
+        AbstractFeature.set_value(self,
+                                  dot(matutils.unitvec(cand['sent_vector']), matutils.unitvec(ref['sent_vector'])))
 
 
 class EuclidDistance(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'euclid_distance')
-        AbstractFeature.set_description(self, "Euclidean distance (L2) between candidate and reference sentence vectors")
+        AbstractFeature.set_description(self,
+                                        "Euclidean distance (L2) between candidate and reference sentence vectors")
 
     def run(self, cand, ref):
-
         AbstractFeature.set_value(self, distance.euclidean(cand['sent_vector'], ref['sent_vector']))
 
 
 class L1Distance(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'l1_distance')
         AbstractFeature.set_description(self, "L1 distance between candidate and reference sentence vectors")
 
     def run(self, cand, ref):
-
         distances = []
 
         for i, val in enumerate(cand['sent_vector']):
@@ -5060,18 +4940,17 @@ class L1Distance(AbstractFeature):
 
 
 class RandomNumber(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'random_number')
-        AbstractFeature.set_description(self, "Generates random numbers, may be used to test feature selection algorithms")
+        AbstractFeature.set_description(self,
+                                        "Generates random numbers, may be used to test feature selection algorithms")
 
     def run(self, cand, ref):
         AbstractFeature.set_value(self, numpy.random.uniform(0.0, 1.0))
 
 
 class CountWordsAlignedInWrongOrderRef(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'count_words_aligned_in_wrong_order_ref')
@@ -5091,7 +4970,6 @@ class CountWordsAlignedInWrongOrderRef(AbstractFeature):
 
 
 class CountWordsAlignedInWrongOrderCand(AbstractFeature):
-
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'count_words_aligned_in_wrong_order_cand')
