@@ -8,6 +8,7 @@ from src.alignment.aligner import stopwords
 from src.alignment.aligner import punctuations
 from src.utils.cobalt_align_reader import CobaltAlignReader
 from src.utils.meteor_align_reader import MeteorAlignReader
+from src.utils.prepare_wmt import PrepareWmt
 import codecs
 import os
 import subprocess
@@ -359,7 +360,11 @@ class Bleu(AbstractProcessor):
         AbstractProcessor.set_name(self, 'bleu')
         AbstractProcessor.set_output(self, True)
 
-    def run(self, config):
+    def run(self, config, from_file=False):
+
+        if from_file is True:
+            print("Feature values will be read from file")
+            return
 
         src_path = os.path.expanduser(config.get('Data', 'src'))
         tgt_path = os.path.expanduser(config.get('Data', 'tgt'))
@@ -383,15 +388,37 @@ class Bleu(AbstractProcessor):
                          '-s', src_path + '.xml'], stdout=o)
         o.close()
 
-    def get(self, config):
+    def get(self, config, from_file=False):
 
         result = []
-        tgt_path = os.path.expanduser(config.get('Data', 'tgt'))
-        scores_file = os.path.expanduser(config.get('Metrics', 'dir')) + '/' + tgt_path.split('/')[-1] + '.bleu.scores'
-        for line in open(scores_file).readlines():
-            if not line.startswith('  BLEU'):
-                continue
-            result.append(float(re.sub(r'^.+= ([01]\.[0-9]+).+$', r'\1', line.strip())))
+
+        if from_file is True:
+            result = PrepareWmt.read_wmt_format_into_features_data(config, self.get_name())
+        else:
+            tgt_path = os.path.expanduser(config.get('Data', 'tgt'))
+            scores_file = os.path.expanduser(config.get('Metrics', 'dir')) + '/' + tgt_path.split('/')[-1] + '.bleu.scores'
+            for line in open(scores_file).readlines():
+                if not line.startswith('  BLEU'):
+                    continue
+                result.append(float(re.sub(r'^.+= ([01]\.[0-9]+).+$', r'\1', line.strip())))
+
+        AbstractProcessor.set_result_tgt(self, result)
+        AbstractProcessor.set_result_ref(self, result)
+
+
+class CobaltScorer(AbstractProcessor):
+    def __init__(self):
+        AbstractProcessor.__init__(self)
+        AbstractProcessor.set_name(self, 'cobalt')
+        AbstractProcessor.set_output(self, True)
+
+    def run(self, config, from_file=True):
+        print("Feature values will be read from file")
+        return
+
+    def get(self, config, from_file=True):
+
+        result = PrepareWmt.read_wmt_format_into_features_data(config, self.get_name())
 
         AbstractProcessor.set_result_tgt(self, result)
         AbstractProcessor.set_result_ref(self, result)
@@ -404,7 +431,11 @@ class MeteorScorer(AbstractProcessor):
         AbstractProcessor.set_name(self, 'meteor')
         AbstractProcessor.set_output(self, True)
 
-    def run(self, config):
+    def run(self, config, from_file=False):
+
+        if from_file is True:
+            print("Feature values will be read from file")
+            return
 
         tgt_path = os.path.expanduser(config.get('Data', 'tgt'))
         ref_path = os.path.expanduser(config.get('Data', 'ref'))
@@ -421,16 +452,20 @@ class MeteorScorer(AbstractProcessor):
         subprocess.call(['java', '-Xmx2G', '-jar', meteor, tgt_path, ref_path, '-l', lang, '-norm'], stdout=o)
         o.close()
 
-    def get(self, config):
+    def get(self, config, from_file=False):
 
         result = []
-        tgt_path = os.path.expanduser(config.get('Data', 'tgt'))
-        scores_file = os.path.expanduser(config.get('Metrics', 'dir')) + '/' + tgt_path.split('/')[-1] + '.meteor.scores'
 
-        for line in open(scores_file).readlines():
-            if not line.startswith('Segment '):
-                continue
-            result.append(float(line.strip().split('\t')[1]))
+        if from_file is True:
+            result = PrepareWmt.read_wmt_format_into_features_data(config, self.get_name())
+        else:
+            tgt_path = os.path.expanduser(config.get('Data', 'tgt'))
+            scores_file = os.path.expanduser(config.get('Metrics', 'dir')) + '/' + tgt_path.split('/')[-1] + '.meteor.scores'
+
+            for line in open(scores_file).readlines():
+                if not line.startswith('Segment '):
+                    continue
+                result.append(float(line.strip().split('\t')[1]))
 
         AbstractProcessor.set_result_tgt(self, result)
         AbstractProcessor.set_result_ref(self, result)

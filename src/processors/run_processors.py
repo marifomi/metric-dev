@@ -35,11 +35,16 @@ class RunProcessors(object):
 
             instance = my_class()
 
+            from_file = False
+
+            if instance.__class__.__name__ in loads(self.config.get('Resources', 'from_file')):
+                from_file = True
+
             print('Running ' + instance.get_name())
-            instance.run(self.config)
+            instance.run(self.config, from_file=from_file)
 
             print('Getting ' + instance.get_name())
-            instance.get(self.config)
+            instance.get(self.config, from_file=from_file)
 
             print(instance.get_name() + ' ' + 'finished!')
 
