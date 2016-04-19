@@ -435,7 +435,7 @@ class PropAlignedFunctionReference(AbstractFeature):
 class CobaltPropExactLexExactPos(AbstractFeature):
     def __init__(self):
         AbstractFeature.__init__(self)
-        AbstractFeature.set_name(self, 'cobalt_prop_exact_lex_exact_pos')
+        AbstractFeature.set_name(self, 'prop_exact_lex_exact_pos')
         AbstractFeature.set_description(self,
                                         "Proportion of aligned words with exact lexical match and exact POS match")
         AbstractFeature.set_group(self, "cobalt_lexical_similarity")
