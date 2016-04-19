@@ -697,7 +697,7 @@ class Tokenizer(AbstractProcessor):
 
         # Using quest tokenizer
 
-        tokenizer = config.get('Tokenizer', 'path')
+        tokenizer = os.path.expanduser(config.get('Tokenizer', 'path'))
         language = config.get('Settings', 'tgt_lang')
 
         path_output_tgt = os.path.expanduser(config.get('Data', 'tgt')) + '.token'
