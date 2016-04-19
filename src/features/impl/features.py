@@ -3468,7 +3468,7 @@ class LongestNgramMin(AbstractFeature):
             if word.lower().isdigit():
                 continue
 
-            if cand['tokens'][i] in config.stopwords:
+            if cand['tokens'][i] in config.cobalt_stopwords:
                 penalty1 = 0.3
 
         if cnt > 0:
@@ -4642,7 +4642,7 @@ class Cobalt(AbstractFeature):
         AbstractFeature.set_value(self, score)
 
 
-class Cobalt(AbstractFeature):
+class CobaltFromFile(AbstractFeature):
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'cobalt_from_file')
