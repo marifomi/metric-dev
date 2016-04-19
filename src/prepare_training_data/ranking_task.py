@@ -39,10 +39,9 @@ class RankingTask(object):
             process_wmt_parse.print_data_set(self.config, data_structure_parse)
 
         f_judgements = self.config.get('WMT', 'human_ranking')
-        maximum_segments = int(self.config.get('WMT', 'maximum_segments'))
+        maximum_comparisons = int(self.config.get('WMT', 'maximum_comparisons'))
         human_rankings = HumanRanking()
-        human_rankings.add_human_data(f_judgements, self.config, max_segments=maximum_segments)
-        human_rankings.clean_data(self.config)
+        human_rankings.add_human_data(f_judgements, self.config, max_comparisons=maximum_comparisons)
 
         process = RunProcessors(self.config)
         sents_tgt, sents_ref = process.run_processors()
@@ -306,12 +305,11 @@ class RankingTask(object):
         estimator = joblib.load(config.get('Learner', 'models') + '/' + 'logistic.pkl')
         return [x[0] for x in estimator.predict_proba(x_test)]
 
-    def evaluate_predicted(self, predicted, gold_class_labels, score='accuracy'):
-        if score == 'accuracy':
-            print("The accuracy score is " + str(accuracy_score(gold_class_labels, predicted)))
-            print("Kendall Tau is " + str(self.kendall_tau_direct(gold_class_labels, predicted, variant='wmt14')))
-        else:
-            print("Error! Unknown type of error metric!")
+    def evaluate_predicted(self, predicted, gold_class_labels):
+        output_file = open('test_result.out', 'w')
+        output_file.write("The accuracy score is " + str(accuracy_score(gold_class_labels, predicted)) + '\n')
+        output_file.write("Kendall Tau is " + str(self.kendall_tau_direct(gold_class_labels, predicted, variant='wmt14')) + '\n')
+        output_file.close()
 
     @staticmethod
     def get_instance(winner_feature_values, loser_feature_values):
