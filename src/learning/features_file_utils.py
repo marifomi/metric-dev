@@ -121,6 +121,24 @@ def write_lines_to_file(file_path, lines):
             f.write(line)
     f.close()
 
+def concatenate_features_files(file_paths):
+
+    feature_arrays = []
+    for fp in file_paths:
+        feature_arrays.append(read_features_file(fp, "\t"))
+
+    return np.concatenate(feature_arrays, axis=1)
+
+def write_feature_file(output_path, feature_matrix):
+
+    output_file = codecs.open(output_path, 'w', 'utf-8')
+    for row in feature_matrix:
+        output_file.write('\t'.join([str(x) for x in row]) + '\n')
+    output_file.close()
+
 
 if __name__ == '__main__':
+
     pass
+
+
