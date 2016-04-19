@@ -286,6 +286,9 @@ class PrepareWmt(object):
         if data_set == 'newstest2014':
             reference_path = my_directory + '/' + data_set + '-' + 'ref' + '.' + lang_pair
 
+        if data_set == 'newstest2013':
+            reference_path = my_directory + '/' + data_set + '-' + 'ref' + '.' + lang_pair.split('-')[1]
+
         if self.data_type == 'parse':
             reference_path = reference_path.replace('plain', 'parse')
             reference_path += '.' + 'out'
@@ -325,6 +328,10 @@ class PrepareWmt(object):
 
         system_file = system_file.replace('.txt', '')
         system_file = system_file.replace(data_set, '')
+
+        if data_set == 'newstest2013':
+            return '.'.join(system_file.split('.')[2:])
+
         if data_set == 'newstest2014':
             return '.'.join(system_file.split('.')[1:-1])
 
