@@ -42,7 +42,6 @@ class RankingTask(object):
         maximum_segments = int(self.config.get('WMT', 'maximum_segments'))
         human_rankings = HumanRanking()
         human_rankings.add_human_data(f_judgements, self.config, max_segments=maximum_segments)
-        human_rankings.clean_data(self.config)
 
         process = RunProcessors(self.config)
         sents_tgt, sents_ref = process.run_processors()
