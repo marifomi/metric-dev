@@ -39,8 +39,9 @@ class RankingTask(object):
             process_wmt_parse.print_data_set(self.config, data_structure_parse)
 
         f_judgements = self.config.get('WMT', 'human_ranking')
+        maximum_segments = int(self.config.get('WMT', 'maximum_segments'))
         human_rankings = HumanRanking()
-        human_rankings.add_human_data(f_judgements, self.config)
+        human_rankings.add_human_data(f_judgements, self.config, max_segments=maximum_segments)
         human_rankings.clean_data(self.config)
 
         process = RunProcessors(self.config)
