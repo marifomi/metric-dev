@@ -509,11 +509,15 @@ class MeteorAligner(AbstractProcessor):
         meteor = os.path.expanduser(config.get('Metrics', 'meteor'))
         lang = config.get('Settings', 'tgt_lang')
 
-        subprocess.call(['java', '-Xmx2G', '-jar', meteor, tgt_path, ref_path, '-l', lang,
+        if os.path.exists(tgt_path + '.' + 'token'):
+            print("Meteor will not run the tokenizer! Data is already tokenized! ")
+            subprocess.call(['java', '-Xmx2G', '-jar', meteor, tgt_path + '.' + 'token', ref_path + '.' + 'token', '-l', lang,
+                             '-lower', '-writeAlignments', '-f', prefix])
+        else:
+            print("Meteor will run the tokenizer! Data is not yet tokenized! ")
+            subprocess.call(['java', '-Xmx2G', '-jar', meteor, tgt_path, ref_path, '-l', lang,
                          '-norm', '-writeAlignments', '-f', prefix])
 
-        # subprocess.call(['java', '-Xmx2G', '-jar', meteor, tgt_path + '.' + 'token', ref_path + '.' + 'token', '-l', lang,
-        #                  '-lower', '-writeAlignments', '-f', prefix])
 
     def get(self, config, from_file=False):
 
