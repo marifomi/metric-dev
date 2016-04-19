@@ -4336,7 +4336,7 @@ class ContextMatch(AbstractFeature):
         AbstractFeature.set_name(self, 'context_match')
         AbstractFeature.set_description(self,
                                         "Number of cases with non-aligned function words in exactly matching contexts")
-        AbstractFeature.set_group(self, "miscellaneous")
+        AbstractFeature.set_group(self, "context")
 
     def run(self, cand, ref):
 
@@ -4394,7 +4394,7 @@ class MatchContextSimilarity(AbstractFeature):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'match_context_similarity')
         AbstractFeature.set_description(self, "Cosine similarity between words occurring in exactly matching contexts")
-        AbstractFeature.set_group(self, "miscellaneous")
+        AbstractFeature.set_group(self, "context")
 
     def run(self, cand, ref):
 
