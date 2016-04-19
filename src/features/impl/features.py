@@ -435,7 +435,7 @@ class PropAlignedFunctionReference(AbstractFeature):
 class CobaltPropExactLexExactPos(AbstractFeature):
     def __init__(self):
         AbstractFeature.__init__(self)
-        AbstractFeature.set_name(self, 'cobalt_prop_exact_lex_exact_pos')
+        AbstractFeature.set_name(self, 'prop_exact_lex_exact_pos')
         AbstractFeature.set_description(self,
                                         "Proportion of aligned words with exact lexical match and exact POS match")
         AbstractFeature.set_group(self, "cobalt_lexical_similarity")
@@ -4336,7 +4336,7 @@ class ContextMatch(AbstractFeature):
         AbstractFeature.set_name(self, 'context_match')
         AbstractFeature.set_description(self,
                                         "Number of cases with non-aligned function words in exactly matching contexts")
-        AbstractFeature.set_group(self, "miscellaneous")
+        AbstractFeature.set_group(self, "context")
 
     def run(self, cand, ref):
 
@@ -4394,7 +4394,7 @@ class MatchContextSimilarity(AbstractFeature):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'match_context_similarity')
         AbstractFeature.set_description(self, "Cosine similarity between words occurring in exactly matching contexts")
-        AbstractFeature.set_group(self, "miscellaneous")
+        AbstractFeature.set_group(self, "context")
 
     def run(self, cand, ref):
 

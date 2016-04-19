@@ -17,7 +17,7 @@ class HumanRanking(defaultdict):
     def __init__(self):
         defaultdict.__init__(self, list)
 
-    def add_human_data(self, f_judgments, config, max_segments=None):
+    def add_human_data(self, f_judgments, config, max_comparisons=None):
 
         counter = 1
 
@@ -27,7 +27,7 @@ class HumanRanking(defaultdict):
 
         for line in DictReader(ranks):
 
-            if max_segments and counter > max_segments:
+            if max_comparisons and counter > max_comparisons:
                 return
 
             direction = self.get_direction(line)
@@ -38,7 +38,7 @@ class HumanRanking(defaultdict):
             dataset = self.get_dataset(line)
             segment = self.get_segment(line)
             systems_ranks = self.get_system_ranks(line, dataset, direction)
-            systems_ranks.sort(key = lambda x: x.id.lower())
+            systems_ranks.sort(key=lambda x: x.id.lower())
 
             # Extract all comparisons (Making sure that two systems are extracted only once)
             # Also the extracted relation '<' means "is better than"
@@ -53,7 +53,7 @@ class HumanRanking(defaultdict):
                 ]
 
             self[dataset, direction] += extracted_comparisons
-            counter += 1
+            counter += len(extracted_comparisons)
 
     def clean_data(self, config):
 
