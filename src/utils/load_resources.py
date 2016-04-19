@@ -25,7 +25,7 @@ def load_ppdb(ppdbFileName):
 
 def load_word_vectors(vectorsFileName, delimiter=' '):
 
-    vector_file = open(vectorsFileName, 'r')
+    vector_file = open(os.path.expanduser(vectorsFileName), 'r')
 
     for line in vector_file:
         if line == '\n':
