@@ -36,8 +36,8 @@ class ScoringTask():
 
         data_set = self.config.get('Settings', 'dataset')
 
-        f_features = open(os.path.expanduser(self.config.get('Data', 'output_dir')) + '/' + 'x_' + data_set, 'w')
-        f_objective = open(os.path.expanduser(self.config.get('Data', 'output_dir')) + '/' + 'y_' + data_set, 'w')
+        f_features = open(os.path.expanduser(self.config.get('Data', 'output_dir')) + '/' + 'x_' + data_set + '.tsv', 'w')
+        f_objective = open(os.path.expanduser(self.config.get('Data', 'output_dir')) + '/' + 'y_' + data_set + '.tsv', 'w')
 
         for i, score in enumerate(human_scores):
             f_objective.write(str(score) + '\n')
