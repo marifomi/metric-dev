@@ -98,6 +98,60 @@ class PosLangModel(AbstractProcessor):
         AbstractProcessor.set_result_tgt(self, result)
         AbstractProcessor.set_result_ref(self, result)
 
+
+class POSTaggerParse(AbstractProcessor):
+
+    def __init__(self):
+        AbstractProcessor.__init__(self)
+        AbstractProcessor.set_name(self, 'pos_tagger_parse')
+        AbstractProcessor.set_output(self, None)
+
+    def run(self, config, from_file=False):
+
+        result_tgt = read_parsed_sentences(codecs.open(os.path.expanduser(config.get('Data', 'tgt') + '.' + 'parse'), 'r', 'utf-8'))
+        result_ref = read_parsed_sentences(codecs.open(os.path.expanduser(config.get('Data', 'ref') + '.' + 'parse'), 'r', 'utf-8'))
+
+        output_tgt = codecs.open(os.path.expanduser(config.get('Data', 'tgt')) + '.' + 'pos', 'w', 'utf-8')
+        output_ref = codecs.open(os.path.expanduser(config.get('Data', 'ref')) + '.' + 'pos', 'w', 'utf-8')
+
+        for sent in result_tgt:
+            pos_tags = [x.pos for x in prepareSentence2(sent)]
+            output_tgt.write(' '.join(pos_tags) + '\n')
+
+        for sent in result_ref:
+            pos_tags = [x.pos for x in prepareSentence2(sent)]
+            output_ref.write(' '.join(pos_tags) + '\n')
+
+        output_tgt.close()
+        output_ref.close()
+
+    def get(self, config, from_file=False):
+        pass
+
+    @staticmethod
+    def treetagger_stanford_tags(tag):
+
+        if tag == "NNPS":
+            return "NPS"
+
+        if tag == "NNP":
+            return "NP"
+
+        if tag == "PRP":
+            return "PP"
+
+        if tag == "PRP$":
+            return "PP$"
+
+        if tag in [".", "?", "!"]:
+            return "SENT"
+
+        new_tag = tag.replace("-LRB-", "(")
+        new_tag = new_tag.replace("-RRB-", ")")
+
+        return new_tag
+
+
 class PosTagger(AbstractProcessor):
 
     def __init__(self):
@@ -479,7 +533,7 @@ class Paraphrases(AbstractProcessor):
         AbstractProcessor.set_output(self, None)
 
     def run(self, config, from_file=False):
-        load_ppdb(config.get("Paraphrases", "path"))
+        load_ppdb(os.path.expanduser(config.get("Paraphrases", "path")))
 
     def get(self, config, from_file=False):
         pass
@@ -1032,6 +1086,111 @@ class LanguageModelSentenceFeatures(AbstractProcessor):
     def get(self, config, from_file=False):
 
         ppl_file = open(os.path.expanduser(config.get('Data', 'tgt')) + '.' + 'token' + '.' + 'ppl', 'r')
+
+        result = []
+        tmp = []
+
+        for line in ppl_file:
+            if config.get('Data', 'tgt') in line:
+                break
+            if 'OOVs' in line:
+                tmp.append(int(line.strip().split(' ')[4]))
+            if 'logprob' in line:
+                tmp += [float(line.strip().split(' ')[3]), float(line.strip().split(' ')[5])]
+                result.append(tmp)
+                tmp = []
+
+        ppl_file.close()
+
+        AbstractProcessor.set_result_tgt(self, result)
+        AbstractProcessor.set_result_ref(self, result)
+
+
+class POSLanguageModelWordFeatures(AbstractProcessor):
+
+    def __init__(self):
+        AbstractProcessor.__init__(self)
+        AbstractProcessor.set_name(self, 'pos_language_model_word_features')
+        AbstractProcessor.set_output(self, True)
+
+    def run(self, config, from_file=False):
+
+        tgt_path = os.path.expanduser(config.get('Data', 'tgt')) + '.' + 'pos'
+        output_path = tgt_path + '.' + 'ppl2'
+        lm = os.path.expanduser(config.get('Language Model', 'pos_path'))
+        ngram_size = config.get('Language Model', 'pos_ngram_size')
+        srilm = os.path.expanduser(config.get('Language Model', 'srilm'))
+
+        if os.path.exists(output_path):
+            print('File with lm perplexities already exist')
+            return
+
+        my_output = open(output_path, 'w')
+
+        SRILM = [srilm + '/' + 'ngram', '-lm', lm, '-order', ngram_size, '-debug', str(2), '-ppl', tgt_path]
+        subprocess.check_call(SRILM, stdout=my_output)
+
+    def get(self, config, from_file=False):
+
+        ppl_file = open(os.path.expanduser(config.get('Data', 'tgt')) + '.' + 'pos' + '.' + 'ppl2', 'r')
+
+        result = []
+        tmp = []
+
+        lines = ppl_file.readlines()
+
+        for i, line in enumerate(lines):
+            if line.startswith('\n'):
+                result.append(tmp)
+                tmp = []
+            elif 'p( ' in line:
+                if 'p( </s> |' in line:
+                    continue
+                if 'OOV' in line:
+                    tmp.append([np.nan, np.nan])
+                elif '<s>' in line:
+                    tmp.append([np.nan, np.nan])
+                else:
+                    ngram = int(re.sub(r'\[([1-4])gram\]', r'\1', line.strip().split(' ')[6]))
+                    prob = float(line.strip().split(' ')[7])
+                    tmp.append([prob, ngram])
+            else:
+                continue
+        if len(tmp) > 0:
+            result.append(tmp)
+
+        AbstractProcessor.set_result_tgt(self, result)
+        AbstractProcessor.set_result_ref(self, result)
+
+class POSLanguageModelSentenceFeatures(AbstractProcessor):
+
+    # Language model sentence features extracted using SRILM: oov, probability, perplexity
+
+    def __init__(self):
+        AbstractProcessor.__init__(self)
+        AbstractProcessor.set_name(self, 'pos_language_model_sentence_features')
+        AbstractProcessor.set_output(self, True)
+
+    def run(self, config, from_file=False):
+
+        tgt_path = os.path.expanduser(config.get('Data', 'tgt') + '.' + 'pos')
+        output_path = tgt_path + '.' + 'ppl'
+        lm = os.path.expanduser(config.get('Language Model', 'pos_path'))
+        ngram_size = config.get('Language Model', 'pos_ngram_size')
+        srilm = os.path.expanduser(config.get('Language Model', 'srilm'))
+
+        if os.path.exists(output_path):
+            print('File with lm perplexities already exist')
+            return
+
+        my_output = open(output_path, 'w')
+
+        SRILM = [srilm + '/' + 'ngram', '-lm', lm, '-order', ngram_size, '-debug', str(1), '-ppl', tgt_path]
+        subprocess.check_call(SRILM, stdout=my_output)
+
+    def get(self, config, from_file=False):
+
+        ppl_file = open(os.path.expanduser(config.get('Data', 'tgt')) + '.' + 'pos' + '.' + 'ppl', 'r')
 
         result = []
         tmp = []
