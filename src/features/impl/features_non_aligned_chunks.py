@@ -320,7 +320,7 @@ class CountFunctionWordsInNonAlignedChunksRef(AbstractChunkFeature):
                 if prev is None:
                     prev = 0
                 for j in range(prev, i - prev - 1):
-                    if word_sim.functionWord(ref['tokens'][j]):
+                    if word_sim.function_word(ref['tokens'][j]):
                         count += 1
                 counted.append(count)
             if len(counted) == AbstractChunkFeature.chunk_number:
@@ -333,7 +333,7 @@ class CountFunctionWordsInNonAlignedChunksRef(AbstractChunkFeature):
         if prev < len(ref['tokens']) and len(counted) < AbstractChunkFeature.chunk_number:
             count = 0
             for j in range(prev, len(ref['tokens']) - 1):
-                if word_sim.functionWord(ref['tokens'][j]):
+                if word_sim.function_word(ref['tokens'][j]):
                     count += 1
             counted.append(count)
 
@@ -366,7 +366,7 @@ class CountFunctionWordsInNonAlignedChunksCand(AbstractChunkFeature):
                 if prev is None:
                     prev = 0
                 for j in range(prev, i - prev - 1):
-                    if word_sim.functionWord(ref['tokens'][j]):
+                    if word_sim.function_word(ref['tokens'][j]):
                         count += 1
                 counted.append(count)
             if len(counted) == AbstractChunkFeature.chunk_number:
@@ -379,7 +379,7 @@ class CountFunctionWordsInNonAlignedChunksCand(AbstractChunkFeature):
         if prev < len(cand['tokens']) and len(counted) < AbstractChunkFeature.chunk_number:
             count = 0
             for j in range(prev, len(cand['tokens']) - 1):
-                if word_sim.functionWord(cand['tokens'][j]):
+                if word_sim.function_word(cand['tokens'][j]):
                     count += 1
             counted.append(count)
 
@@ -412,7 +412,7 @@ class CountContentWordsInNonAlignedChunksRef(AbstractChunkFeature):
                 if prev is None:
                     prev = 0
                 for j in range(prev, i - prev - 1):
-                    if not word_sim.functionWord(ref['tokens'][j]):
+                    if not word_sim.function_word(ref['tokens'][j]):
                         count += 1
                 counted.append(count)
             if len(counted) == AbstractChunkFeature.chunk_number:
@@ -425,7 +425,7 @@ class CountContentWordsInNonAlignedChunksRef(AbstractChunkFeature):
         if prev < len(ref['tokens']) and len(counted) < AbstractChunkFeature.chunk_number:
             count = 0
             for j in range(prev, len(ref['tokens']) - 1):
-                if not word_sim.functionWord(ref['tokens'][j]):
+                if not word_sim.function_word(ref['tokens'][j]):
                     count += 1
             counted.append(count)
 
@@ -458,7 +458,7 @@ class CountContentWordsInNonAlignedChunksCand(AbstractChunkFeature):
                 if prev is None:
                     prev = 0
                 for j in range(prev, i - prev - 1):
-                    if not word_sim.functionWord(ref['tokens'][j]):
+                    if not word_sim.function_word(ref['tokens'][j]):
                         count += 1
                 counted.append(count)
             if len(counted) == AbstractChunkFeature.chunk_number:
@@ -471,7 +471,7 @@ class CountContentWordsInNonAlignedChunksCand(AbstractChunkFeature):
         if prev < len(cand['tokens']) and len(counted) < AbstractChunkFeature.chunk_number:
             count = 0
             for j in range(prev, len(cand['tokens']) - 1):
-                if not word_sim.functionWord(cand['tokens'][j]):
+                if not word_sim.function_word(cand['tokens'][j]):
                     count += 1
             counted.append(count)
 

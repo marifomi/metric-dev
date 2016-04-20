@@ -278,13 +278,16 @@ class PrepareWmt(object):
 
         reference_path = str
 
-        my_directory = data_dir + '/' + 'references' + '/' + data_set
+        my_directory = data_dir + '/' + 'references'
 
         if data_set == 'newstest2015' or data_set == 'newsdiscusstest2015':
-            reference_path = my_directory + '/' + data_set + '-' + lang_pair.split('-')[0] + lang_pair.split('-')[1] + '-' + 'ref' + '.' + 'en'
+            reference_path = my_directory + '/' + data_set + '/' + data_set + '-' + lang_pair.split('-')[0] + lang_pair.split('-')[1] + '-' + 'ref' + '.' + 'en'
 
         if data_set == 'newstest2014':
-            reference_path = my_directory + '/' + data_set + '-' + 'ref' + '.' + lang_pair
+            reference_path = my_directory + '/' + data_set + '/' + data_set + '-' + 'ref' + '.' + lang_pair
+
+        if data_set == 'newstest2013':
+            reference_path = my_directory + '/' + data_set + '-' + 'ref' + '.' + lang_pair.split('-')[1]
 
         if self.data_type == 'parse':
             reference_path = reference_path.replace('plain', 'parse')
@@ -325,6 +328,10 @@ class PrepareWmt(object):
 
         system_file = system_file.replace('.txt', '')
         system_file = system_file.replace(data_set, '')
+
+        if data_set == 'newstest2013':
+            return '.'.join(system_file.split('.')[2:])
+
         if data_set == 'newstest2014':
             return '.'.join(system_file.split('.')[1:-1])
 
