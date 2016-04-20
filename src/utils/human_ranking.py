@@ -27,7 +27,7 @@ class HumanRanking(defaultdict):
 
         for line in DictReader(ranks):
 
-            if max_comparisons and counter > max_comparisons:
+            if max_comparisons > 0 and counter > max_comparisons:
                 return
 
             direction = self.get_direction(line)
