@@ -3949,6 +3949,44 @@ class PropShortNgramNonAligned(AbstractFeature):
         AbstractFeature.set_value(self, count / float(len(cand['tokens']) - len(cand['alignments'])))
 
 
+class POSPropLowProb(AbstractFeature):
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'pos_prop_low_prob')
+        AbstractFeature.set_description(self, "In progress...")
+        AbstractFeature.set_group(self, "fluency_features")
+
+    def run(self, cand, ref):
+
+        count = 0
+
+        for i, word in enumerate(cand['parse']):
+
+            if cand['pos_language_model_word_features'][i][0] < 0.1:
+                count += 1
+
+        AbstractFeature.set_value(self, count / float(len(cand['tokens'])))
+
+
+class POSCountLowProb(AbstractFeature):
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'pos_count_low_prob')
+        AbstractFeature.set_description(self, "In progress...")
+        AbstractFeature.set_group(self, "fluency_features")
+
+    def run(self, cand, ref):
+
+        count = 0
+
+        for i, word in enumerate(cand['parse']):
+
+            if cand['pos_language_model_word_features'][i][0] < 0.1:
+                count += 1
+
+        AbstractFeature.set_value(self, count)
+
+
 class PropShortNgram(AbstractFeature):
     def __init__(self):
         AbstractFeature.__init__(self)
@@ -4156,6 +4194,16 @@ class LangModProbSrilm(AbstractFeature):
     def run(self, cand, ref):
         AbstractFeature.set_value(self, cand['language_model_sentence_features'][1])
 
+class POSLangModProbSrilm(AbstractFeature):
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'pos_lang_mod_prob_srilm')
+        AbstractFeature.set_description(self, "POS language model log-probability using srilm")
+        AbstractFeature.set_group(self, "fluency_features")
+
+    def run(self, cand, ref):
+        AbstractFeature.set_value(self, cand['pos_language_model_sentence_features'][1])
+
 
 class LangModPerlexSrilm(AbstractFeature):
     def __init__(self):
@@ -4166,6 +4214,17 @@ class LangModPerlexSrilm(AbstractFeature):
 
     def run(self, cand, ref):
         AbstractFeature.set_value(self, cand['language_model_sentence_features'][2])
+
+
+class POSLangModPerplexSrilm(AbstractFeature):
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'pos_lang_mod_perplex_srilm')
+        AbstractFeature.set_description(self, "POS language model perplexity using srilm")
+        AbstractFeature.set_group(self, "fluency_features")
+
+    def run(self, cand, ref):
+        AbstractFeature.set_value(self, cand['pos_language_model_sentence_features'][2])
 
 
 class LangModProb(AbstractFeature):
