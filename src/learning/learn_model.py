@@ -29,6 +29,7 @@ from sklearn.linear_model.coordinate_descent import LassoCV
 from sklearn.linear_model.least_angle import LassoLarsCV, LassoLars
 from sklearn.linear_model.randomized_l1 import RandomizedLasso
 from sklearn.linear_model.logistic import LogisticRegression
+from sklearn.linear_model import LinearRegression
 from sklearn.metrics.classification import f1_score, precision_score, recall_score
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 from sklearn.svm.classes import SVR, SVC
@@ -302,6 +303,17 @@ def set_learning_method(config, X_train, y_train):
                                                verbose=False)
             else:
                 estimator = LogisticRegression()
+
+        elif method_name == "LinearRegression":
+            if p:
+                estimator = LinearRegression(fit_intercept=p.get('fit_intercept', True),
+                                             normalize=p.get('normalize', False),
+                                             copy_X=p.get('copy_X', True),
+                                             n_jobs=p.get('n_jobs', 1)
+                                             )
+
+            else:
+                estimator = LinearRegression()
                 
     return estimator, scorers
 
@@ -361,7 +373,10 @@ def fit_predict(config, X_train, y_train, X_test=None, y_test=None, ref_thd=None
 
         log.info("Evaluating prediction on the test set...")
         for scorer_name, scorer_func in scorers:
-            v = scorer_func(y_test, y_hat, average=None)
+            if scorer_name == 'f1_score':
+                v = scorer_func(y_test, y_hat, average=None)
+            else:
+                v = scorer_func(y_test, y_hat)
             log.info("%s = %s" % (scorer_name, v))
         log.info("Customized scores: ")
         try:
