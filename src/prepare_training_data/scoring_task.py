@@ -47,7 +47,7 @@ class ScoringTask():
         f_objective.close()
 
     @staticmethod
-    def predict(config_path):
+    def train_predict(config_path):
         predicted = learn_model.run(config_path)
         return predicted
 
