@@ -11,7 +11,7 @@ class CobaltAlignReader(object):
 
         for line in lines:
             if line.startswith('Sentence #'):
-                phrase = int(line.replace('Sentence #', ''))
+                phrase = int(line.strip().replace('Sentence #', ''))
 
                 if phrase > 1:
                     alignments.append([indexes, words, differences])
