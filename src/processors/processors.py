@@ -718,7 +718,8 @@ class Tokenizer(AbstractProcessor):
             words = []
 
             for item in parsed:
-                word = re.sub("``|''", "\"", item.form)
+                word = re.sub("", "-", item.form)
+                word = re.sub("``|''", "\"", word)
                 word = re.sub("-LRB-", "(", word)
                 word = re.sub("-RRB-", ")", word)
                 word = re.sub("-LSB-", "[", word)
