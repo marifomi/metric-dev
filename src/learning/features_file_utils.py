@@ -170,6 +170,26 @@ def write_feature_file(output_path, feature_matrix):
         output_file.write('\t'.join([str(x) for x in row]) + '\n')
     output_file.close()
 
+def combine_alignment_files(language_pairs, directory, file_name):
+
+    # Added method to combine alignment files for different languages in a single file
+
+    output_file = codecs.open(directory + "/" + file_name, "w", "utf-8")
+
+    count = 0
+
+    for language_pair in language_pairs:
+        lines = codecs.open(directory + "/" + language_pair + "/" + "we" + "/" + file_name, "r", "utf-8")
+
+        for line in lines:
+            if "Sentence #" in line:
+                count += 1
+                output_file.write("Sentence #" + str(count) + "\n")
+            else:
+                output_file.write(line)
+
+    output_file.close()
+
 
 if __name__ == '__main__':
 
