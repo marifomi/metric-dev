@@ -2665,9 +2665,12 @@ class BackoffNonAlignedAvg(AbstractFeature):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_non_aligned_avg')
         AbstractFeature.set_description(self, "Average on backoff behaviour for non-aligned words")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_alignment_quest")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['quest_word']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         backoffs = []
         cnt = 0
@@ -2690,13 +2693,17 @@ class BackoffNonAlignedAvg(AbstractFeature):
 
 
 class BackoffNonAlignedMin(AbstractFeature):
+
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_non_aligned_min')
         AbstractFeature.set_description(self, "Minimum on backoff behaviour for non-aligned words")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_alignment_quest")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['quest_word']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         backoffs = []
         cnt = 0
@@ -2723,9 +2730,12 @@ class BackoffNonAlignedMax(AbstractFeature):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_non_aligned_max')
         AbstractFeature.set_description(self, "Maximum on backoff behaviour for non-aligned words")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_alignment_quest")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['quest_word']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         backoffs = []
         cnt = 0
@@ -2752,9 +2762,12 @@ class BackoffNonAlignedMedian(AbstractFeature):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_non_aligned_median')
         AbstractFeature.set_description(self, "Median on backoff behaviour for non-aligned words")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_alignment_quest")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['quest_word']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         backoffs = []
         cnt = 0
@@ -2781,9 +2794,12 @@ class BackoffNonAlignedMode(AbstractFeature):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_non_aligned_mode')
         AbstractFeature.set_description(self, "Mode on backoff behaviour for non-aligned words")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_alignment_quest")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['quest_word']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         backoffs = []
         cnt = 0
@@ -2819,9 +2835,12 @@ class BackoffBackNonAlignedAvg(AbstractFeature):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_back_non_aligned_avg')
         AbstractFeature.set_description(self, "Average on back-off behaviour of backward lm for non-aligned words")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_alignment_quest")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['quest_word']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         backoffs = []
         cnt = 0
@@ -2848,9 +2867,12 @@ class BackoffBackNonAlignedMin(AbstractFeature):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_back_non_aligned_min')
         AbstractFeature.set_description(self, "Minimum on back-off behaviour of backward lm for non-aligned words")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_alignment_quest")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['quest_word']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         backoffs = []
         cnt = 0
@@ -2877,9 +2899,12 @@ class BackoffBackNonAlignedMax(AbstractFeature):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_back_non_aligned_max')
         AbstractFeature.set_description(self, "Maximum on back-off behaviour of backward lm for non-aligned words")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_alignment_quest")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['quest_word']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         backoffs = []
         cnt = 0
@@ -2906,9 +2931,12 @@ class BackoffBackNonAlignedMedian(AbstractFeature):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_back_non_aligned_median')
         AbstractFeature.set_description(self, "Median on back-off behaviour of backward lm for non-aligned words")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_alignment_quest")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['quest_word']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         backoffs = []
         cnt = 0
@@ -2935,9 +2963,12 @@ class BackoffBackNonAlignedMode(AbstractFeature):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_back_non_aligned_mode')
         AbstractFeature.set_description(self, "Mode on back-off behaviour of backward lm for non-aligned words")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_alignment_quest")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['quest_word']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         backoffs = []
         cnt = 0
@@ -2973,9 +3004,12 @@ class BackoffAvg(AbstractFeature):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_avg')
         AbstractFeature.set_description(self, "Average on backoff behaviour for all words")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_quest")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['quest_word']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         backoffs = []
 
@@ -3002,9 +3036,12 @@ class BackoffMin(AbstractFeature):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_min')
         AbstractFeature.set_description(self, "Minimum on backoff behaviour for all words")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_quest")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['quest_word']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         backoffs = []
         cnt = 0
@@ -3030,9 +3067,12 @@ class BackoffMax(AbstractFeature):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_max')
         AbstractFeature.set_description(self, "Maximum on backoff behaviour for non-aligned words")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_quest")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['quest_word']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         backoffs = []
         cnt = 0
@@ -3058,9 +3098,12 @@ class BackoffMedian(AbstractFeature):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_median')
         AbstractFeature.set_description(self, "Median on backoff behaviour for all words")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_quest")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['quest_word']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         backoffs = []
         cnt = 0
@@ -3086,9 +3129,12 @@ class BackoffMode(AbstractFeature):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_mode')
         AbstractFeature.set_description(self, "Mode on backoff behaviour for all words")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_quest")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['quest_word']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         backoffs = []
         cnt = 0
@@ -3123,9 +3169,12 @@ class BackoffBackAvg(AbstractFeature):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_back_avg')
         AbstractFeature.set_description(self, "Average on back-off behaviour of backward lm for all words")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_quest")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['quest_word']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         backoffs = []
         cnt = 0
@@ -3151,9 +3200,12 @@ class BackoffBackMin(AbstractFeature):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_back_min')
         AbstractFeature.set_description(self, "Minimum on back-off behaviour of backward lm for all words")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_quest")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['quest_word']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         backoffs = []
         cnt = 0
@@ -3179,9 +3231,12 @@ class BackoffBackMax(AbstractFeature):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_back_max')
         AbstractFeature.set_description(self, "Maximum on back-off behaviour of backward lm for all words")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_quest")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['quest_word']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         backoffs = []
         cnt = 0
@@ -3206,10 +3261,13 @@ class BackoffBackMedian(AbstractFeature):
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_back_median')
-        AbstractFeature.set_description(self, "Median on back-off behaviour of backward lm for non-aligned words")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_description(self, "Median on back-off behaviour of backward lm")
+        AbstractFeature.set_group(self, "fluency_features_quest")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['quest_word']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         backoffs = []
         cnt = 0
@@ -3231,13 +3289,17 @@ class BackoffBackMedian(AbstractFeature):
 
 
 class BackoffBackMode(AbstractFeature):
+
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_back_mode')
-        AbstractFeature.set_description(self, "Mode on back-off behaviour of backward lm for non-aligned words")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_description(self, "Mode on back-off behaviour of backward lm")
+        AbstractFeature.set_group(self, "fluency_features_quest")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['quest_word']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         backoffs = []
         cnt = 0
@@ -3268,13 +3330,17 @@ class BackoffBackMode(AbstractFeature):
 
 
 class LongestNgramNonAlignedAvg(AbstractFeature):
+
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'longest_ngram_non_aligned_avg')
         AbstractFeature.set_description(self, "Average on the longest candidate n-gram for non-alinged words")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_alignment_quest")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['quest_word']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         backoffs = []
         cnt = 0
@@ -3297,13 +3363,17 @@ class LongestNgramNonAlignedAvg(AbstractFeature):
 
 
 class LongestNgramNonAlignedMin(AbstractFeature):
+
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'longest_ngram_non_aligned_min')
         AbstractFeature.set_description(self, "Minimum on the longest candidate n-gram for non-alinged words")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_alignment_quest")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['quest_word']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         backoffs = []
         cnt = 0
@@ -3326,13 +3396,17 @@ class LongestNgramNonAlignedMin(AbstractFeature):
 
 
 class LongestNgramNonAlignedMax(AbstractFeature):
+
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'longest_ngram_non_aligned_max')
         AbstractFeature.set_description(self, "Maximum on the longest candidate n-gram for non-alinged words")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_alignment_quest")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['quest_word']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         backoffs = []
         cnt = 0
@@ -3355,13 +3429,17 @@ class LongestNgramNonAlignedMax(AbstractFeature):
 
 
 class LongestNgramNonAlignedMedian(AbstractFeature):
+
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'longest_ngram_non_aligned_median')
         AbstractFeature.set_description(self, "Median on the longest candidate n-gram for non-alinged words")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_alignment_quest")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['quest_word']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         backoffs = []
         cnt = 0
@@ -3384,13 +3462,17 @@ class LongestNgramNonAlignedMedian(AbstractFeature):
 
 
 class LongestNgramNonAlignedMode(AbstractFeature):
+
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'longest_ngram_non_aligned_mode')
         AbstractFeature.set_description(self, "Mode on the longest candidate n-gram for non-alinged words")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_alignment_quest")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['quest_word']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         backoffs = []
         cnt = 0
@@ -3422,13 +3504,17 @@ class LongestNgramNonAlignedMode(AbstractFeature):
 
 
 class LongestNgramAvg(AbstractFeature):
+
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'longest_ngram_avg')
         AbstractFeature.set_description(self, "Average on the longest candidate n-gram for all words")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_quest")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['quest_word']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         backoffs = []
         cnt = 0
@@ -3450,13 +3536,17 @@ class LongestNgramAvg(AbstractFeature):
 
 
 class LongestNgramMin(AbstractFeature):
+
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'longest_ngram_min')
         AbstractFeature.set_description(self, "Minimum on the longest candidate n-gram for all words")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_quest")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['quest_word']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         backoffs = []
         cnt = 0
@@ -3468,8 +3558,8 @@ class LongestNgramMin(AbstractFeature):
             if word.lower().isdigit():
                 continue
 
-            if cand['tokens'][i] in config.cobalt_stopwords:
-                penalty1 = 0.3
+            cnt += 1
+            backoffs.append(cand['quest_word'][i]['WCE1037'])
 
         if cnt > 0:
             AbstractFeature.set_value(self, numpy.min(backoffs))
@@ -3482,9 +3572,12 @@ class LongestNgramMax(AbstractFeature):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'longest_ngram_max')
         AbstractFeature.set_description(self, "Maximum on the longest candidate n-gram for words")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_quest")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['quest_word']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         backoffs = []
         cnt = 0
@@ -3506,13 +3599,17 @@ class LongestNgramMax(AbstractFeature):
 
 
 class LongestNgramMedian(AbstractFeature):
+
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'longest_ngram_median')
         AbstractFeature.set_description(self, "Median on the longest candidate n-gram for all words")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_quest")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['quest_word']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         backoffs = []
         cnt = 0
@@ -3534,13 +3631,17 @@ class LongestNgramMedian(AbstractFeature):
 
 
 class LongestNgramMode(AbstractFeature):
+
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'longest_ngram_mode')
         AbstractFeature.set_description(self, "Mode on the longest candidate n-gram for all words")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_quest")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['quest_word']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         backoffs = []
         cnt = 0
@@ -3575,9 +3676,12 @@ class BackoffDirectAvg(AbstractFeature):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_direct_avg')
         AbstractFeature.set_description(self, "")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_srilm")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['language_model_word_features']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         ngram_lengths = []
 
@@ -3603,9 +3707,12 @@ class BackoffDirectMedian(AbstractFeature):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_direct_median')
         AbstractFeature.set_description(self, "")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_srilm")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['language_model_word_features']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         ngram_lengths = []
 
@@ -3627,13 +3734,17 @@ class BackoffDirectMedian(AbstractFeature):
 
 
 class BackoffDirectMin(AbstractFeature):
+
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_direct_min')
         AbstractFeature.set_description(self, "")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_srilm")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['language_model_word_features']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         ngram_lengths = []
 
@@ -3655,13 +3766,17 @@ class BackoffDirectMin(AbstractFeature):
 
 
 class BackoffDirectMax(AbstractFeature):
+
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_direct_max')
         AbstractFeature.set_description(self, "")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_srilm")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['language_model_word_features']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         ngram_lengths = []
 
@@ -3683,13 +3798,17 @@ class BackoffDirectMax(AbstractFeature):
 
 
 class BackoffDirectMode(AbstractFeature):
+
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_direct_mode')
         AbstractFeature.set_description(self, "")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_srilm")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['language_model_word_features']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         ngram_lengths = []
 
@@ -3715,13 +3834,17 @@ class BackoffDirectMode(AbstractFeature):
 
 
 class BackDirectNonAlignedAvg(AbstractFeature):
+
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'back_direct_non_aligned_avg')
         AbstractFeature.set_description(self, "")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_alignment_srilm")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['language_model_word_features']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         ngram_lengths = []
 
@@ -3750,13 +3873,17 @@ class BackDirectNonAlignedAvg(AbstractFeature):
 
 
 class BackDirectNonAlignedMedian(AbstractFeature):
+
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'back_direct_non_aligned_median')
         AbstractFeature.set_description(self, "")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_alignment_srilm")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['language_model_word_features']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         ngram_lengths = []
 
@@ -3785,13 +3912,17 @@ class BackDirectNonAlignedMedian(AbstractFeature):
 
 
 class BackDirectNonAlignedMin(AbstractFeature):
+
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'back_direct_non_aligned_min')
         AbstractFeature.set_description(self, "")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_alignment_srilm")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['language_model_word_features']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         ngram_lengths = []
 
@@ -3820,13 +3951,17 @@ class BackDirectNonAlignedMin(AbstractFeature):
 
 
 class BackDirectNonAlignedMax(AbstractFeature):
+
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'back_direct_non_aligned_max')
         AbstractFeature.set_description(self, "")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_alignment_srilm")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['language_model_word_features']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         ngram_lengths = []
 
@@ -3855,13 +3990,17 @@ class BackDirectNonAlignedMax(AbstractFeature):
 
 
 class BackDirectNonAlignedMode(AbstractFeature):
+
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'back_direct_non_aligned_mode')
         AbstractFeature.set_description(self, "")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_alignment_srilm")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['language_model_word_features']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         ngram_lengths = []
 
@@ -3898,13 +4037,17 @@ class BackDirectNonAlignedMode(AbstractFeature):
 
 
 class CountShortNgramNonAligned(AbstractFeature):
+
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'count_short_ngram_non_aligned')
         AbstractFeature.set_description(self, "In progress...")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_alignment_srilm")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['language_model_word_features']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         count = 0
 
@@ -3924,13 +4067,17 @@ class CountShortNgramNonAligned(AbstractFeature):
 
 
 class PropShortNgramNonAligned(AbstractFeature):
+
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_short_ngram_non_aligned')
         AbstractFeature.set_description(self, "In progress...")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_alignment_srilm")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['language_model_word_features']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         count = 0
 
@@ -3950,11 +4097,12 @@ class PropShortNgramNonAligned(AbstractFeature):
 
 
 class POSPropLowProb(AbstractFeature):
+
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'pos_prop_low_prob')
         AbstractFeature.set_description(self, "In progress...")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_srilm")
 
     def run(self, cand, ref):
 
@@ -3973,7 +4121,7 @@ class POSCountLowProb(AbstractFeature):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'pos_count_low_prob')
         AbstractFeature.set_description(self, "In progress...")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_srilm")
 
     def run(self, cand, ref):
 
@@ -3992,7 +4140,7 @@ class PropShortNgram(AbstractFeature):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_short_ngram')
         AbstractFeature.set_description(self, "In progress...")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_srilm")
 
     def run(self, cand, ref):
 
@@ -4011,7 +4159,7 @@ class CountShortNgram(AbstractFeature):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'count_short_ngram')
         AbstractFeature.set_description(self, "In progress...")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_srilm")
 
     def run(self, cand, ref):
 
@@ -4030,9 +4178,12 @@ class CountBackoffLowNonAligned(AbstractFeature):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'count_backoff_low_non_aligned')
         AbstractFeature.set_description(self, "Count of non-aligned words with back-off behavior < 5 but > 1")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_alignment_quest")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['quest_word']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         errors = 0
         for i, word in enumerate(cand['tokens']):
@@ -4056,9 +4207,12 @@ class PropBackoffLowNonAligned(AbstractFeature):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_backoff_low_non_aligned')
         AbstractFeature.set_description(self, "Proportion of non-aligned words with back-off behavior < 5 but > 1")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_alignment_quest")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['quest_word']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         errors = 0
         for i, word in enumerate(cand['tokens']):
@@ -4083,9 +4237,12 @@ class CountBackoffMediumNonAligned(AbstractFeature):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'count_backoff_medium_non_aligned')
         AbstractFeature.set_description(self, "Count of non-aligned words with back-off behavior >= 5 but < 7")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_alignment_quest")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['quest_word']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         errors = 0
         for i, word in enumerate(cand['tokens']):
@@ -4105,13 +4262,17 @@ class CountBackoffMediumNonAligned(AbstractFeature):
 
 
 class PropBackoffMediumNonAligned(AbstractFeature):
+
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_backoff_medium_non_aligned')
         AbstractFeature.set_description(self, "Proportion of non-aligned words with back-off behavior >= 5 but < 7")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_alignment_quest")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['quest_word']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         errors = 0
         for i, word in enumerate(cand['tokens']):
@@ -4132,13 +4293,17 @@ class PropBackoffMediumNonAligned(AbstractFeature):
 
 
 class CountBackoffHighNonAligned(AbstractFeature):
+
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'count_backoff_high_non_aligned')
         AbstractFeature.set_description(self, "Count of non-aligned words with back-off behavior == 7")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_alignment_quest")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['quest_word']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         errors = 0
         for i, word in enumerate(cand['tokens']):
@@ -4158,13 +4323,17 @@ class CountBackoffHighNonAligned(AbstractFeature):
 
 
 class PropBackoffHighNonAligned(AbstractFeature):
+
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_backoff_high_non_aligned')
         AbstractFeature.set_description(self, "Proportion of non-aligned words with back-off behavior == 7")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_alignment_quest")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['quest_word']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         errors = 0
         for i, word in enumerate(cand['tokens']):
@@ -4189,7 +4358,7 @@ class LangModProbSrilm(AbstractFeature):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'lang_mod_prob_srilm')
         AbstractFeature.set_description(self, "Language model log-probability using srilm")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_srilm")
 
     def run(self, cand, ref):
         AbstractFeature.set_value(self, cand['language_model_sentence_features'][1])
@@ -4199,7 +4368,7 @@ class POSLangModProbSrilm(AbstractFeature):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'pos_lang_mod_prob_srilm')
         AbstractFeature.set_description(self, "POS language model log-probability using srilm")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_srilm")
 
     def run(self, cand, ref):
         AbstractFeature.set_value(self, cand['pos_language_model_sentence_features'][1])
@@ -4210,7 +4379,7 @@ class LangModPerlexSrilm(AbstractFeature):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'lang_mod_perplex_srilm')
         AbstractFeature.set_description(self, "Language model perplexity using srilm")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_srilm")
 
     def run(self, cand, ref):
         AbstractFeature.set_value(self, cand['language_model_sentence_features'][2])
@@ -4221,7 +4390,7 @@ class POSLangModPerplexSrilm(AbstractFeature):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'pos_lang_mod_perplex_srilm')
         AbstractFeature.set_description(self, "POS language model perplexity using srilm")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_srilm")
 
     def run(self, cand, ref):
         AbstractFeature.set_value(self, cand['pos_language_model_sentence_features'][2])
@@ -4232,7 +4401,7 @@ class LangModProb(AbstractFeature):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'lang_mod_prob')
         AbstractFeature.set_description(self, "Language model log-probability")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_quest")
 
     def run(self, cand, ref):
         AbstractFeature.set_value(self, cand['quest_sentence']['1012'])
@@ -4243,7 +4412,7 @@ class LangModPerlex(AbstractFeature):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'lang_mod_perplex')
         AbstractFeature.set_description(self, "Language model perplexity")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_quest")
 
     def run(self, cand, ref):
         AbstractFeature.set_value(self, cand['quest_sentence']['1013'])
@@ -4254,10 +4423,80 @@ class LangModPerlex2(AbstractFeature):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'lang_mod_perplex2')
         AbstractFeature.set_description(self, "Language model perplexity with no end sentence marker")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_quest")
 
     def run(self, cand, ref):
         AbstractFeature.set_value(self, cand['quest_sentence']['1014'])
+
+
+class CountNonAlignedOOVSrilm(AbstractFeature):
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'count_non_aligned_oov_srilm')
+        AbstractFeature.set_description(self, "Count of non-aligned out-of-vocabulary words (lm backoff = 1) using srilm")
+        AbstractFeature.set_group(self, "fluency_features_alignment_srilm")
+
+    def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['language_model_word_features']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
+
+        if len(cand['alignments']) == len(cand['tokens']):
+            AbstractFeature.set_value(self, -1)
+            return
+
+        oov = 0
+
+        for i, word in enumerate(cand['tokens']):
+
+            if word.lower() in config.punctuations:
+                continue
+
+            if word.lower().isdigit():
+                continue
+
+            if i + 1 not in [x[0] for x in cand['alignments'][0]]:
+
+                if numpy.isnan(cand['language_model_word_features'][i][0]):
+
+                    oov += 1
+
+        AbstractFeature.set_value(self, oov)
+
+
+class PropNonAlignedOOVSrilm(AbstractFeature):
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'prop_non_aligned_oov_srilm')
+        AbstractFeature.set_description(self, "Proportion of non-aligned out-of-vocabulary words (lm backoff = 1) using srilm")
+        AbstractFeature.set_group(self, "fluency_features_alignment_srilm")
+
+    def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['language_model_word_features']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
+
+        if len(cand['alignments']) == len(cand['tokens']):
+            AbstractFeature.set_value(self, -1)
+            return
+
+        oov = 0
+
+        for i, word in enumerate(cand['tokens']):
+
+            if word.lower() in config.punctuations:
+                continue
+
+            if word.lower().isdigit():
+                continue
+
+            if i + 1 not in [x[0] for x in cand['alignments'][0]]:
+
+                if numpy.isnan(cand['language_model_word_features'][i][0]):
+
+                    oov += 1
+
+        AbstractFeature.set_value(self, oov / float(len(cand['tokens'])))
 
 
 class CountNonAlignedOOV(AbstractFeature):
@@ -4265,9 +4504,12 @@ class CountNonAlignedOOV(AbstractFeature):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'count_non_aligned_oov')
         AbstractFeature.set_description(self, "Count of non-aligned out-of-vocabulary words (lm backoff = 1)")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_alignment_quest")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['quest_word']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         oov = 0
         for i, word in enumerate(cand['tokens']):
@@ -4290,9 +4532,12 @@ class PropNonAlignedOOV(AbstractFeature):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_non_aligned_oov')
         AbstractFeature.set_description(self, "Prop of non-aligned out-of-vocabulary words (lm backoff = 1)")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_alignment_quest")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['quest_word']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         oov = 0
         for i, word in enumerate(cand['tokens']):
@@ -4314,33 +4559,36 @@ class PropNonAlignedOOV(AbstractFeature):
 
 
 class CountOOVSrilm(AbstractFeature):
+
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'count_oov_srilm')
         AbstractFeature.set_description(self, "Count of out-of-vocabulary words using srilm")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_srilm")
 
     def run(self, cand, ref):
         AbstractFeature.set_value(self, cand['language_model_sentence_features'][0])
 
 
 class PropOOVSrilm(AbstractFeature):
+
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_oov_srilm')
         AbstractFeature.set_description(self, "Proportion of out-of-vocabulary words using srilm")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_srilm")
 
     def run(self, cand, ref):
         AbstractFeature.set_value(self, cand['language_model_sentence_features'][0] / float(len(cand['tokens'])))
 
 
 class CountOOV(AbstractFeature):
+
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'count_oov')
         AbstractFeature.set_description(self, "Count of out-of-vocabulary words (lm backoff = 1)")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_quest")
 
     def run(self, cand, ref):
 
@@ -4360,13 +4608,17 @@ class CountOOV(AbstractFeature):
 
 
 class PropOOV(AbstractFeature):
+
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'prop_oov')
         AbstractFeature.set_description(self, "Proportion of out-of-vocabulary words (lm back-prop = 1)")
-        AbstractFeature.set_group(self, "fluency_features")
+        AbstractFeature.set_group(self, "fluency_features_quest")
 
     def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['quest_word']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
 
         oov = 0
 
