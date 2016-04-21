@@ -3066,7 +3066,7 @@ class BackoffMax(AbstractFeature):
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'backoff_max')
-        AbstractFeature.set_description(self, "Maximum on backoff behaviour for non-aligned words")
+        AbstractFeature.set_description(self, "Maximum on backoff behaviour")
         AbstractFeature.set_group(self, "fluency_features_quest")
 
     def run(self, cand, ref):
