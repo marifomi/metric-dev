@@ -199,12 +199,12 @@ class PrepareWmt(object):
         data_to_process = []
         data_sets = self.get_data_sets(data_dir)
 
-        for data_set in data_sets:
+        for data_set in sorted(data_sets):
             lang_pairs = self.get_lang_pairs(data_dir, data_set)
 
             counter = 0
 
-            for i, lang_pair in enumerate(lang_pairs):
+            for i, lang_pair in enumerate(sorted(lang_pairs)):
 
                 if not config.get('WMT', 'directions') == 'None' and lang_pair not in loads(config.get('WMT', 'directions')):
                     continue
@@ -233,10 +233,10 @@ class PrepareWmt(object):
         data_to_process = []
         data_sets = self.get_data_sets(data_dir)
 
-        for data_set in data_sets:
+        for data_set in sorted(data_sets):
             lang_pairs = self.get_lang_pairs(data_dir, data_set)
 
-            for i, lang_pair in enumerate(lang_pairs):
+            for i, lang_pair in enumerate(sorted(lang_pairs)):
 
                 if not config.get('WMT', 'directions') == 'None' and lang_pair not in loads(config.get('WMT', 'directions')):
                     continue

@@ -1,112 +1,80 @@
+
 """
 Simple Gaussian Processes regression with an RBF kernel
+@ Kashif Shah
 """
 import pylab as pb
 import numpy as np
 import GPy
-import scipy
-
 pb.ion()
 pb.close('all')
 
-def regression(xtr, xte, ytr, yte, features):
+X = np.genfromtxt('/home/u88591/Workspace/metric-dev/test/x_train.tsv')
+test_X = np.genfromtxt('/home/u88591/Workspace/metric-dev/test/x_test.tsv')
+Y = np.genfromtxt('/home/u88591/Workspace/metric-dev/test/y_train.tsv').reshape(-1, 1)
+test_Y = np.genfromtxt('/home/u88591/Workspace/metric-dev/test/y_test.tsv').reshape(-1, 1)
 
-    X = np.genfromtxt(xtr)
-    test_X = np.genfromtxt(xte)
-    Y = np.genfromtxt(ytr).reshape(-1, 1)
-    test_Y = np.genfromtxt(yte).reshape(-1, 1)
+# rescale X
+mx = np.mean(X,axis=0)
+sx = np.std(test_X,axis=0)
 
-    # rescale X
-    mx = np.mean(X,axis=0)
-    sx = np.std(X,axis=0)
+ok = (sx > 0)
+X = X[:,ok]
+test_X = test_X[:,ok]
+sx, mx = sx[ok], mx[ok]
 
-    ok = (sx > 0)
-    X = X[:,ok]
-    test_X = test_X[:,ok]
-    sx, mx = sx[ok], mx[ok]
+X = (X - mx) / sx
+test_X = (test_X - mx) / sx
 
-    X = (X - mx) / sx
-    test_X = (test_X - mx) / sx
+print('Dropped features with constant values:')
+print(np.nonzero(ok == False)[0])
 
-    print('Dropped features with constant values:')
-    print(np.nonzero(ok == False)[0])
+# we could centre Y too?
 
-    # we could centre Y too?
+D = X.shape[1]
 
-    D = X.shape[1]
+if True:
+    X = X[:50,:]
+    Y = Y[:50,:]
 
-    # this is as big as I can go on my laptop :)
-    if False:
-        X = X[:1200,:]
-        Y = Y[:1200,:]
+# construct kernel
+#rbf = GPy.GPy.kern.rbf_ARD(D)
+rbf = GPy.kern.sde_RBF(D, ARD=True)
+noise = GPy.kern.white(D)
+kernel = rbf + noise
 
-    # construct kernel
-    rbf = GPy.kern.RBF(D, ARD=True)
-    noise = GPy.kern.White(D)
-    kernel = rbf + noise
+# create simple GP model
+#m = GPy.GPy.models.GP_regression(X,Y, kernel = kernel)
+m = GPy.GPy.models.GPRegression(X,Y, kernel = kernel)
+#m.tie_param('rbf_ARD_0_lengthscale')
+m.constrain_positive('')
+m.optimize('bfgs', max_f_eval = 50, messages = True)
+print(m)
 
-    # create simple GP model
-    m = GPy.models.GPRegression(X, Y, kernel = kernel)
+#mu, s2 = m.predict(test_X)
+mu = m.predict(test_X)
+mae = np.mean(np.abs(mu - test_Y))
+rmse = np.mean((mu - test_Y) ** 2) ** 0.5
 
-    ls = m['.*lengthscale']
-    m['.*lengthscale'] = ls
+print('SEiso -- mae', mae, 'rmse', rmse)
 
-    m.constrain_positive('')
-    m.optimize(max_f_eval=50, messages=True)
-    print(m)
+# the iso kernel initialises the ARD one to avoid local minima
+m.untie_everything()
+m.optimize('bfgs', max_f_eval = 100, messages = True)
+print(m)
 
-    mu, s2 = m.predict(test_X)
-    mae = np.mean(np.abs(mu - test_Y))
-    rmse = np.mean((mu - test_Y) ** 2) ** 0.5
+#mu, s2 = m.predict(test_X)
+mu  = m.predict(test_X)
+mae = np.mean(np.abs(mu - test_Y))
+rmse = np.mean((mu - test_Y) ** 2) ** 0.5
 
-    print('SEiso -- mae', mae, 'rmse', rmse)
+print('SEard -- mae', mae, 'rmse', rmse)
+#print mae
+#print rmse
 
-    # the iso kernel initialises the ARD one to avoid local minima
-    m.optimize(max_f_eval=100, messages=True)
-    print(m)
+length_scales = m['.*lengthscale.*'] #m.get_param()[1:-1]
 
-    mu, s2 = m.predict(test_X)
-    mae = np.mean(np.abs(mu - test_Y))
-    rmse = np.mean((mu - test_Y) ** 2) ** 0.5
-    pearson = scipy.stats.pearsonr(mu, test_Y)
+sort_ls = np.argsort(length_scales)
 
-    print('SEard -- mae', mae, 'rmse', rmse, 'pearson', pearson)
-
-    sorted_ls = np.argsort(m['.*lengthscale'])
-
-    print('Feature ranking by length scale')
-    print(sorted_ls)
-
-    if len(sorted_ls) == len(features):
-        for i, feature in enumerate(features):
-            print(feature + '\t' + str(sorted_ls[i]))
-    else:
-        for i, feature in enumerate(features):
-            print(feature)
-
-def main():
-
-    prefix = 'align_cobalt_word_level'
-
-    xtr = '/Users/MarinaFomicheva/workspace/upf-cobalt/results/wmt13_graham/' + prefix + '_features' + '.train.tsv'
-    xte = '/Users/MarinaFomicheva/workspace/upf-cobalt/results/wmt13_graham/' + prefix + '_features' + '.test.tsv'
-    ytr = '/Users/MarinaFomicheva/workspace/upf-cobalt/data/wmt13_graham/human.train'
-    yte = '/Users/MarinaFomicheva/workspace/upf-cobalt/data/wmt13_graham/human.test'
-    ffeatures = '/Users/MarinaFomicheva/workspace/upf-cobalt/config/feature_groups/align_cobalt_word_level'
-    f_out = '/Users/MarinaFomicheva/workspace/upf-cobalt/analysis/gaussian/' + prefix + '_ranked'
-
-    features = get_features_to_test(ffeatures)
-
-    regression(xtr, xte, ytr, yte, features, f_out)
-
-
-def get_features_to_test(fname):
-    features_to_extract = []
-    f = open(fname, 'r')
-    for line in f:
-        features_to_extract.append(line.strip())
-    return features_to_extract
-
-if __name__ == '__main__':
-    main()
-
+print('Feature ranking by length scale')
+print(sort_ls)

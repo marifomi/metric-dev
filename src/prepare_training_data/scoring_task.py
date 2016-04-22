@@ -2,10 +2,10 @@ __author__ = 'MarinaFomicheva'
 
 import os
 import scipy
-from ConfigParser import ConfigParser
+from configparser import ConfigParser
 from src.utils import sample_dataset
 from src.features.feature_extractor import FeatureExtractor as FE
-from src.tools.run_processors import RunProcessors
+from src.processors.run_processors import RunProcessors
 from sklearn import cross_validation as cv
 from src.learning import learn_model
 from src.learning.features_file_utils import read_reference_file
@@ -14,7 +14,7 @@ from src.features.impl import features_iaa
 from src.learning.customize_scorer import pearson_corrcoef
 
 
-class PredictorAbsoluteScores():
+class ScoringTask():
 
     def __init__(self, config_path):
         self.config = ConfigParser()
@@ -22,7 +22,7 @@ class PredictorAbsoluteScores():
 
     def get_data(self):
 
-        human_scores = read_reference_file(self.config.get('Data', 'human_scores'), '\t')
+        human_scores = read_reference_file(os.path.expanduser(self.config.get('Data', 'human_scores')), '\t')
         process = RunProcessors(self.config)
         sents_tgt, sents_ref = process.run_processors()
 
@@ -36,8 +36,8 @@ class PredictorAbsoluteScores():
 
         data_set = self.config.get('Settings', 'dataset')
 
-        f_features = open(self.config.get('WMT', 'output_dir') + '/' + 'x_' + data_set, 'w')
-        f_objective = open(self.config.get('WMT', 'output_dir') + '/' + 'y_' + data_set, 'w')
+        f_features = open(os.path.expanduser(self.config.get('Data', 'output_dir')) + '/' + 'x_' + data_set + '.tsv', 'w')
+        f_objective = open(os.path.expanduser(self.config.get('Data', 'output_dir')) + '/' + 'y_' + data_set + '.tsv', 'w')
 
         for i, score in enumerate(human_scores):
             f_objective.write(str(score) + '\n')
@@ -47,7 +47,7 @@ class PredictorAbsoluteScores():
         f_objective.close()
 
     @staticmethod
-    def predict(config_path):
+    def train_predict(config_path):
         predicted = learn_model.run(config_path)
         return predicted
 
@@ -69,39 +69,8 @@ class PredictorAbsoluteScores():
         return human_scores
 
 def main():
-    cfg = ConfigParser()
-    cfg.readfp(open(os.getcwd() + '/config/absolute.cfg'))
+    pass
 
-    predictor = PredictorAbsoluteScores()
-    feature_names = FE.get_feature_names(features_iaa)
-    data_set = 'mtc4'
-    lang_pair = 'ch-en'
-    system_name = 'system'
-    predictor.evaluate_feature(cfg, feature_names, data_set, lang_pair, system_name)
-
-
-# def main():
-#
-#     cfg = ConfigParser()
-#     cfg.readfp(open(os.getcwd() + '/config/multi_ref.cfg'))
-#
-#     predictor = PredictorAbsoluteScores()
-#     features_to_extract = predictor.get_features_to_extract(cfg)
-#     prefix = 'quest_svm_human'
-#     predictor.prepare_data(prefix, cfg, features_to_extract)
-#     predicted = predictor.learn_model(prefix, cfg)
-#
-#     human_scores = predictor.get_human_scores(cfg)
-#     corr = scipy.stats.pearsonr(human_scores, predicted)
-#     print(str(corr))
-#
-#     o_pred = open(cfg.get('Data', 'output') + '/' + prefix + '_' + 'predictions' + '.tsv', 'w')
-#     for i, pred in enumerate(predicted):
-#         print(str(i + 1) + '\t' + str(pred) + '\t' + str(human_scores[i]))
-#         o_pred.write(str(i + 1) + '\t' + str(pred) + '\t' + str(human_scores[i]) + '\n')
-#
-#     o_pred.write(str(scipy.stats.pearsonr(predicted, human_scores)) + '\n')
-#     o_pred.close()
 
 if __name__ == '__main__':
     main()
