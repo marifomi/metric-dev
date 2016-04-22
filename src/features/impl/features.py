@@ -4196,7 +4196,7 @@ class CountBackoffLowNonAligned(AbstractFeature):
 
             if i + 1 not in [x[0] for x in cand['alignments'][0]]:
 
-                if cand['quest_word'][i]['WCE1015'] == 2 or cand['quest_word'][i]['WCE1041'] == 2:
+                if 1 < cand['quest_word'][i]['WCE1015'] <= 4 or 1 < cand['quest_word'][i]['WCE1041'] <= 4:
                     errors += 1
 
         AbstractFeature.set_value(self, errors)
@@ -4225,7 +4225,7 @@ class PropBackoffLowNonAligned(AbstractFeature):
 
             if i + 1 not in [x[0] for x in cand['alignments'][0]]:
 
-                if cand['quest_word'][i]['WCE1015'] == 2 or cand['quest_word'][i]['WCE1041'] == 2:
+                if 1 < cand['quest_word'][i]['WCE1015'] <= 4 or 1 < cand['quest_word'][i]['WCE1041'] <= 4:
                     errors += 1
 
         result = errors / float(len(cand['tokens']))
@@ -4255,7 +4255,7 @@ class CountBackoffMediumNonAligned(AbstractFeature):
 
             if i + 1 not in [x[0] for x in cand['alignments'][0]]:
 
-                if cand['quest_word'][i]['WCE1015'] == 3 or cand['quest_word'][i]['WCE1041'] == 3:
+                if 4 < cand['quest_word'][i]['WCE1015'] < 7 or 4 < cand['quest_word'][i]['WCE1041'] < 7:
                     errors += 1
 
         AbstractFeature.set_value(self, errors)
@@ -4285,7 +4285,7 @@ class PropBackoffMediumNonAligned(AbstractFeature):
 
             if i + 1 not in [x[0] for x in cand['alignments'][0]]:
 
-                if cand['quest_word'][i]['WCE1015'] == 3 or cand['quest_word'][i]['WCE1041'] == 3:
+                if 4 < cand['quest_word'][i]['WCE1015'] < 7 or 4 < cand['quest_word'][i]['WCE1041'] < 7:
                     errors += 1
 
         result = errors / float(len(cand['tokens']))
@@ -4316,7 +4316,7 @@ class CountBackoffHighNonAligned(AbstractFeature):
 
             if i + 1 not in [x[0] for x in cand['alignments'][0]]:
 
-                if cand['quest_word'][i]['WCE1015'] == 4 or cand['quest_word'][i]['WCE1041'] == 4:
+                if cand['quest_word'][i]['WCE1015'] == 7 or cand['quest_word'][i]['WCE1041'] == 7:
                     errors += 1
 
         AbstractFeature.set_value(self, errors)
@@ -4346,7 +4346,7 @@ class PropBackoffHighNonAligned(AbstractFeature):
 
             if i + 1 not in [x[0] for x in cand['alignments'][0]]:
 
-                if cand['quest_word'][i]['WCE1015'] == 4 or cand['quest_word'][i]['WCE1041'] == 4:
+                if cand['quest_word'][i]['WCE1015'] == 7 or cand['quest_word'][i]['WCE1041'] == 7:
                     errors += 1
 
         result = errors / float(len(cand['tokens']))
