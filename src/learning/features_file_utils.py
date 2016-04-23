@@ -195,7 +195,7 @@ if __name__ == '__main__':
 
     language_pairs = ["cs-en", "de-en", "fr-en", "hi-en", "ru-en"]
 
-    directory = os.path.expanduser('~/Dropbox/wmt14-alignments')
+    directory = os.path.expanduser('~/Dropbox/wmt14_alignments')
 
     file_name = 'tgt.parse.ref.parse.cobalt-align.out'
 
