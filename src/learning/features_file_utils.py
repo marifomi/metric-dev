@@ -174,7 +174,7 @@ def combine_alignment_files(language_pairs, directory, file_name):
 
     # Method to combine alignment files for different languages in a single file
 
-    output_file = codecs.open(directory + "/" + "full_dataset" + file_name, "w", "utf-8")
+    output_file = codecs.open(directory + "/" + "full_dataset/" + file_name, "w", "utf-8")
 
     count = 0
 
