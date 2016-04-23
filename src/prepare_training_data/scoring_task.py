@@ -10,7 +10,6 @@ from sklearn import cross_validation as cv
 from src.learning import learn_model
 from src.learning.features_file_utils import read_reference_file
 from src.features.feature_extractor import FeatureExtractor
-from src.features.impl import features_iaa
 from src.learning.customize_scorer import pearson_corrcoef
 
 
