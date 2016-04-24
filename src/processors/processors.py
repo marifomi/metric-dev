@@ -845,8 +845,8 @@ class QuestWord(AbstractProcessor):
         out_file = os.path.expanduser(config.get('Quest', 'output')) + '/' + 'quest.wl' + '.out'
 
         subprocess.call(['java',
-                         '-cp',
-                         quest_dir + '/' + 'dist/Quest__.jar',
+                         '-jar',
+                         quest_dir + '/' + 'dist/QuEstWordLevel.jar',
                          'shef.mt.WordLevelFeatureExtractor',
                          '-lang',
                          src_lang,
@@ -960,9 +960,8 @@ class QuestSentence(AbstractProcessor):
             shutil.copyfile(tgt_path, src_path)
 
         subprocess.call(['java',
-                         '-cp',
-                         quest_dir + '/' + 'dist/Quest__.jar',
-                         'shef.mt.SentenceLevelFeatureExtractor',
+                         '-jar',
+                         quest_dir + '/' + 'dist/QuEstSentenceLevel.jar',
                          '-lang',
                          src_lang,
                          tgt_lang,

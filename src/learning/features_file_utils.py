@@ -172,9 +172,9 @@ def write_feature_file(output_path, feature_matrix):
 
 def combine_alignment_files(language_pairs, directory, file_name):
 
-    # Added method to combine alignment files for different languages in a single file
+    # Method to combine alignment files for different languages in a single file
 
-    output_file = codecs.open(directory + "/" + file_name, "w", "utf-8")
+    output_file = codecs.open(directory + "/" + "full_dataset/" + file_name, "w", "utf-8")
 
     count = 0
 
@@ -192,6 +192,14 @@ def combine_alignment_files(language_pairs, directory, file_name):
 
 
 if __name__ == '__main__':
+
+    language_pairs = ["cs-en", "de-en", "fr-en", "hi-en", "ru-en"]
+
+    directory = os.path.expanduser('~/Dropbox/wmt14_alignments')
+
+    file_name = 'tgt.parse.ref.parse.cobalt-align.out'
+
+    combine_alignment_files(language_pairs, directory, file_name)
 
     pass
 
