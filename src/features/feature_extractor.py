@@ -1,7 +1,6 @@
 import inspect
 import numpy as np
 import os
-import threading
 import sys
 from src.features.impl.features import *
 from src.features.impl.features_non_aligned_chunks import *
@@ -17,17 +16,6 @@ class FeatureExtractor(object):
         self.cfg = cfg
         self.feature_names = []
 
-    @staticmethod
-    def run_feature(feature, feature_vectors, ref, tgt):
-        feature_vector = []
-
-        for i, sent_tgt in enumerate(tgt):
-            feature.run(sent_tgt, ref[i])
-            feature_vector.append(feature.get_value())
-
-        feature_vectors[feature.get_name()] = feature_vector
-        print("Finishing running feature: " + str(feature))
-
     def extract_features(self, features_to_extract, sents_tgt, sents_ref):
         print("Validating feature names...")
 
@@ -35,8 +23,7 @@ class FeatureExtractor(object):
 
         print("Extracting features...")
 
-        feature_vectors = {}
-        feature_tasks = []
+        feature_vectors = []
 
         for my_class in sorted(list(FeatureExtractor.__iter_subclasses__(AbstractFeature)),
                                key=lambda x: str(x)):
@@ -46,21 +33,22 @@ class FeatureExtractor(object):
             if str(instance) not in features_to_extract:
                 continue
 
-            print("Scheduling " + str(instance))
+            feature_vector = []
 
-            feature_tasks.append(threading.Thread(target=FeatureExtractor.run_feature,
-                                                  args=(instance, feature_vectors, sents_ref, sents_tgt)))
-        print("Starting feature extraction")
-        for task in feature_tasks:
-            task.start()
+            print("Running " + str(instance))
 
-        print("Waiting for feature extraction to finish")
-        for task in feature_tasks:
-            task.join()
+            for i, sent_tgt in enumerate(sents_tgt):
+                instance.run(sent_tgt, sents_ref[i])
+                feature_vector.append(instance.get_value())
 
-        self.vals = [list(x) for x in zip(*list(feature_vectors.values()))]
+            feature_vectors.append(feature_vector)
+
+        result = np.array(feature_vectors, dtype=object)
+        #self.vals = np.transpose(result)
+        self.vals = [list(x) for x in zip(*feature_vectors)]
 
         print("Finished extracting features")
+
 
     @staticmethod
     def get_feature_names_by_group(group):
@@ -143,5 +131,3 @@ class FeatureExtractor(object):
                 yield sub
                 for sub in FeatureExtractor.__iter_subclasses__(sub, _seen):
                     yield sub
-
-
