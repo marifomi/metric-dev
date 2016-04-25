@@ -4186,6 +4186,7 @@ class CountBackoffLowNonAligned(AbstractFeature):
             raise ValueError("The lengths of different data in the sentence object do not match")
 
         errors = 0
+        cnt = 0
         for i, word in enumerate(cand['tokens']):
 
             if word.lower() in config.punctuations:
@@ -4195,11 +4196,14 @@ class CountBackoffLowNonAligned(AbstractFeature):
                 continue
 
             if i + 1 not in [x[0] for x in cand['alignments'][0]]:
-
+                cnt += 1
                 if 1 < cand['quest_word'][i]['WCE1015'] <= 4 or 1 < cand['quest_word'][i]['WCE1041'] <= 4:
                     errors += 1
 
-        AbstractFeature.set_value(self, errors)
+        if cnt > 0:
+            AbstractFeature.set_value(self, errors)
+        else:
+            AbstractFeature.set_value(self, -1)
 
 
 class PropBackoffLowNonAligned(AbstractFeature):
@@ -4215,6 +4219,7 @@ class PropBackoffLowNonAligned(AbstractFeature):
             raise ValueError("The lengths of different data in the sentence object do not match")
 
         errors = 0
+        cnt = 0
         for i, word in enumerate(cand['tokens']):
 
             if word.lower() in config.punctuations:
@@ -4224,9 +4229,13 @@ class PropBackoffLowNonAligned(AbstractFeature):
                 continue
 
             if i + 1 not in [x[0] for x in cand['alignments'][0]]:
-
+                cnt += 1
                 if 1 < cand['quest_word'][i]['WCE1015'] <= 4 or 1 < cand['quest_word'][i]['WCE1041'] <= 4:
                     errors += 1
+
+        if cnt == 0:
+            AbstractFeature.set_value(self, -1)
+            return
 
         result = errors / float(len(cand['tokens']))
         AbstractFeature.set_value(self, result)
@@ -4245,6 +4254,7 @@ class CountBackoffMediumNonAligned(AbstractFeature):
             raise ValueError("The lengths of different data in the sentence object do not match")
 
         errors = 0
+        cnt = 0
         for i, word in enumerate(cand['tokens']):
 
             if word.lower() in config.punctuations:
@@ -4254,11 +4264,14 @@ class CountBackoffMediumNonAligned(AbstractFeature):
                 continue
 
             if i + 1 not in [x[0] for x in cand['alignments'][0]]:
-
+                cnt += 1
                 if 4 < cand['quest_word'][i]['WCE1015'] < 7 or 4 < cand['quest_word'][i]['WCE1041'] < 7:
                     errors += 1
 
-        AbstractFeature.set_value(self, errors)
+        if cnt > 0:
+            AbstractFeature.set_value(self, errors)
+        else:
+            AbstractFeature.set_value(self, -1)
 
 
 class PropBackoffMediumNonAligned(AbstractFeature):
@@ -4275,6 +4288,7 @@ class PropBackoffMediumNonAligned(AbstractFeature):
             raise ValueError("The lengths of different data in the sentence object do not match")
 
         errors = 0
+        cnt = 0
         for i, word in enumerate(cand['tokens']):
 
             if word.lower() in config.punctuations:
@@ -4284,9 +4298,12 @@ class PropBackoffMediumNonAligned(AbstractFeature):
                 continue
 
             if i + 1 not in [x[0] for x in cand['alignments'][0]]:
-
+                cnt += 1
                 if 4 < cand['quest_word'][i]['WCE1015'] < 7 or 4 < cand['quest_word'][i]['WCE1041'] < 7:
                     errors += 1
+
+        if cnt == 0:
+            AbstractFeature.set_value(self, -1)
 
         result = errors / float(len(cand['tokens']))
         AbstractFeature.set_value(self, result)
@@ -4306,6 +4323,7 @@ class CountBackoffHighNonAligned(AbstractFeature):
             raise ValueError("The lengths of different data in the sentence object do not match")
 
         errors = 0
+        cnt = 0
         for i, word in enumerate(cand['tokens']):
 
             if word.lower() in config.punctuations:
@@ -4315,11 +4333,14 @@ class CountBackoffHighNonAligned(AbstractFeature):
                 continue
 
             if i + 1 not in [x[0] for x in cand['alignments'][0]]:
-
+                cnt += 1
                 if cand['quest_word'][i]['WCE1015'] == 7 or cand['quest_word'][i]['WCE1041'] == 7:
                     errors += 1
 
-        AbstractFeature.set_value(self, errors)
+        if cnt > 0:
+            AbstractFeature.set_value(self, errors)
+        else:
+            AbstractFeature.set_value(self, -1)
 
 
 class PropBackoffHighNonAligned(AbstractFeature):
@@ -4336,6 +4357,7 @@ class PropBackoffHighNonAligned(AbstractFeature):
             raise ValueError("The lengths of different data in the sentence object do not match")
 
         errors = 0
+        cnt = 0
         for i, word in enumerate(cand['tokens']):
 
             if word.lower() in config.punctuations:
@@ -4345,9 +4367,13 @@ class PropBackoffHighNonAligned(AbstractFeature):
                 continue
 
             if i + 1 not in [x[0] for x in cand['alignments'][0]]:
-
+                cnt += 1
                 if cand['quest_word'][i]['WCE1015'] == 7 or cand['quest_word'][i]['WCE1041'] == 7:
                     errors += 1
+
+        if cnt == 0:
+            AbstractFeature.set_value(self, -1)
+            return
 
         result = errors / float(len(cand['tokens']))
         AbstractFeature.set_value(self, result)
@@ -4512,6 +4538,7 @@ class CountNonAlignedOOV(AbstractFeature):
             raise ValueError("The lengths of different data in the sentence object do not match")
 
         oov = 0
+        cnt = 0
         for i, word in enumerate(cand['tokens']):
 
             if word.lower() in config.punctuations:
@@ -4521,10 +4548,14 @@ class CountNonAlignedOOV(AbstractFeature):
                 continue
 
             if i + 1 not in [x[0] for x in cand['alignments'][0]]:
+                cnt += 1
                 if cand['quest_word'][i]['WCE1015'] == 1:
                     oov += 1
 
-        AbstractFeature.set_value(self, oov)
+        if cnt > 0:
+            AbstractFeature.set_value(self, oov)
+        else:
+            AbstractFeature.set_value(self, -1)
 
 
 class PropNonAlignedOOV(AbstractFeature):
