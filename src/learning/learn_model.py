@@ -290,7 +290,7 @@ def set_learning_method(config, X_train, y_train):
                 estimator = LogisticRegression(penalty=p.get('penalty', 'l2'),
                                                dual=p.get('dual', False),
                                                tol=p.get('tolerance', 0.0001),
-                                               C=('C', 1.0),
+                                               C=p.get('C', 1.0),
                                                fit_intercept=p.get('fit_intercept', True),
                                                intercept_scaling=p.get('intercept_scaling', 1),
                                                class_weight=p.get('class_weight', None),
