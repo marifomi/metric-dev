@@ -276,24 +276,49 @@ class RankingTask(object):
                 return str(feature_value1) + '\t' + str(feature_value2)
 
     @staticmethod
-    def train_predict(config_path):
-        predicted = learn_model.run(config_path)
+    def train_predict(config_path_learning):
+        predicted = learn_model.run(config_path_learning)
         return predicted
 
     @staticmethod
-    def train_save(config_path):
+    def load_predict(config_learning, config_data):
 
-        with open(config_path, 'r') as cfg_file:
-            config = yaml.load(cfg_file.read())
-
-        learning_config = config.get("learning", None)
+        learning_config = config_learning.get("learning", None)
         method_name = learning_config.get("method", None)
 
-        x_train = read_features_file(config.get('x_train'), '\t')
-        y_train = read_reference_file(config.get('y_train'), '\t')
-        estimator, scorers = learn_model.set_learning_method(config, x_train, y_train)
+        x_test = read_features_file(config_learning.get('x_test'), '\t')
+
+        estimator = joblib.load(config_data.get("Learner", "models") + "/" + method_name + ".pkl")
+        predictions = estimator.predict(x_test)
+
+        return predictions
+
+    @staticmethod
+    def load_get_coefficients(config_learning, config_data):
+
+        feature_names = FeatureExtractor.get_features_from_config_file(config_data)
+
+        learning_config = config_learning.get("learning", None)
+        method_name = learning_config.get("method", None)
+
+        estimator = joblib.load(os.path.expanduser(config_data.get("Learner", "models")) + "/" + method_name + ".pkl")
+        coefficients = estimator.coef_
+
+        for i, name in enumerate(feature_names):
+            print(name + "\t" + str(coefficients[0][i]))
+            print(name + "\t" + str(coefficients[0][i + 1]))
+
+    @staticmethod
+    def train_save(config_learning, config_data):
+
+        learning_config = config_learning.get("learning", None)
+        method_name = learning_config.get("method", None)
+
+        x_train = read_features_file(config_learning.get('x_train'), '\t')
+        y_train = read_reference_file(config_learning.get('y_train'), '\t')
+        estimator, scorers = learn_model.set_learning_method(config_learning, x_train, y_train)
         estimator.fit(x_train, y_train)
-        joblib.dump(estimator, config.get('Learner', 'models') + '/' + method_name + '.pkl')
+        joblib.dump(estimator, os.path.expanduser(config_data.get('Learner', 'models')) + '/' + method_name + '.pkl')
 
     @staticmethod
     def test_learn_to_rank(config_path):
@@ -302,7 +327,7 @@ class RankingTask(object):
             config = yaml.load(cfg_file.read())
 
         x_test = read_features_file(config.get('x_test'), '\t')
-        estimator = joblib.load(config.get('Learner', 'models') + '/' + 'logistic.pkl')
+        estimator = joblib.load(os.path.expanduser(config.get('Learner', 'models')) + '/' + 'logistic.pkl')
         return [x[0] for x in estimator.predict_proba(x_test)]
 
     def evaluate_predicted(self, predicted, gold_class_labels):
