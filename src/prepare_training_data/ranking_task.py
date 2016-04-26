@@ -189,12 +189,29 @@ class RankingTask(object):
         f_objective.close()
 
     @staticmethod
+    def eliminate_ties(human_comparisons):
+
+        result = defaultdict(list)
+
+        for dataset, lang_pair in sorted(human_comparisons.keys()):
+
+            for comparison in human_comparisons[dataset, lang_pair]:
+
+                if comparison.sign == "=":
+                    continue
+
+                result[dataset, lang_pair].append(comparison)
+
+        return result
+
+    @staticmethod
     def clean_dataset(config_learning, human_comparisons):
 
         feature_values = read_features_file(config_learning.get('x_train'), '\t')
         labels = read_reference_file(config_learning.get('y_train'), '\t')
         new_feature_values = []
         new_labels = []
+        human_comparisons = RankingTask.eliminate_ties(human_comparisons)
         comparisons_untied_phrases = defaultdict(list)
         comparisons_untied_signs = defaultdict(list)
 
@@ -221,6 +238,7 @@ class RankingTask(object):
 
                     if deduplicated_signs[dataset, lang_pair][deduplicated_phrases[dataset, lang_pair].index(comparison)] is None:
                         continue
+
                     label = RankingTask.signs_to_labels(deduplicated_signs[dataset, lang_pair][deduplicated_phrases[dataset, lang_pair].index(comparison)])
 
                 new_feature_values.append(features)
