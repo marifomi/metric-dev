@@ -163,6 +163,13 @@ def concatenate_features_files(file_paths):
 
     return np.concatenate(feature_arrays, axis=1)
 
+def write_reference_file(output_path, labels):
+
+    output_file = codecs.open(output_path, 'w', 'utf-8')
+    for l in labels:
+        output_file.write(str(l) + '\n')
+    output_file.close()
+
 def write_feature_file(output_path, feature_matrix):
 
     output_file = codecs.open(output_path, 'w', 'utf-8')
@@ -190,17 +197,20 @@ def combine_alignment_files(language_pairs, directory, file_name):
 
     output_file.close()
 
-
 if __name__ == '__main__':
 
-    language_pairs = ["cs-en", "de-en", "fr-en", "hi-en", "ru-en"]
+    my_dir = os.path.expanduser("~/Dropbox/informative_features_for_evaluation/data")
 
-    directory = os.path.expanduser('~/Dropbox/wmt14_alignments')
+    paths = [my_dir + "/" + "x_newstest2014.bleu.meteor.cobalt.comb.hi-en.tsv",
+             my_dir + "/" + "x_newstest2014.fluency.quest.hi-en.tsv",
+             ]
 
-    file_name = 'tgt.parse.ref.parse.cobalt-align.out'
+    path_to_out = my_dir + "/" + "x_newstest2014.metrics.comb.fluency.quest.hi-en.tsv"
 
-    combine_alignment_files(language_pairs, directory, file_name)
+    feature_arrays = concatenate_features_files(paths)
 
-    pass
+    write_feature_file(path_to_out, feature_arrays)
+
+
 
 
