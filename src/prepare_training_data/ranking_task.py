@@ -6,6 +6,7 @@ from src.processors.run_processors import RunProcessors
 from src.features.feature_extractor import FeatureExtractor
 from src.learning import learn_model
 from src.learning.features_file_utils import read_reference_file, read_features_file
+from src.learning.features_file_utils import write_reference_file, write_feature_file
 from sklearn.metrics import accuracy_score
 from sklearn.externals import joblib
 from sklearn.feature_selection import RFECV
@@ -186,6 +187,47 @@ class RankingTask(object):
 
         f_features.close()
         f_objective.close()
+
+    @staticmethod
+    def clean_dataset(config_learning, human_comparisons):
+
+        feature_values = read_features_file(config_learning.get('x_train'), '\t')
+        labels = read_reference_file(config_learning.get('y_train'), '\t')
+        new_feature_values = []
+        new_labels = []
+        comparisons_untied_phrases = defaultdict(list)
+        comparisons_untied_signs = defaultdict(list)
+
+        deduplicated_phrases, deduplicated_signs = HumanRanking.deduplicate(human_comparisons)
+
+        for dataset, lang_pair in sorted(human_comparisons.keys()):
+
+            for comparison in human_comparisons[dataset, lang_pair]:
+
+                if comparison.sign == "=":
+                    continue
+                else:
+                    comparisons_untied_phrases[dataset, lang_pair].append([comparison.phrase, comparison.sys1, comparison.sys2])
+                    comparisons_untied_signs[dataset, lang_pair].append(comparison.sign)
+
+        for dataset, lang_pair in sorted(human_comparisons.keys()):
+
+            for i, comparison in enumerate(comparisons_untied_phrases[dataset, lang_pair]):
+
+                features = feature_values[i]
+                label = labels[i]
+
+                if comparison in deduplicated_phrases[dataset, lang_pair]:
+
+                    if deduplicated_signs[dataset, lang_pair][deduplicated_phrases[dataset, lang_pair].index(comparison)] is None:
+                        continue
+                    label = RankingTask.signs_to_labels(deduplicated_signs[dataset, lang_pair][deduplicated_phrases[dataset, lang_pair].index(comparison)])
+
+                new_feature_values.append(features)
+                new_labels.append(label)
+
+        write_feature_file(config_learning.get('x_train') + "." + "clean", new_feature_values)
+        write_reference_file(config_learning.get('y_train') + "." + "clean", new_labels)
 
     def kendall_tau_scores(self, data_structure, human_comparisons, metric_data, variant='wmt14', max_segments=0):
 
