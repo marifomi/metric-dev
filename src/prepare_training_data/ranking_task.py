@@ -8,6 +8,8 @@ from src.learning import learn_model
 from src.learning.features_file_utils import read_reference_file, read_features_file
 from sklearn.metrics import accuracy_score
 from sklearn.externals import joblib
+from sklearn.feature_selection import RFECV
+from sklearn.cross_validation import StratifiedKFold
 from configparser import ConfigParser
 from json import loads
 from collections import defaultdict
@@ -329,6 +331,30 @@ class RankingTask(object):
         x_test = read_features_file(config.get('x_test'), '\t')
         estimator = joblib.load(os.path.expanduser(config.get('Learner', 'models')) + '/' + 'logistic.pkl')
         return [x[0] for x in estimator.predict_proba(x_test)]
+
+    @staticmethod
+    def recursive_feature_elimination(config_learning, config_data):
+
+        feature_names = FeatureExtractor.get_features_from_config_file(config_data)
+
+        learning_config = config_learning.get("learning", None)
+
+        x_train = read_features_file(config_learning.get('x_train'), '\t')
+        y_train = read_reference_file(config_learning.get('y_train'), '\t')
+        x_test = read_features_file(config_learning.get('x_test'), '\t')
+        estimator, scorers = learn_model.set_learning_method(config_learning, x_train, y_train)
+
+        rfecv = RFECV(estimator=estimator, step=1, cv=StratifiedKFold(y_train, 2), scoring='accuracy')
+        rfecv.fit(x_train, y_train)
+
+        for i, name in enumerate(feature_names):
+            print(name + "\t" + str(rfecv.ranking_[i]))
+            print(name + "\t" + str(rfecv.ranking_[i + 1]))
+
+        predictions = rfecv.predict(x_test)
+
+        return predictions
+
 
     def evaluate_predicted(self, predicted, gold_class_labels):
         output_file = open('test_result.out', 'w')
