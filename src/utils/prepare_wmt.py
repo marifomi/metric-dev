@@ -26,7 +26,7 @@ class PrepareWmt(object):
 
         feature_data = []
 
-        my_file = open(os.path.expanduser(config.get("WMT", "output_dir")) + '/' + config.get("WMT", "dataset") + '.' + feature_name + '.' + 'out', 'r')
+        my_file = open(os.path.expanduser(config.get("Metrics", "dir")) + '/' + config.get("WMT", "dataset") + '.' + feature_name + '.' + 'out', 'r')
 
         for line in my_file:
 
@@ -377,7 +377,7 @@ class PrepareWmt(object):
 def main():
 
     cfg = ConfigParser()
-    cfg.readfp(open(os.getcwd() + '/config/wmt.cfg'))
+    cfg.readfp(open(os.getcwd() + '/config/wmt.fluency_features_alignment_quest.cfg'))
 
     data_dir = os.path.expanduser('~/Dropbox/workspace/dataSets/wmt14-data/parse')
     prepare_wmt = PrepareWmt(data_type='parse')
