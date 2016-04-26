@@ -17,7 +17,7 @@ class HumanRanking(defaultdict):
     def __init__(self):
         defaultdict.__init__(self, list)
 
-    def add_human_data(self, f_judgments, config, max_comparisons=None):
+    def add_human_data(self, f_judgments, config, max_comparisons=-1):
 
         counter = 1
 
@@ -54,6 +54,47 @@ class HumanRanking(defaultdict):
 
             self[dataset, direction] += extracted_comparisons
             counter += len(extracted_comparisons)
+
+
+    @staticmethod
+    def deduplicate(human_comparisons):
+
+        sentences = defaultdict(list)
+        signs = defaultdict(list)
+
+        systems_signs = defaultdict(list)
+
+        for dataset, lang_pair in sorted(human_comparisons.keys()):
+
+            for comparison in human_comparisons[dataset, lang_pair]:
+                systems_signs[comparison.phrase, comparison.sys1, comparison.sys2].append(comparison.sign)
+
+            for instance in systems_signs.keys():
+
+                c = Counter(systems_signs[instance])
+                items = list(c.items())
+
+                if len(c) == 1:
+                    continue
+
+                sentences[dataset, lang_pair].append([instance[0], instance[1], instance[2]])
+
+                competing = False
+                counts = []
+                for i, (sign, count) in enumerate(sorted(items, key=lambda x: x[1], reverse=True)):
+                    counts.append(count)
+                    if count == items[i + 1][1]:
+                        competing = True
+                    break
+
+                if competing is True:
+                    signs[dataset, lang_pair].append(None)
+                else:
+                    idx = np.argmax(counts)
+                    my_sign = items[idx][0]
+                    signs[dataset, lang_pair].append(my_sign)
+
+        return sentences, signs
 
     def clean_data(self, config):
 
@@ -144,7 +185,7 @@ class HumanRanking(defaultdict):
 
         for number in range(1, 6):
             if 'system' + str(number) + 'Id' in line.keys():
-                systems_ranks.append(SystemsTuple(id = extract_system(line['system' + str(number) + 'Id']), rank = int(line['system' + str(number) + 'rank'])))
+                systems_ranks.append(SystemsTuple(id=extract_system(line['system' + str(number) + 'Id']), rank=int(line['system' + str(number) + 'rank'])))
 
         return systems_ranks
 
