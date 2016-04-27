@@ -1,0 +1,5 @@
+bleu_precision_unigram:difference
+bleu_precision_bigram:difference
+bleu_precision_trigram:difference
+bleu_precision_fourgram:difference
+bleu_brevity_penalty:difference
