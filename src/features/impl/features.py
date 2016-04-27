@@ -1981,7 +1981,7 @@ class MeteorPropExactContentCandidate(AbstractFeature):
 
     def run(self, cand, ref):
 
-        content_words = [i for i, x in enumerate(cand['tokens']) if not word_sim.function_word(x)]
+        content_words = [i for i, x in enumerate(cand['tokens']) if not word_sim.function_word_extended(x)]
         exact_words = [x[0] - 1 for i, x in enumerate(cand['alignments'][0]) if cand['alignments'][2][i] == 0]
 
         if len(content_words) == 0:
@@ -2001,7 +2001,7 @@ class MeteorPropExactContentReference(AbstractFeature):
 
     def run(self, cand, ref):
 
-        content_words = [i for i, x in enumerate(ref['tokens']) if not word_sim.function_word(x)]
+        content_words = [i for i, x in enumerate(ref['tokens']) if not word_sim.function_word_extended(x)]
         exact_words = [x[0] - 1 for i, x in enumerate(ref['alignments'][0]) if ref['alignments'][2][i] == 0]
 
         if len(content_words) == 0:
@@ -2021,7 +2021,7 @@ class MeteorPropExactFunctionCandidate(AbstractFeature):
 
     def run(self, cand, ref):
 
-        function_words = [i for i, x in enumerate(cand['tokens']) if word_sim.function_word(x)]
+        function_words = [i for i, x in enumerate(cand['tokens']) if word_sim.function_word_extended(x)]
         exact_words = [x[0] - 1 for i, x in enumerate(cand['alignments'][0]) if cand['alignments'][2][i] == 0]
 
         if len(function_words) == 0:
@@ -2041,7 +2041,7 @@ class MeteorPropExactFunctionReference(AbstractFeature):
 
     def run(self, cand, ref):
 
-        function_words = [i for i, x in enumerate(ref['tokens']) if word_sim.function_word(x)]
+        function_words = [i for i, x in enumerate(ref['tokens']) if word_sim.function_word_extended(x)]
         exact_words = [x[0] - 1 for i, x in enumerate(ref['alignments'][0]) if ref['alignments'][2][i] == 0]
 
         if len(function_words) == 0:
@@ -2107,7 +2107,7 @@ class MeteorPropFuzzyContentCandidate(AbstractFeature):
 
     def run(self, cand, ref):
 
-        content_words = [i for i, x in enumerate(cand['tokens']) if not word_sim.function_word(x)]
+        content_words = [i for i, x in enumerate(cand['tokens']) if not word_sim.function_word_extended(x)]
         fuzzy_words = [x[0] - 1 for i, x in enumerate(cand['alignments'][0]) if cand['alignments'][2][i] != 0]
 
         if len(content_words) == 0:
@@ -2127,7 +2127,7 @@ class MeteorPropFuzzyContentReference(AbstractFeature):
 
     def run(self, cand, ref):
 
-        content_words = [i for i, x in enumerate(ref['tokens']) if not word_sim.function_word(x)]
+        content_words = [i for i, x in enumerate(ref['tokens']) if not word_sim.function_word_extended(x)]
         fuzzy_words = [x[0] - 1 for i, x in enumerate(ref['alignments'][0]) if ref['alignments'][2][i] != 0]
 
         if len(content_words) == 0:
@@ -2147,7 +2147,7 @@ class MeteorPropFuzzyFunctionCandidate(AbstractFeature):
 
     def run(self, cand, ref):
 
-        function_words = [i for i, x in enumerate(cand['tokens']) if not word_sim.function_word(x)]
+        function_words = [i for i, x in enumerate(cand['tokens']) if not word_sim.function_word_extended(x)]
         fuzzy_words = [x[0] - 1 for i, x in enumerate(cand['alignments'][0]) if cand['alignments'][2][i] != 0]
 
         if len(function_words) == 0:
@@ -2167,7 +2167,7 @@ class MeteorPropFuzzyFunctionReference(AbstractFeature):
 
     def run(self, cand, ref):
 
-        function_words = [i for i, x in enumerate(ref['tokens']) if not word_sim.function_word(x)]
+        function_words = [i for i, x in enumerate(ref['tokens']) if not word_sim.function_word_extended(x)]
         fuzzy_words = [x[0] - 1 for i, x in enumerate(ref['alignments'][0]) if ref['alignments'][2][i] != 0]
 
         if len(function_words) == 0:
@@ -2233,7 +2233,7 @@ class MeteorPropStemContentCandidate(AbstractFeature):
 
     def run(self, cand, ref):
 
-        content_words = [i for i, x in enumerate(cand['tokens']) if not word_sim.function_word(x)]
+        content_words = [i for i, x in enumerate(cand['tokens']) if not word_sim.function_word_extended(x)]
         stem_words = [x[0] - 1 for i, x in enumerate(cand['alignments'][0]) if cand['alignments'][2][i] == 1]
 
         if len(content_words) == 0:
@@ -2253,7 +2253,7 @@ class MeteorPropStemContentReference(AbstractFeature):
 
     def run(self, cand, ref):
 
-        content_words = [i for i, x in enumerate(ref['tokens']) if not word_sim.function_word(x)]
+        content_words = [i for i, x in enumerate(ref['tokens']) if not word_sim.function_word_extended(x)]
         stem_words = [x[0] - 1 for i, x in enumerate(ref['alignments'][0]) if ref['alignments'][2][i] == 1]
 
         if len(content_words) == 0:
@@ -2273,7 +2273,7 @@ class MeteorPropStemFunctionCandidate(AbstractFeature):
 
     def run(self, cand, ref):
 
-        function_words = [i for i, x in enumerate(cand['tokens']) if not word_sim.function_word(x)]
+        function_words = [i for i, x in enumerate(cand['tokens']) if not word_sim.function_word_extended(x)]
         stem_words = [x[0] - 1 for i, x in enumerate(cand['alignments'][0]) if cand['alignments'][2][i] == 1]
 
         if len(function_words) == 0:
@@ -2293,7 +2293,7 @@ class MeteorPropStemFunctionReference(AbstractFeature):
 
     def run(self, cand, ref):
 
-        function_words = [i for i, x in enumerate(ref['tokens']) if not word_sim.function_word(x)]
+        function_words = [i for i, x in enumerate(ref['tokens']) if not word_sim.function_word_extended(x)]
         stem_words = [x[0] - 1 for i, x in enumerate(ref['alignments'][0]) if ref['alignments'][2][i] == 1]
 
         if len(function_words) == 0:
@@ -2360,7 +2360,7 @@ class MeteorPropSynonymContentCandidate(AbstractFeature):
 
     def run(self, cand, ref):
 
-        content_words = [i for i, x in enumerate(cand['tokens']) if not word_sim.function_word(x)]
+        content_words = [i for i, x in enumerate(cand['tokens']) if not word_sim.function_word_extended(x)]
         synonym_words = [x[0] - 1 for i, x in enumerate(cand['alignments'][0]) if cand['alignments'][2][i] == 2]
 
         if len(content_words) == 0:
@@ -2381,7 +2381,7 @@ class MeteorPropSynonymContentReference(AbstractFeature):
 
     def run(self, cand, ref):
 
-        content_words = [i for i, x in enumerate(ref['tokens']) if not word_sim.function_word(x)]
+        content_words = [i for i, x in enumerate(ref['tokens']) if not word_sim.function_word_extended(x)]
         synonym_words = [x[0] - 1 for i, x in enumerate(ref['alignments'][0]) if ref['alignments'][2][i] == 2]
 
         if len(content_words) == 0:
@@ -2402,7 +2402,7 @@ class MeteorPropSynonymFunctionCandidate(AbstractFeature):
 
     def run(self, cand, ref):
 
-        function_words = [i for i, x in enumerate(cand['tokens']) if not word_sim.function_word(x)]
+        function_words = [i for i, x in enumerate(cand['tokens']) if not word_sim.function_word_extended(x)]
         synonym_words = [x[0] - 1 for i, x in enumerate(cand['alignments'][0]) if cand['alignments'][2][i] == 2]
 
         if len(function_words) == 0:
@@ -2423,7 +2423,7 @@ class MeteorPropSynonymFunctionReference(AbstractFeature):
 
     def run(self, cand, ref):
 
-        function_words = [i for i, x in enumerate(ref['tokens']) if not word_sim.function_word(x)]
+        function_words = [i for i, x in enumerate(ref['tokens']) if not word_sim.function_word_extended(x)]
         synonym_words = [x[0] - 1 for i, x in enumerate(ref['alignments'][0]) if ref['alignments'][2][i] == 2]
 
         if len(function_words) == 0:
@@ -2490,7 +2490,7 @@ class MeteorPropParaphraseContentCandidate(AbstractFeature):
 
     def run(self, cand, ref):
 
-        content_words = [i for i, x in enumerate(cand['tokens']) if not word_sim.function_word(x)]
+        content_words = [i for i, x in enumerate(cand['tokens']) if not word_sim.function_word_extended(x)]
         paraphrase_words = [x[0] - 1 for i, x in enumerate(cand['alignments'][0]) if cand['alignments'][2][i] == 3]
 
         if len(content_words) == 0:
@@ -2511,7 +2511,7 @@ class MeteorPropParaphraseContentReference(AbstractFeature):
 
     def run(self, cand, ref):
 
-        content_words = [i for i, x in enumerate(ref['tokens']) if not word_sim.function_word(x)]
+        content_words = [i for i, x in enumerate(ref['tokens']) if not word_sim.function_word_extended(x)]
         paraphrase_words = [x[0] - 1 for i, x in enumerate(ref['alignments'][0]) if ref['alignments'][2][i] == 3]
 
         if len(content_words) == 0:
@@ -2532,7 +2532,7 @@ class MeteorPropParaphraseFunctionCandidate(AbstractFeature):
 
     def run(self, cand, ref):
 
-        function_words = [i for i, x in enumerate(cand['tokens']) if not word_sim.function_word(x)]
+        function_words = [i for i, x in enumerate(cand['tokens']) if not word_sim.function_word_extended(x)]
         paraphrase_words = [x[0] - 1 for i, x in enumerate(cand['alignments'][0]) if cand['alignments'][2][i] == 3]
 
         if len(function_words) == 0:
@@ -2553,7 +2553,7 @@ class MeteorPropParaphraseFunctionReference(AbstractFeature):
 
     def run(self, cand, ref):
 
-        function_words = [i for i, x in enumerate(ref['tokens']) if not word_sim.function_word(x)]
+        function_words = [i for i, x in enumerate(ref['tokens']) if not word_sim.function_word_extended(x)]
         paraphrase_words = [x[0] - 1 for i, x in enumerate(ref['alignments'][0]) if ref['alignments'][2][i] == 3]
 
         if len(function_words) == 0:
