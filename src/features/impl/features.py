@@ -1937,9 +1937,9 @@ class MeteorPrecision(AbstractFeature):
 
     def __init__(self):
         AbstractFeature.__init__(self)
-        AbstractFeature.set_name(self, 'meteor_precision')
+        AbstractFeature.set_name(self, 'meteor_precision_parametrized')
         AbstractFeature.set_description(self, "Meteor Precision with rank parameters")
-        AbstractFeature.set_group(self, 'meteor_lexical_similarity')
+        AbstractFeature.set_group(self, 'meteor_lexical_similarity_parametrized')
 
     def run(self, cand, ref):
 
@@ -1987,9 +1987,9 @@ class MeteorRecall(AbstractFeature):
 
     def __init__(self):
         AbstractFeature.__init__(self)
-        AbstractFeature.set_name(self, 'meteor_recall')
+        AbstractFeature.set_name(self, 'meteor_recall_parametrized')
         AbstractFeature.set_description(self, "Meteor Recall with rank parameters")
-        AbstractFeature.set_group(self, 'meteor_lexical_similarity')
+        AbstractFeature.set_group(self, 'meteor_lexical_similarity_parametrized')
 
     def run(self, cand, ref):
 
@@ -2026,9 +2026,9 @@ class MeteorF(AbstractFeature):
 
     def __init__(self):
         AbstractFeature.__init__(self)
-        AbstractFeature.set_name(self, 'meteor_f')
+        AbstractFeature.set_name(self, 'meteor_f_parametrized')
         AbstractFeature.set_description(self, "Meteor Fmean")
-        AbstractFeature.set_group(self, 'meteor_lexical_similarity')
+        AbstractFeature.set_group(self, 'meteor_lexical_similarity_parametrized')
 
     def run(self, cand, ref):
 
