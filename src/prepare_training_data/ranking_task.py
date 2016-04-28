@@ -350,7 +350,7 @@ class RankingTask(object):
 
         x_test = read_features_file(config_learning.get('x_test'), '\t')
 
-        estimator = joblib.load(config_data.get("Learner", "models") + "/" + method_name + ".pkl")
+        estimator = joblib.load(os.path.expanduser(config_data.get("Learner", "models")) + "/" + method_name + ".pkl")
         predictions = estimator.predict(x_test)
 
         return predictions
