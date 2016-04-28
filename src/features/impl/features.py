@@ -1875,27 +1875,49 @@ class FragmentationPenalty(AbstractFeature):
 
     def run(self, cand, ref):
 
-        chunck_number = self.calculate_chuncks(cand['alignments'][0])
+        chunck_number = FragmentationPenalty.calculate_chuncks(cand['alignments'][0])
         frag_penalty = 0.0
 
         if chunck_number > 1:
-            frag_penalty = float(chunck_number) / len(cand['alignments'][0])
+            frag_penalty = float(chunck_number) / float(len(cand['alignments'][0]))
 
         AbstractFeature.set_value(self, frag_penalty)
 
-    def calculate_chuncks(self, alignments):
+    @staticmethod
+    def calculate_chuncks(alignments):
 
-        sortedAlignments = sorted(alignments, key=lambda alignment: alignment[0])
+        sorted_alignments = sorted(alignments, key=lambda alignment: alignment[0])
 
         chunks = 0
-        previousPair = None
+        previous_pair = None
 
-        for pair in sortedAlignments:
-            if previousPair == None or previousPair[0] != pair[0] - 1 or previousPair[1] != pair[1] - 1:
+        for pair in sorted_alignments:
+            if previous_pair == None or previous_pair[0] != pair[0] - 1 or previous_pair[1] != pair[1] - 1:
                 chunks += 1
-            previousPair = pair
+            previous_pair = pair
 
         return chunks
+
+
+class FragmentationPenaltyParametrized(AbstractFeature):
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'fragmentation_penalty_parametrized')
+        AbstractFeature.set_description(self, "Fragmentation penalty from Meteor with ranking parameters")
+        AbstractFeature.set_group(self, 'meteor_fragmentation_penalty_parametrized')
+
+    def run(self, cand, ref):
+
+        gamma = 0.60
+        beta = 0.20
+
+        chunck_number = FragmentationPenalty.calculate_chuncks(cand['alignments'][0])
+        frag_penalty = 0.0
+
+        if chunck_number > 1:
+            frag_penalty = gamma * pow(float(chunck_number) / float(len(cand['alignments'][0])), beta)
+
+        AbstractFeature.set_value(self, frag_penalty)
 
 
 class CountChunks(AbstractFeature):
@@ -1907,22 +1929,140 @@ class CountChunks(AbstractFeature):
 
     def run(self, cand, ref):
 
-        chunck_number = self.calculate_chuncks(cand['alignments'][0])
+        chunck_number = FragmentationPenalty.calculate_chuncks(cand['alignments'][0])
         AbstractFeature.set_value(self, chunck_number)
 
-    def calculate_chuncks(self, alignments):
 
-        sortedAlignments = sorted(alignments, key=lambda alignment: alignment[0])
+class MeteorPrecision(AbstractFeature):
 
-        chunks = 0
-        previousPair = None
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'meteor_precision')
+        AbstractFeature.set_description(self, "Meteor Precision with rank parameters")
+        AbstractFeature.set_group(self, 'meteor_lexical_similarity')
 
-        for pair in sortedAlignments:
-            if previousPair == None or previousPair[0] != pair[0] - 1 or previousPair[1] != pair[1] - 1:
-                chunks += 1
-            previousPair = pair
+    def run(self, cand, ref):
 
-        return chunks
+        delta = 0.75
+
+        content_words1 = filter(lambda x: not word_sim.function_word_extended(x), cand['tokens'])
+        content_words2 = filter(lambda x: not word_sim.function_word_extended(x), ref['tokens'])
+        function_words1 = filter(lambda x: word_sim.function_word_extended(x), cand['tokens'])
+        function_words2 = filter(lambda x: word_sim.function_word_extended(x), ref['tokens'])
+
+        weighted_length1 = delta * len(content_words1) + (1.0 - delta) * len(function_words1)
+        weighted_length2 = delta * len(content_words2) + (1.0 - delta) * len(function_words2)
+
+        weighted_matches1 = 0
+        weighted_matches2 = 0
+
+        for pair in cand['alignments'][0]:
+            if not word_sim.function_word_extended(cand['tokens'][pair[0] - 1]):
+                weighted_matches1 += delta * self.weighted_word_similarity(cand, pair[0] - 1)
+            else:
+                weighted_matches1 += (1 - delta) * self.weighted_word_similarity(cand, pair[0] - 1)
+
+            if not word_sim.function_word_extended(ref['tokens'][pair[0] - 1]):
+                weighted_matches2 += delta * self.weighted_word_similarity(cand, pair[0] - 1)
+            else:
+                weighted_matches2 += (1 - delta) * self.weighted_word_similarity(cand, pair[0] - 1)
+
+        precision = weighted_matches1 / weighted_length1
+
+        return precision
+
+    @staticmethod
+    def weighted_word_similarity(cand, idx):
+
+        if cand['alignments'][2][idx] == 0:
+            return 1.0
+        elif cand['alignments'][2][idx] == 1:
+            return 0.6
+        elif cand['alignments'][2][idx] == 2:
+            return 0.8
+        else:
+            return 0.6
+
+class MeteorRecall(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'meteor_recall')
+        AbstractFeature.set_description(self, "Meteor Recall with rank parameters")
+        AbstractFeature.set_group(self, 'meteor_lexical_similarity')
+
+    def run(self, cand, ref):
+
+        delta = 0.75
+
+        content_words1 = filter(lambda x: not word_sim.function_word_extended(x), cand['tokens'])
+        content_words2 = filter(lambda x: not word_sim.function_word_extended(x), ref['tokens'])
+        function_words1 = filter(lambda x: word_sim.function_word_extended(x), cand['tokens'])
+        function_words2 = filter(lambda x: word_sim.function_word_extended(x), ref['tokens'])
+
+        weighted_length1 = delta * len(content_words1) + (1.0 - delta) * len(function_words1)
+        weighted_length2 = delta * len(content_words2) + (1.0 - delta) * len(function_words2)
+
+        weighted_matches1 = 0
+        weighted_matches2 = 0
+
+        for pair in cand['alignments'][0]:
+            if not word_sim.function_word_extended(cand['tokens'][pair[0] - 1]):
+                weighted_matches1 += delta * MeteorPrecision.weighted_word_similarity(cand, pair[0] - 1)
+            else:
+                weighted_matches1 += (1 - delta) * MeteorPrecision.weighted_word_similarity(cand, pair[0] - 1)
+
+            if not word_sim.function_word_extended(ref['tokens'][pair[0] - 1]):
+                weighted_matches2 += delta * MeteorPrecision.weighted_word_similarity(cand, pair[0] - 1)
+            else:
+                weighted_matches2 += (1 - delta) * MeteorPrecision.weighted_word_similarity(cand, pair[0] - 1)
+
+        recall = weighted_matches2 / weighted_length2
+
+        return recall
+
+
+class MeteorF(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'meteor_f')
+        AbstractFeature.set_description(self, "Meteor Fmean")
+        AbstractFeature.set_group(self, 'meteor_lexical_similarity')
+
+    def run(self, cand, ref):
+
+        delta = 0.75
+        alpha = 0.85
+
+        content_words1 = filter(lambda x: not word_sim.function_word_extended(x), cand['tokens'])
+        content_words2 = filter(lambda x: not word_sim.function_word_extended(x), ref['tokens'])
+        function_words1 = filter(lambda x: word_sim.function_word_extended(x), cand['tokens'])
+        function_words2 = filter(lambda x: word_sim.function_word_extended(x), ref['tokens'])
+
+        weighted_length1 = delta * len(content_words1) + (1.0 - delta) * len(function_words1)
+        weighted_length2 = delta * len(content_words2) + (1.0 - delta) * len(function_words2)
+
+        weighted_matches1 = 0
+        weighted_matches2 = 0
+
+        for pair in cand['alignments'][0]:
+            if not word_sim.function_word_extended(cand['tokens'][pair[0] - 1]):
+                weighted_matches1 += delta * MeteorPrecision.weighted_word_similarity(cand, pair[0] - 1)
+            else:
+                weighted_matches1 += (1 - delta) * MeteorPrecision.weighted_word_similarity(cand, pair[0] - 1)
+
+            if not word_sim.function_word_extended(ref['tokens'][pair[0] - 1]):
+                weighted_matches2 += delta * MeteorPrecision.weighted_word_similarity(cand, pair[0] - 1)
+            else:
+                weighted_matches2 += (1 - delta) * MeteorPrecision.weighted_word_similarity(cand, pair[0] - 1)
+
+        precision = weighted_matches1 / weighted_length1
+        recall = weighted_matches2 / weighted_length2
+
+        f_mean = 1.0 / (((1.0 - alpha) / precision) + (alpha /recall))
+
+        return f_mean
 
 
 class MeteorPropExactCandidate(AbstractFeature):
