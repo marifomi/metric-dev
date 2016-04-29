@@ -61,7 +61,7 @@ class PrepareWmt(object):
 
     def wmt_format_simple(self, config, feature_name, data_set, lang_pair, system_name, scores):
 
-        f_output = config.get('Data', 'output_dir') + '/' + data_set + '.' + feature_name + '.' + 'out'
+        f_output = os.path.expanduser(config.get('Data', 'output_dir')) + '/' + data_set + '.' + feature_name + '.' + 'out'
 
         if os.path.exists(f_output):
             print("Feature file already exist.")
