@@ -49,7 +49,7 @@ class CountContentCandidate(AbstractFeature):
         count = 0
 
         for word in cand['tokens']:
-            if not word_sim.function_word(word):
+            if not word_sim.function_word_extended(word):
                 count += 1
 
         AbstractFeature.set_value(self, count)
@@ -66,7 +66,7 @@ class CountContentReference(AbstractFeature):
         count = 0
 
         for word in ref['tokens']:
-            if not word_sim.function_word(word):
+            if not word_sim.function_word_extended(word):
                 count += 1
 
         AbstractFeature.set_value(self, count)
@@ -83,7 +83,7 @@ class CountFunctionCandidate(AbstractFeature):
         count = 0
 
         for word in cand['tokens']:
-            if word_sim.function_word(word):
+            if word_sim.function_word_extended(word):
                 count += 1
 
         AbstractFeature.set_value(self, count)
@@ -100,7 +100,7 @@ class CountFunctionReference(AbstractFeature):
         count = 0
 
         for word in ref['tokens']:
-            if word_sim.function_word(word):
+            if word_sim.function_word_extended(word):
                 count += 1
 
         AbstractFeature.set_value(self, count)
@@ -216,7 +216,7 @@ class CountAlignedContent(AbstractFeature):
             count = 0
 
             for word in cand['alignments'][1]:
-                if not word_sim.function_word(word[0]):
+                if not word_sim.function_word_extended(word[0]):
                     count += 1
 
             AbstractFeature.set_value(self, count)
@@ -240,7 +240,7 @@ class CountAlignedFunction(AbstractFeature):
             count = 0
 
             for word in cand['alignments'][1]:
-                if word_sim.function_word(word[0]):
+                if word_sim.function_word_extended(word[0]):
                     count += 1
 
             AbstractFeature.set_value(self, count)
@@ -267,7 +267,7 @@ class CountNonAlignedContentCandidate(AbstractFeature):
         count = 0
         for i, word in enumerate(cand['tokens']):
             if i + 1 not in [x[0] for x in cand['alignments'][0]]:
-                if not word_sim.function_word(word):
+                if not word_sim.function_word_extended(word):
                     count += 1
 
             AbstractFeature.set_value(self, count)
@@ -291,7 +291,7 @@ class CountNonAlignedFunctionCandidate(AbstractFeature):
         count = 0
         for i, word in enumerate(cand['tokens']):
             if i + 1 not in [x[0] for x in cand['alignments'][0]]:
-                if word_sim.function_word(word):
+                if word_sim.function_word_extended(word):
                     count += 1
 
             AbstractFeature.set_value(self, count)
@@ -313,7 +313,7 @@ class PropNonAlignedContent(AbstractFeature):
         count = 0
         for i, word in enumerate(cand['tokens']):
             if i + 1 not in [x[0] for x in cand['alignments'][0]]:
-                if not word_sim.function_word(word):
+                if not word_sim.function_word_extended(word):
                     count += 1
 
         AbstractFeature.set_value(self, count / float(len(cand['tokens']) - len(cand['alignments'][0])))
@@ -352,7 +352,7 @@ class PropAlignedContentCandidate(AbstractFeature):
 
     def run(self, cand, ref):
 
-        content_words = [i for i, x in enumerate(cand['tokens']) if not word_sim.function_word(x)]
+        content_words = [i for i, x in enumerate(cand['tokens']) if not word_sim.function_word_extended(x)]
         aligned_words = [x[0] - 1 for x in cand['alignments'][0]]
 
         if len(content_words) == 0:
@@ -373,7 +373,7 @@ class PropAlignedFunctionCandidate(AbstractFeature):
 
     def run(self, cand, ref):
 
-        function_words = [i for i, x in enumerate(cand['tokens']) if word_sim.function_word(x)]
+        function_words = [i for i, x in enumerate(cand['tokens']) if word_sim.function_word_extended(x)]
         aligned_words = [x[0] - 1 for x in cand['alignments'][0]]
 
         if len(function_words) == 0:
@@ -394,7 +394,7 @@ class PropAlignedContentReference(AbstractFeature):
 
     def run(self, cand, ref):
 
-        content_words = [i for i, x in enumerate(ref['tokens']) if not word_sim.function_word(x)]
+        content_words = [i for i, x in enumerate(ref['tokens']) if not word_sim.function_word_extended(x)]
         aligned_words = [x[0] - 1 for x in ref['alignments'][0]]
 
         if len(content_words) == 0:
@@ -415,7 +415,7 @@ class PropAlignedFunctionReference(AbstractFeature):
 
     def run(self, cand, ref):
 
-        function_words = [i for i, x in enumerate(ref['tokens']) if word_sim.function_word(x)]
+        function_words = [i for i, x in enumerate(ref['tokens']) if word_sim.function_word_extended(x)]
         aligned_words = [x[0] - 1 for x in ref['alignments'][0]]
 
         if len(function_words) == 0:
@@ -4830,7 +4830,7 @@ class ContextMatch(AbstractFeature):
         count = 0
         for i, word in enumerate(cand['parse']):
 
-            if not word_sim.function_word(word.form):
+            if not word_sim.function_word_extended(word.form):
                 continue
             if i in align_dict.keys():
                 continue
