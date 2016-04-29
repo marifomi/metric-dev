@@ -3842,6 +3842,37 @@ class BackoffDirectAvg(AbstractFeature):
         AbstractFeature.set_value(self, numpy.nanmean(ngram_lengths))
 
 
+class POSBackoffDirectAvg(AbstractFeature):
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'pos_backoff_direct_avg')
+        AbstractFeature.set_description(self, "")
+        AbstractFeature.set_group(self, "fluency_features_pos")
+
+    def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['pos_language_model_word_features']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
+
+        ngram_lengths = []
+
+        for i, word in enumerate(cand['tokens']):
+
+            if word.lower() in config.punctuations:
+                continue
+
+            if word.lower().isdigit():
+                continue
+
+            ngram_lengths.append(cand['pos_language_model_word_features'][i][1])
+
+        if len(ngram_lengths) == 0 or numpy.isnan(numpy.nanmean(ngram_lengths)):
+            AbstractFeature.set_value(self, -1)
+            return
+
+        AbstractFeature.set_value(self, numpy.nanmean(ngram_lengths))
+
+
 class BackoffDirectMedian(AbstractFeature):
     def __init__(self):
         AbstractFeature.__init__(self)
@@ -3865,6 +3896,37 @@ class BackoffDirectMedian(AbstractFeature):
                 continue
 
             ngram_lengths.append(cand['language_model_word_features'][i][1])
+
+        if len(ngram_lengths) == 0 or numpy.isnan(numpy.nanmedian(ngram_lengths)):
+            AbstractFeature.set_value(self, -1)
+            return
+
+        AbstractFeature.set_value(self, numpy.nanmedian(ngram_lengths))
+
+
+class POSBackoffDirectMedian(AbstractFeature):
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'pos_backoff_direct_median')
+        AbstractFeature.set_description(self, "")
+        AbstractFeature.set_group(self, "fluency_features_pos")
+
+    def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['pos_language_model_word_features']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
+
+        ngram_lengths = []
+
+        for i, word in enumerate(cand['tokens']):
+
+            if word.lower() in config.punctuations:
+                continue
+
+            if word.lower().isdigit():
+                continue
+
+            ngram_lengths.append(cand['pos_language_model_word_features'][i][1])
 
         if len(ngram_lengths) == 0 or numpy.isnan(numpy.nanmedian(ngram_lengths)):
             AbstractFeature.set_value(self, -1)
@@ -3905,6 +3967,38 @@ class BackoffDirectMin(AbstractFeature):
         AbstractFeature.set_value(self, numpy.nanmin(ngram_lengths))
 
 
+class POSBackoffDirectMin(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'pos_backoff_direct_min')
+        AbstractFeature.set_description(self, "")
+        AbstractFeature.set_group(self, "fluency_features_pos")
+
+    def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['pos_language_model_word_features']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
+
+        ngram_lengths = []
+
+        for i, word in enumerate(cand['tokens']):
+
+            if word.lower() in config.punctuations:
+                continue
+
+            if word.lower().isdigit():
+                continue
+
+            ngram_lengths.append(cand['pos_language_model_word_features'][i][1])
+
+        if len(ngram_lengths) == 0 or numpy.isnan(numpy.nanmin(ngram_lengths)):
+            AbstractFeature.set_value(self, -1)
+            return
+
+        AbstractFeature.set_value(self, numpy.nanmin(ngram_lengths))
+
+
 class BackoffDirectMax(AbstractFeature):
 
     def __init__(self):
@@ -3937,6 +4031,38 @@ class BackoffDirectMax(AbstractFeature):
         AbstractFeature.set_value(self, numpy.nanmax(ngram_lengths))
 
 
+class POSBackoffDirectMax(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'pos_backoff_direct_max')
+        AbstractFeature.set_description(self, "")
+        AbstractFeature.set_group(self, "fluency_features_pos")
+
+    def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['pos_language_model_word_features']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
+
+        ngram_lengths = []
+
+        for i, word in enumerate(cand['tokens']):
+
+            if word.lower() in config.punctuations:
+                continue
+
+            if word.lower().isdigit():
+                continue
+
+            ngram_lengths.append(cand['pos_language_model_word_features'][i][1])
+
+        if len(ngram_lengths) == 0 or numpy.isnan(numpy.nanmax(ngram_lengths)):
+            AbstractFeature.set_value(self, -1)
+            return
+
+        AbstractFeature.set_value(self, numpy.nanmax(ngram_lengths))
+
+
 class BackoffDirectMode(AbstractFeature):
 
     def __init__(self):
@@ -3961,6 +4087,42 @@ class BackoffDirectMode(AbstractFeature):
                 continue
 
             ngram_lengths.append(cand['language_model_word_features'][i][1])
+
+        counter = Counter(ngram_lengths)
+        counter_sorted = sorted(counter.most_common(), key=lambda x: (x[1], x[0]), reverse=True)
+
+        if counter_sorted[0][1] == 1:
+            AbstractFeature.set_value(self, 0.0)
+        elif numpy.isnan(counter_sorted[0][0]):
+            AbstractFeature.set_value(self, -1)
+        else:
+            AbstractFeature.set_value(self, counter_sorted[0][0])
+
+
+class POSBackoffDirectMode(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'pos_backoff_direct_mode')
+        AbstractFeature.set_description(self, "")
+        AbstractFeature.set_group(self, "fluency_features_pos")
+
+    def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['pos_language_model_word_features']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
+
+        ngram_lengths = []
+
+        for i, word in enumerate(cand['tokens']):
+
+            if word.lower() in config.punctuations:
+                continue
+
+            if word.lower().isdigit():
+                continue
+
+            ngram_lengths.append(cand['pos_language_model_word_features'][i][1])
 
         counter = Counter(ngram_lengths)
         counter_sorted = sorted(counter.most_common(), key=lambda x: (x[1], x[0]), reverse=True)
@@ -4012,6 +4174,45 @@ class BackDirectNonAlignedAvg(AbstractFeature):
         AbstractFeature.set_value(self, numpy.nanmean(ngram_lengths))
 
 
+class POSBackDirectNonAlignedAvg(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'pos_back_direct_non_aligned_avg')
+        AbstractFeature.set_description(self, "")
+        AbstractFeature.set_group(self, "fluency_features_alignment_pos")
+
+    def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['pos_language_model_word_features']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
+
+        ngram_lengths = []
+
+        if len(cand['alignments']) == len(cand['tokens']):
+            AbstractFeature.set_value(self, -1)
+            return
+
+        for i, word in enumerate(cand['tokens']):
+
+            if word.lower() in config.punctuations:
+                continue
+
+            if word.lower().isdigit():
+                continue
+
+            if i + 1 in [x[0] for x in cand['alignments'][0]]:
+                continue
+
+            ngram_lengths.append(cand['pos_language_model_word_features'][i][1])
+
+        if len(ngram_lengths) == 0 or numpy.isnan(numpy.nanmean(ngram_lengths)):
+            AbstractFeature.set_value(self, -1)
+            return
+
+        AbstractFeature.set_value(self, numpy.nanmean(ngram_lengths))
+
+
 class BackDirectNonAlignedMedian(AbstractFeature):
 
     def __init__(self):
@@ -4043,6 +4244,45 @@ class BackDirectNonAlignedMedian(AbstractFeature):
                 continue
 
             ngram_lengths.append(cand['language_model_word_features'][i][1])
+
+        if len(ngram_lengths) == 0 or numpy.isnan(numpy.nanmedian(ngram_lengths)):
+            AbstractFeature.set_value(self, -1)
+            return
+
+        AbstractFeature.set_value(self, numpy.nanmedian(ngram_lengths))
+
+
+class POSBackDirectNonAlignedMedian(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'pos_back_direct_non_aligned_median')
+        AbstractFeature.set_description(self, "")
+        AbstractFeature.set_group(self, "fluency_features_alignment_pos")
+
+    def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['pos_language_model_word_features']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
+
+        ngram_lengths = []
+
+        if len(cand['alignments']) == len(cand['tokens']):
+            AbstractFeature.set_value(self, -1)
+            return
+
+        for i, word in enumerate(cand['tokens']):
+
+            if word.lower() in config.punctuations:
+                continue
+
+            if word.lower().isdigit():
+                continue
+
+            if i + 1 in [x[0] for x in cand['alignments'][0]]:
+                continue
+
+            ngram_lengths.append(cand['pos_language_model_word_features'][i][1])
 
         if len(ngram_lengths) == 0 or numpy.isnan(numpy.nanmedian(ngram_lengths)):
             AbstractFeature.set_value(self, -1)
@@ -4090,6 +4330,45 @@ class BackDirectNonAlignedMin(AbstractFeature):
         AbstractFeature.set_value(self, numpy.nanmin(ngram_lengths))
 
 
+class POSBackDirectNonAlignedMin(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'pos_back_direct_non_aligned_min')
+        AbstractFeature.set_description(self, "")
+        AbstractFeature.set_group(self, "fluency_features_alignment_pos")
+
+    def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['pos_language_model_word_features']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
+
+        ngram_lengths = []
+
+        if len(cand['alignments']) == len(cand['tokens']):
+            AbstractFeature.set_value(self, -1)
+            return
+
+        for i, word in enumerate(cand['tokens']):
+
+            if word.lower() in config.punctuations:
+                continue
+
+            if word.lower().isdigit():
+                continue
+
+            if i + 1 in [x[0] for x in cand['alignments'][0]]:
+                continue
+
+            ngram_lengths.append(cand['pos_language_model_word_features'][i][1])
+
+        if len(ngram_lengths) == 0 or numpy.isnan(numpy.nanmin(ngram_lengths)):
+            AbstractFeature.set_value(self, -1)
+            return
+
+        AbstractFeature.set_value(self, numpy.nanmin(ngram_lengths))
+
+
 class BackDirectNonAlignedMax(AbstractFeature):
 
     def __init__(self):
@@ -4121,6 +4400,45 @@ class BackDirectNonAlignedMax(AbstractFeature):
                 continue
 
             ngram_lengths.append(cand['language_model_word_features'][i][1])
+
+        if len(ngram_lengths) == 0 or numpy.isnan(numpy.nanmax(ngram_lengths)):
+            AbstractFeature.set_value(self, -1)
+            return
+
+        AbstractFeature.set_value(self, numpy.nanmax(ngram_lengths))
+
+
+class POSBackDirectNonAlignedMax(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'pos_back_direct_non_aligned_max')
+        AbstractFeature.set_description(self, "")
+        AbstractFeature.set_group(self, "fluency_features_alignment_pos")
+
+    def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['pos_language_model_word_features']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
+
+        ngram_lengths = []
+
+        if len(cand['alignments']) == len(cand['tokens']):
+            AbstractFeature.set_value(self, -1)
+            return
+
+        for i, word in enumerate(cand['tokens']):
+
+            if word.lower() in config.punctuations:
+                continue
+
+            if word.lower().isdigit():
+                continue
+
+            if i + 1 in [x[0] for x in cand['alignments'][0]]:
+                continue
+
+            ngram_lengths.append(cand['pos_language_model_word_features'][i][1])
 
         if len(ngram_lengths) == 0 or numpy.isnan(numpy.nanmax(ngram_lengths)):
             AbstractFeature.set_value(self, -1)
@@ -4176,6 +4494,53 @@ class BackDirectNonAlignedMode(AbstractFeature):
             AbstractFeature.set_value(self, counter_sorted[0][0])
 
 
+class POSBackDirectNonAlignedMode(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'pos_back_direct_non_aligned_mode')
+        AbstractFeature.set_description(self, "")
+        AbstractFeature.set_group(self, "fluency_features_alignment_pos")
+
+    def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['pos_language_model_word_features']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
+
+        ngram_lengths = []
+
+        if len(cand['alignments']) == len(cand['tokens']):
+            AbstractFeature.set_value(self, -1)
+            return
+
+        for i, word in enumerate(cand['tokens']):
+
+            if word.lower() in config.punctuations:
+                continue
+
+            if word.lower().isdigit():
+                continue
+
+            if i + 1 in [x[0] for x in cand['alignments'][0]]:
+                continue
+
+            ngram_lengths.append(cand['pos_language_model_word_features'][i][1])
+
+        if len(ngram_lengths) == 0 or numpy.isnan(numpy.nanmedian(ngram_lengths)):
+            AbstractFeature.set_value(self, -1)
+            return
+
+        counter = Counter(ngram_lengths)
+        counter_sorted = sorted(counter.most_common(), key=lambda x: (x[1], x[0]), reverse=True)
+
+        if counter_sorted[0][1] == 1:
+            AbstractFeature.set_value(self, 0.0)
+        elif numpy.isnan(counter_sorted[0][0]):
+            AbstractFeature.set_value(self, -1)
+        else:
+            AbstractFeature.set_value(self, counter_sorted[0][0])
+
+
 class CountShortNgramNonAligned(AbstractFeature):
 
     def __init__(self):
@@ -4201,6 +4566,36 @@ class CountShortNgramNonAligned(AbstractFeature):
                 continue
 
             if cand['language_model_word_features'][i][1] == 1:
+                count += 1
+
+        AbstractFeature.set_value(self, count)
+
+
+class POSCountShortNgramNonAligned(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'pos_count_short_ngram_non_aligned')
+        AbstractFeature.set_description(self, "In progress...")
+        AbstractFeature.set_group(self, "fluency_features_alignment_pos")
+
+    def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['pos_language_model_word_features']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
+
+        count = 0
+
+        if len(cand['alignments']) == len(cand['tokens']):
+            AbstractFeature.set_value(self, -1)
+            return
+
+        for i, word in enumerate(cand['tokens']):
+
+            if i + 1 in [x[0] for x in cand['alignments'][0]]:
+                continue
+
+            if cand['pos_language_model_word_features'][i][1] == 2:
                 count += 1
 
         AbstractFeature.set_value(self, count)
@@ -4236,13 +4631,43 @@ class PropShortNgramNonAligned(AbstractFeature):
         AbstractFeature.set_value(self, count / float(len(cand['tokens']) - len(cand['alignments'])))
 
 
+class POSPropShortNgramNonAligned(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'pos_prop_short_ngram_non_aligned')
+        AbstractFeature.set_description(self, "In progress...")
+        AbstractFeature.set_group(self, "fluency_features_alignment_pos")
+
+    def run(self, cand, ref):
+
+        if len(cand['tokens']) != len(cand['pos_language_model_word_features']):
+            raise ValueError("The lengths of different data in the sentence object do not match")
+
+        count = 0
+
+        if len(cand['alignments']) == len(cand['tokens']):
+            AbstractFeature.set_value(self, -1)
+            return
+
+        for i, word in enumerate(cand['tokens']):
+
+            if i + 1 in [x[0] for x in cand['alignments'][0]]:
+                continue
+
+            if cand['pos_language_model_word_features'][i][1] == 2:
+                count += 1
+
+        AbstractFeature.set_value(self, count / float(len(cand['tokens']) - len(cand['alignments'])))
+
+
 class POSPropLowProb(AbstractFeature):
 
     def __init__(self):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'pos_prop_low_prob')
         AbstractFeature.set_description(self, "In progress...")
-        AbstractFeature.set_group(self, "fluency_features_srilm")
+        AbstractFeature.set_group(self, "fluency_features_pos")
 
     def run(self, cand, ref):
 
@@ -4261,7 +4686,7 @@ class POSCountLowProb(AbstractFeature):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'pos_count_low_prob')
         AbstractFeature.set_description(self, "In progress...")
-        AbstractFeature.set_group(self, "fluency_features_srilm")
+        AbstractFeature.set_group(self, "fluency_features_pos")
 
     def run(self, cand, ref):
 
@@ -4308,6 +4733,44 @@ class CountShortNgram(AbstractFeature):
         for i, word in enumerate(cand['tokens']):
 
             if cand['language_model_word_features'][i][1] == 1:
+                count += 1
+
+        AbstractFeature.set_value(self, count)
+
+
+class POSPropShortNgram(AbstractFeature):
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'pos_prop_short_ngram')
+        AbstractFeature.set_description(self, "In progress...")
+        AbstractFeature.set_group(self, "fluency_features_pos")
+
+    def run(self, cand, ref):
+
+        count = 0
+
+        for i, word in enumerate(cand['tokens']):
+
+            if cand['pos_language_model_word_features'][i][1] == 2:
+                count += 1
+
+        AbstractFeature.set_value(self, count / float(len(cand['tokens'])))
+
+
+class POSCountShortNgram(AbstractFeature):
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'pos_count_short_ngram')
+        AbstractFeature.set_description(self, "In progress...")
+        AbstractFeature.set_group(self, "fluency_features_pos")
+
+    def run(self, cand, ref):
+
+        count = 0
+
+        for i, word in enumerate(cand['tokens']):
+
+            if cand['pos_language_model_word_features'][i][1] == 2:
                 count += 1
 
         AbstractFeature.set_value(self, count)
@@ -4534,7 +4997,7 @@ class POSLangModProbSrilm(AbstractFeature):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'pos_lang_mod_prob_srilm')
         AbstractFeature.set_description(self, "POS language model log-probability using srilm")
-        AbstractFeature.set_group(self, "fluency_features_srilm")
+        AbstractFeature.set_group(self, "fluency_features_pos")
 
     def run(self, cand, ref):
         AbstractFeature.set_value(self, cand['pos_language_model_sentence_features'][1])
@@ -4556,7 +5019,7 @@ class POSLangModPerplexSrilm(AbstractFeature):
         AbstractFeature.__init__(self)
         AbstractFeature.set_name(self, 'pos_lang_mod_perplex_srilm')
         AbstractFeature.set_description(self, "POS language model perplexity using srilm")
-        AbstractFeature.set_group(self, "fluency_features_srilm")
+        AbstractFeature.set_group(self, "fluency_features_pos")
 
     def run(self, cand, ref):
         AbstractFeature.set_value(self, cand['pos_language_model_sentence_features'][2])
