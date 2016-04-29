@@ -650,6 +650,8 @@ class Tokenizer(AbstractProcessor):
                 print("Aligner is not defined")
         elif method == 'quest':
             self.tokenize_quest(config)
+        elif method == 'parse':
+            self.tokenize_from_parse(config)
         elif method == 'tokenized':
             self.rewrite_tokenized(config)
         elif method == '':
@@ -718,7 +720,7 @@ class Tokenizer(AbstractProcessor):
             words = []
 
             for item in parsed:
-                word = re.sub("", "-", item.form)
+                word = re.sub(r"^$", r"-", item.form)
                 word = re.sub("``|''", "\"", word)
                 word = re.sub("-LRB-", "(", word)
                 word = re.sub("-RRB-", ")", word)
