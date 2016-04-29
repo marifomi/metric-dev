@@ -7,6 +7,7 @@ from src.features.feature_extractor import FeatureExtractor
 from src.learning import learn_model
 from src.learning.features_file_utils import read_reference_file, read_features_file
 from src.learning.features_file_utils import write_reference_file, write_feature_file
+from src.learning.learn_model import scale_datasets
 from sklearn.metrics import accuracy_score
 from sklearn.externals import joblib
 from sklearn.feature_selection import RFECV
@@ -348,7 +349,15 @@ class RankingTask(object):
         learning_config = config_learning.get("learning", None)
         method_name = learning_config.get("method", None)
 
+        x_train = read_features_file(config_learning.get('x_train'), '\t')
+        y_train = read_reference_file(config_learning.get('y_train'), '\t')
         x_test = read_features_file(config_learning.get('x_test'), '\t')
+        y_test = read_reference_file(config_learning.get('y_test'), '\t')
+
+        scale = config_learning.get("scale", True)
+
+        if scale:
+            x_train, x_test = scale_datasets(x_train, x_test)
 
         estimator = joblib.load(os.path.expanduser(config_data.get("Learner", "models")) + "/" + method_name + ".pkl")
         predictions = estimator.predict(x_test)
@@ -378,7 +387,16 @@ class RankingTask(object):
 
         x_train = read_features_file(config_learning.get('x_train'), '\t')
         y_train = read_reference_file(config_learning.get('y_train'), '\t')
+        x_test = read_features_file(config_learning.get('x_test'), '\t')
+        y_test = read_reference_file(config_learning.get('y_test'), '\t')
+
+        scale = config_learning.get("scale", True)
+
+        if scale:
+            x_train, x_test = scale_datasets(x_train, x_test)
+
         estimator, scorers = learn_model.set_learning_method(config_learning, x_train, y_train)
+
         estimator.fit(x_train, y_train)
         joblib.dump(estimator, os.path.expanduser(config_data.get('Learner', 'models')) + '/' + method_name + '.pkl')
 
