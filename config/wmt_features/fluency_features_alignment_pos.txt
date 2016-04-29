@@ -1,0 +1,7 @@
+pos_back_direct_non_aligned_avg:both
+pos_back_direct_non_aligned_max:both
+pos_back_direct_non_aligned_median:both
+pos_back_direct_non_aligned_min:both
+pos_back_direct_non_aligned_mode:both
+pos_count_short_ngram_non_aligned:both
+pos_prop_short_ngram_non_aligned:both

@@ -1,0 +1,11 @@
+pos_backoff_direct_avg:both
+pos_backoff_direct_max:both
+pos_backoff_direct_median:both
+pos_backoff_direct_min:both
+pos_backoff_direct_mode:both
+pos_count_low_prob:both
+pos_count_short_ngram:both
+pos_lang_mod_perplex_srilm:both
+pos_lang_mod_prob_srilm:both
+pos_prop_low_prob:both
+pos_prop_short_ngram:both
