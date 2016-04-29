@@ -152,7 +152,7 @@ def function_word(word):
     return (word.lower() in cobalt_stopwords) or (word.lower() in punctuations) or (word.lower().isdigit())
 
 def function_word_extended(word):
-    return (word.lower() in extended_stopwords) or (word.lower() in punctuations) or (word.lower().isdigit())
+    return (word.lower() in extended_stopwords.stopwords_list) or (word.lower() in punctuations) or (word.lower().isdigit())
 
 
 def canonize_word(word):
