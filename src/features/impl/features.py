@@ -1967,9 +1967,9 @@ class MeteorPrecision(AbstractFeature):
             else:
                 weighted_matches2 += (1 - delta) * self.weighted_word_similarity(cand, i)
 
-        precision = weighted_matches1 / weighted_length1
+        precision = weighted_matches1 / float(weighted_length1)
 
-        return precision
+        AbstractFeature.set_value(self, precision)
 
     @staticmethod
     def weighted_word_similarity(sentence, idx):
@@ -2017,9 +2017,9 @@ class MeteorRecall(AbstractFeature):
             else:
                 weighted_matches2 += (1 - delta) * MeteorPrecision.weighted_word_similarity(cand, i)
 
-        recall = weighted_matches2 / weighted_length2
+        recall = weighted_matches2 / float(weighted_length2)
 
-        return recall
+        AbstractFeature.set_value(self, recall)
 
 
 class MeteorF(AbstractFeature):
@@ -2060,9 +2060,13 @@ class MeteorF(AbstractFeature):
         precision = weighted_matches1 / weighted_length1
         recall = weighted_matches2 / weighted_length2
 
+        if precision == 0 or recall == 0:
+            AbstractFeature.set_value(self, 0.0)
+            return
+
         f_mean = 1.0 / (((1.0 - alpha) / precision) + (alpha /recall))
 
-        return f_mean
+        AbstractFeature.set_value(self, f_mean)
 
 
 class MeteorPropExactCandidate(AbstractFeature):
