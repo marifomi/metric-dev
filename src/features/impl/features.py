@@ -2800,6 +2800,230 @@ class BleuBrevityPenalty(AbstractFeature):
 ########################################################################################################################
 
 
+class PropNouns(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'prop_nouns')
+        AbstractFeature.set_description(self, "Proportion of nouns in the candidate translation")
+        AbstractFeature.set_group(self, "pos_tag_counts")
+
+    def run(self, cand, ref):
+
+        count = 0
+        for i, word in enumerate(cand['parse']):
+            if word.pos.startswith('N'):
+                count += 1
+
+        AbstractFeature.set_value(self, count / float(len(cand['parse'])))
+
+
+class PropAdjectives(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'prop_adjectives')
+        AbstractFeature.set_description(self, "Proportion of adjectives in the candidate translation")
+        AbstractFeature.set_group(self, "pos_tag_counts")
+
+    def run(self, cand, ref):
+
+        count = 0
+        for i, word in enumerate(cand['parse']):
+            if word.pos.startswith('J'):
+                count += 1
+
+        AbstractFeature.set_value(self, count / float(len(cand['parse'])))
+
+
+class PropVerbs(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'prop_verbs')
+        AbstractFeature.set_description(self, "Proportion of verbs in the candidate translation")
+        AbstractFeature.set_group(self, "pos_tag_counts")
+
+    def run(self, cand, ref):
+
+        count = 0
+        for i, word in enumerate(cand['parse']):
+            if word.pos.startswith('V'):
+                count += 1
+
+        AbstractFeature.set_value(self, count / float(len(cand['parse'])))
+
+
+class PropVerbsFlex(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'prop_verbs_flex')
+        AbstractFeature.set_description(self, "Proportion of inflected verbs")
+        AbstractFeature.set_group(self, "pos_tag_counts")
+
+    def run(self, cand, ref):
+
+        count = 0
+        for i, word in enumerate(cand['parse']):
+            if word.pos == 'VBD' or word.pos == 'VBP' or word.pos == 'VBZ':
+                count += 1
+
+        AbstractFeature.set_value(self, count / float(len(cand['parse'])))
+
+
+class PropNounsNonAlignedCand(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'prop_nouns_non_aligned_cand')
+        AbstractFeature.set_description(self, "Proportion of non-aligned nouns in the candidate translation")
+        AbstractFeature.set_group(self, "pos_tag_counts_alignment")
+
+    def run(self, cand, ref):
+
+        count = 0
+        for i, word in enumerate(cand['parse']):
+            if word.pos.startswith('N'):
+                if i + 1 not in [x[0] for x in cand['alignments'][0]]:
+                    count += 1
+
+        AbstractFeature.set_value(self, count / float(len(cand['parse'])))
+
+
+class PropNounsNonAlignedRef(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'prop_nouns_non_aligned_ref')
+        AbstractFeature.set_description(self, "Proportion of non-aligned nouns in the reference translation")
+        AbstractFeature.set_group(self, "pos_tag_counts_alignment")
+
+    def run(self, cand, ref):
+
+        count = 0
+        for i, word in enumerate(ref['parse']):
+            if word.pos.startswith('N'):
+                if i + 1 not in [x[1] for x in ref['alignments'][0]]:
+                    count += 1
+
+        AbstractFeature.set_value(self, count / float(len(ref['parse'])))
+
+
+class PropAdjectivesNonAlignedCand(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'prop_adjectives_non_aligned_cand')
+        AbstractFeature.set_description(self, "Proportion of non-aligned adjectives in the candidate translation")
+        AbstractFeature.set_group(self, "pos_tag_counts_alignment")
+
+    def run(self, cand, ref):
+
+        count = 0
+        for i, word in enumerate(cand['parse']):
+            if word.pos.startswith('J'):
+                if i + 1 not in [x[0] for x in cand['alignments'][0]]:
+                    count += 1
+
+        AbstractFeature.set_value(self, count / float(len(cand['parse'])))
+
+
+class PropAdjectivesNonAlignedRef(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'prop_adjectives_non_aligned_ref')
+        AbstractFeature.set_description(self, "Proportion of non-aligned adjectives in the reference translation")
+        AbstractFeature.set_group(self, "pos_tag_counts_alignment")
+
+    def run(self, cand, ref):
+
+        count = 0
+        for i, word in enumerate(ref['parse']):
+            if word.pos.startswith('J'):
+                if i + 1 not in [x[1] for x in ref['alignments'][0]]:
+                    count += 1
+
+        AbstractFeature.set_value(self, count / float(len(ref['parse'])))
+
+
+class PropVerbsNonAlignedCand(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'prop_verbs_non_aligned_cand')
+        AbstractFeature.set_description(self, "Proportion of non-aligned verbs in the candidate translation")
+        AbstractFeature.set_group(self, "pos_tag_counts_alignment")
+
+    def run(self, cand, ref):
+
+        count = 0
+        for i, word in enumerate(cand['parse']):
+            if word.pos.startswith('V'):
+                if i + 1 not in [x[0] for x in cand['alignments'][0]]:
+                    count += 1
+
+        AbstractFeature.set_value(self, count / float(len(cand['parse'])))
+
+
+class PropVerbsNonAlignedRef(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'prop_verbs_non_aligned_ref')
+        AbstractFeature.set_description(self, "Proportion of non-aligned verbs in the reference translation")
+        AbstractFeature.set_group(self, "pos_tag_counts_alignment")
+
+    def run(self, cand, ref):
+
+        count = 0
+        for i, word in enumerate(ref['parse']):
+            if word.pos.startswith('V'):
+                if i + 1 not in [x[1] for x in ref['alignments'][0]]:
+                    count += 1
+
+        AbstractFeature.set_value(self, count / float(len(ref['parse'])))
+
+
+class PropVerbsFlexNonAlignedCand(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'prop_verbs_flex_non_aligned_cand')
+        AbstractFeature.set_description(self, "Proportion of non-aligned inflected verbs in the candidate translation")
+        AbstractFeature.set_group(self, "pos_tag_counts_alignment")
+
+    def run(self, cand, ref):
+
+        count = 0
+        for i, word in enumerate(cand['parse']):
+            if word.pos == 'VBD' or word.pos == 'VBP' or word.pos == 'VBZ':
+                if i + 1 not in [x[0] for x in cand['alignments'][0]]:
+                    count += 1
+
+        AbstractFeature.set_value(self, count / float(len(cand['parse'])))
+
+
+class PropVerbsFlexNonAlignedRef(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'prop_verbs_flex_non_aligned_ref')
+        AbstractFeature.set_description(self, "Proportion of non-aligned inflected verbs in the reference translation")
+        AbstractFeature.set_group(self, "pos_tag_counts_alignment")
+
+    def run(self, cand, ref):
+
+        count = 0
+        for i, word in enumerate(ref['parse']):
+            if word.pos == 'VBD' or word.pos == 'VBP' or word.pos == 'VBZ':
+                if i + 1 not in [x[1] for x in ref['alignments'][0]]:
+                    count += 1
+
+        AbstractFeature.set_value(self, count / float(len(ref['parse'])))
+
+
 class BackoffNonAlignedAvg(AbstractFeature):
     def __init__(self):
         AbstractFeature.__init__(self)
