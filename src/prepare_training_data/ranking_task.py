@@ -129,11 +129,13 @@ class RankingTask(object):
 
         combination_methods = FeatureExtractor.get_combinations_from_config_file(self.config)
         data_set_name = self.config.get('WMT', 'dataset')
-        f_features = open(os.path.expanduser(self.config.get('WMT', 'output_dir')) + '/' + 'x_' + data_set_name + '.tsv', 'w')
-        f_objective = open(os.path.expanduser(self.config.get('WMT', 'output_dir')) + '/' + 'y_' + data_set_name + '.tsv', 'w')
-        f_meta_data = open(os.path.expanduser(self.config.get('WMT', 'output_dir')) + '/' + 'meta_' + data_set_name + '.tsv', 'w')
+        feature_set_name = os.path.basename(self.config.get('Features', 'feature_set')).replace(".txt", "")
 
         for dataset, lang_pair in sorted(human_rankings.keys()):
+
+            f_features = open(os.path.expanduser(self.config.get('WMT', 'output_dir')) + '/' + 'x_' + data_set_name + '.' + feature_set_name + '.' + lang_pair + '.tsv', 'w')
+            f_objective = open(os.path.expanduser(self.config.get('WMT', 'output_dir')) + '/' + 'y_' + data_set_name + '.' + feature_set_name + '.' + lang_pair + '.tsv', 'w')
+            f_meta_data = open(os.path.expanduser(self.config.get('WMT', 'output_dir')) + '/' + 'meta_' + data_set_name + '.' + feature_set_name + '.' + lang_pair + '.tsv', 'w')
 
             for human_comparison in human_rankings[dataset, lang_pair]:
 
@@ -157,8 +159,9 @@ class RankingTask(object):
 
                 f_features.write('\t'.join([val for val in combined_features]) + '\n')
 
-        f_features.close()
-        f_objective.close()
+            f_features.close()
+            f_objective.close()
+            f_meta_data.close()
 
     def training_set_for_learn_to_rank(self, data_structure, human_rankings, feature_values):
 
