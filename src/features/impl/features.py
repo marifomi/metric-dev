@@ -4312,6 +4312,10 @@ class BackoffDirectMode(AbstractFeature):
 
             ngram_lengths.append(cand['language_model_word_features'][i][1])
 
+        if len(ngram_lengths) == 0 or numpy.isnan(numpy.nanmedian(ngram_lengths)):
+            AbstractFeature.set_value(self, -1)
+            return
+
         counter = Counter(ngram_lengths)
         counter_sorted = sorted(counter.most_common(), key=lambda x: (x[1], x[0]), reverse=True)
 
@@ -4347,6 +4351,10 @@ class POSBackoffDirectMode(AbstractFeature):
                 continue
 
             ngram_lengths.append(cand['pos_language_model_word_features'][i][1])
+
+        if len(ngram_lengths) == 0 or numpy.isnan(numpy.nanmedian(ngram_lengths)):
+            AbstractFeature.set_value(self, -1)
+            return
 
         counter = Counter(ngram_lengths)
         counter_sorted = sorted(counter.most_common(), key=lambda x: (x[1], x[0]), reverse=True)
@@ -4702,6 +4710,7 @@ class BackDirectNonAlignedMode(AbstractFeature):
                 continue
 
             ngram_lengths.append(cand['language_model_word_features'][i][1])
+
 
         if len(ngram_lengths) == 0 or numpy.isnan(numpy.nanmedian(ngram_lengths)):
             AbstractFeature.set_value(self, -1)
