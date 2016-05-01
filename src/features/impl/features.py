@@ -1945,10 +1945,10 @@ class MeteorPrecision(AbstractFeature):
 
         delta = 0.75
 
-        content_words1 = filter(lambda x: not word_sim.function_word_extended(x), cand['tokens'])
-        content_words2 = filter(lambda x: not word_sim.function_word_extended(x), ref['tokens'])
-        function_words1 = filter(lambda x: word_sim.function_word_extended(x), cand['tokens'])
-        function_words2 = filter(lambda x: word_sim.function_word_extended(x), ref['tokens'])
+        content_words1 = list(filter(lambda x: not word_sim.function_word_extended(x), cand['tokens']))
+        content_words2 = list(filter(lambda x: not word_sim.function_word_extended(x), ref['tokens']))
+        function_words1 = list(filter(lambda x: word_sim.function_word_extended(x), cand['tokens']))
+        function_words2 = list(filter(lambda x: word_sim.function_word_extended(x), ref['tokens']))
 
         weighted_length1 = delta * len(content_words1) + (1.0 - delta) * len(function_words1)
         weighted_length2 = delta * len(content_words2) + (1.0 - delta) * len(function_words2)
@@ -1995,10 +1995,10 @@ class MeteorRecall(AbstractFeature):
 
         delta = 0.75
 
-        content_words1 = filter(lambda x: not word_sim.function_word_extended(x), cand['tokens'])
-        content_words2 = filter(lambda x: not word_sim.function_word_extended(x), ref['tokens'])
-        function_words1 = filter(lambda x: word_sim.function_word_extended(x), cand['tokens'])
-        function_words2 = filter(lambda x: word_sim.function_word_extended(x), ref['tokens'])
+        content_words1 = list(filter(lambda x: not word_sim.function_word_extended(x), cand['tokens']))
+        content_words2 = list(filter(lambda x: not word_sim.function_word_extended(x), ref['tokens']))
+        function_words1 = list(filter(lambda x: word_sim.function_word_extended(x), cand['tokens']))
+        function_words2 = list(filter(lambda x: word_sim.function_word_extended(x), ref['tokens']))
 
         weighted_length1 = delta * len(content_words1) + (1.0 - delta) * len(function_words1)
         weighted_length2 = delta * len(content_words2) + (1.0 - delta) * len(function_words2)
@@ -2035,10 +2035,10 @@ class MeteorF(AbstractFeature):
         delta = 0.75
         alpha = 0.85
 
-        content_words1 = filter(lambda x: not word_sim.function_word_extended(x), cand['tokens'])
-        content_words2 = filter(lambda x: not word_sim.function_word_extended(x), ref['tokens'])
-        function_words1 = filter(lambda x: word_sim.function_word_extended(x), cand['tokens'])
-        function_words2 = filter(lambda x: word_sim.function_word_extended(x), ref['tokens'])
+        content_words1 = list(filter(lambda x: not word_sim.function_word_extended(x), cand['tokens']))
+        content_words2 = list(filter(lambda x: not word_sim.function_word_extended(x), ref['tokens']))
+        function_words1 = list(filter(lambda x: word_sim.function_word_extended(x), cand['tokens']))
+        function_words2 = list(filter(lambda x: word_sim.function_word_extended(x), ref['tokens']))
 
         weighted_length1 = delta * len(content_words1) + (1.0 - delta) * len(function_words1)
         weighted_length2 = delta * len(content_words2) + (1.0 - delta) * len(function_words2)
