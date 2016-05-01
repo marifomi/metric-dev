@@ -1956,29 +1956,29 @@ class MeteorPrecision(AbstractFeature):
         weighted_matches1 = 0
         weighted_matches2 = 0
 
-        for pair in cand['alignments'][0]:
+        for i, pair in enumerate(cand['alignments'][0]):
             if not word_sim.function_word_extended(cand['tokens'][pair[0] - 1]):
-                weighted_matches1 += delta * self.weighted_word_similarity(cand, pair[0] - 1)
+                weighted_matches1 += delta * self.weighted_word_similarity(cand, i)
             else:
-                weighted_matches1 += (1 - delta) * self.weighted_word_similarity(cand, pair[0] - 1)
+                weighted_matches1 += (1 - delta) * self.weighted_word_similarity(cand, i)
 
-            if not word_sim.function_word_extended(ref['tokens'][pair[0] - 1]):
-                weighted_matches2 += delta * self.weighted_word_similarity(cand, pair[0] - 1)
+            if not word_sim.function_word_extended(ref['tokens'][pair[1] - 1]):
+                weighted_matches2 += delta * self.weighted_word_similarity(cand, i)
             else:
-                weighted_matches2 += (1 - delta) * self.weighted_word_similarity(cand, pair[0] - 1)
+                weighted_matches2 += (1 - delta) * self.weighted_word_similarity(cand, i)
 
         precision = weighted_matches1 / weighted_length1
 
         return precision
 
     @staticmethod
-    def weighted_word_similarity(cand, idx):
+    def weighted_word_similarity(sentence, idx):
 
-        if cand['alignments'][2][idx] == 0:
+        if sentence['alignments'][2][idx] == 0:
             return 1.0
-        elif cand['alignments'][2][idx] == 1:
+        elif sentence['alignments'][2][idx] == 1:
             return 0.6
-        elif cand['alignments'][2][idx] == 2:
+        elif sentence['alignments'][2][idx] == 2:
             return 0.8
         else:
             return 0.6
@@ -2006,16 +2006,16 @@ class MeteorRecall(AbstractFeature):
         weighted_matches1 = 0
         weighted_matches2 = 0
 
-        for pair in cand['alignments'][0]:
+        for i, pair in enumerate(cand['alignments'][0]):
             if not word_sim.function_word_extended(cand['tokens'][pair[0] - 1]):
-                weighted_matches1 += delta * MeteorPrecision.weighted_word_similarity(cand, pair[0] - 1)
+                weighted_matches1 += delta * MeteorPrecision.weighted_word_similarity(cand, i)
             else:
-                weighted_matches1 += (1 - delta) * MeteorPrecision.weighted_word_similarity(cand, pair[0] - 1)
+                weighted_matches1 += (1 - delta) * MeteorPrecision.weighted_word_similarity(cand, i)
 
-            if not word_sim.function_word_extended(ref['tokens'][pair[0] - 1]):
-                weighted_matches2 += delta * MeteorPrecision.weighted_word_similarity(cand, pair[0] - 1)
+            if not word_sim.function_word_extended(ref['tokens'][pair[1] - 1]):
+                weighted_matches2 += delta * MeteorPrecision.weighted_word_similarity(cand, i)
             else:
-                weighted_matches2 += (1 - delta) * MeteorPrecision.weighted_word_similarity(cand, pair[0] - 1)
+                weighted_matches2 += (1 - delta) * MeteorPrecision.weighted_word_similarity(cand, i)
 
         recall = weighted_matches2 / weighted_length2
 
@@ -2046,16 +2046,16 @@ class MeteorF(AbstractFeature):
         weighted_matches1 = 0
         weighted_matches2 = 0
 
-        for pair in cand['alignments'][0]:
+        for i, pair in enumerate(cand['alignments'][0]):
             if not word_sim.function_word_extended(cand['tokens'][pair[0] - 1]):
-                weighted_matches1 += delta * MeteorPrecision.weighted_word_similarity(cand, pair[0] - 1)
+                weighted_matches1 += delta * MeteorPrecision.weighted_word_similarity(cand, i)
             else:
-                weighted_matches1 += (1 - delta) * MeteorPrecision.weighted_word_similarity(cand, pair[0] - 1)
+                weighted_matches1 += (1 - delta) * MeteorPrecision.weighted_word_similarity(cand, i)
 
-            if not word_sim.function_word_extended(ref['tokens'][pair[0] - 1]):
-                weighted_matches2 += delta * MeteorPrecision.weighted_word_similarity(cand, pair[0] - 1)
+            if not word_sim.function_word_extended(ref['tokens'][pair[1] - 1]):
+                weighted_matches2 += delta * MeteorPrecision.weighted_word_similarity(cand, i)
             else:
-                weighted_matches2 += (1 - delta) * MeteorPrecision.weighted_word_similarity(cand, pair[0] - 1)
+                weighted_matches2 += (1 - delta) * MeteorPrecision.weighted_word_similarity(cand, i)
 
         precision = weighted_matches1 / weighted_length1
         recall = weighted_matches2 / weighted_length2
