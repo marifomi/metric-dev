@@ -28,7 +28,7 @@ class MeteorAlignReader(object):
                 words = []
                 matchers = []
 
-            elif re.match('^[0-9]+:', line):
+            elif re.match('^[0-9]+:[0-9]+\t', line):
                 aligned_inds, modules = MeteorAlignReader.read_alignment_idx(line)
                 indexes += aligned_inds
                 matchers += modules
