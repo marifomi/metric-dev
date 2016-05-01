@@ -1,0 +1,4 @@
+prop_adjectives:both
+prop_nouns:both
+prop_verbs:both
+prop_verbs_flex:both

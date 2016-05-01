@@ -1,0 +1,8 @@
+prop_adjectives_non_aligned_cand:both
+prop_adjectives_non_aligned_ref:both
+prop_nouns_non_aligned_cand:both
+prop_nouns_non_aligned_ref:both
+prop_verbs_flex_non_aligned_cand:both
+prop_verbs_flex_non_aligned_ref:both
+prop_verbs_non_aligned_cand:both
+prop_verbs_non_aligned_ref:both

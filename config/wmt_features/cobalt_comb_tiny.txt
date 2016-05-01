@@ -1,0 +1,13 @@
+prop_lex_distrib:both
+prop_lex_exact:both
+prop_lex_para:both
+prop_lex_syn:both
+prop_pen:both
+avg_pen_candidate:both
+avg_pen_reference:both
+prop_aligned_candidate:both
+prop_aligned_content_candidate:both
+prop_aligned_content_reference:both
+prop_aligned_function_candidate:both
+prop_aligned_function_reference:both
+prop_aligned_reference:both

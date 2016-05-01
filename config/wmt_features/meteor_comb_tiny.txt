@@ -1,0 +1,4 @@
+meteor_f_parametrized:both
+meteor_precision_parametrized:both
+meteor_recall_parametrized:both
+fragmentation_penalty_parametrized:both
