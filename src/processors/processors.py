@@ -1094,7 +1094,7 @@ class LanguageModelSentenceFeatures(AbstractProcessor):
         tmp = []
 
         for line in ppl_file:
-            if config.get('Data', 'tgt') in line:
+            if line.startswith('file') and 'OOVs' in line:
                 break
             if 'OOVs' in line:
                 tmp.append(int(line.strip().split(' ')[4]))
@@ -1199,7 +1199,7 @@ class POSLanguageModelSentenceFeatures(AbstractProcessor):
         tmp = []
 
         for line in ppl_file:
-            if config.get('Data', 'tgt') in line:
+            if line.startswith('file') and 'OOVs' in line:
                 break
             if 'OOVs' in line:
                 tmp.append(int(line.strip().split(' ')[4]))
