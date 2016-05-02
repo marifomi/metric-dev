@@ -28,7 +28,7 @@ from src.alignment.aligner_config import AlignerConfig
 from src.lex_resources.config import *
 import shutil
 import numpy
-
+from json import loads
 
 class PosLangModel(AbstractProcessor):
 
@@ -987,6 +987,11 @@ class QuestSentence(AbstractProcessor):
         quest_config = os.path.expanduser(config.get('Quest', 'config')) + '/' + 'config.' + 'sl.' + tgt_lang + '.properties'
         out_file = os.path.expanduser(config.get('Quest', 'output')) + '/' + 'quest.sl' + '.out'
 
+        case = 'none'
+
+        if 'LowerCaser' in loads(config.get("Resources", "processors")):
+            case = 'lower'
+
         # Copy target to dummy source (for quest)
         if not os.path.exists(src_path):
             shutil.copyfile(tgt_path, src_path)
@@ -1003,6 +1008,8 @@ class QuestSentence(AbstractProcessor):
                          '-config',
                          quest_config,
                          '-tok',
+                         '-case',
+                         case,
                          '-output_file',
                          out_file
         ])
