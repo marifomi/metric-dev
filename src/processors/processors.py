@@ -629,6 +629,32 @@ class CobaltAligner(AbstractProcessor):
         AbstractProcessor.set_result_ref(self, result)
 
 
+class LowerCaser(AbstractProcessor):
+
+    def __init__(self):
+        AbstractProcessor.__init__(self)
+        AbstractProcessor.set_name(self, 'lower_caser')
+        AbstractProcessor.set_output(self, None)
+
+    def run(self, config, from_file=False):
+
+        file_names = [os.path.expanduser(config.get('Data', 'src')) + '.token',
+                      os.path.expanduser(config.get('Data', 'tgt')) + '.token',
+                      os.path.expanduser(config.get('Data', 'ref')) + '.token'
+        ]
+
+        for file_name in file_names:
+            file_object = codecs.open(file_name, "r", "utf-8")
+            lines = file_object.readlines()
+            file_object.close()
+
+            file_output = codecs.open(file_name, 'w', 'utf-8')
+            for line in lines:
+                file_output.write(line.lower())
+
+            file_output.close()
+
+
 class Tokenizer(AbstractProcessor):
 
     def __init__(self):
