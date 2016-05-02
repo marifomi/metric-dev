@@ -654,6 +654,9 @@ class LowerCaser(AbstractProcessor):
 
             file_output.close()
 
+    def get(self, config, from_file=False):
+        pass
+
 
 class Tokenizer(AbstractProcessor):
 
