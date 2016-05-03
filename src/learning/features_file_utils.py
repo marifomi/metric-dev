@@ -197,20 +197,72 @@ def combine_alignment_files(language_pairs, directory, file_name):
 
     output_file.close()
 
-if __name__ == '__main__':
+
+def create_single_metrics():
+
+    # Method to combine alignment files for different languages in a single file
 
     my_dir = os.path.expanduser("~/Dropbox/informative_features_for_evaluation/data")
+    metrics_file = my_dir + "/" + "x_newstest2014.metrics.simple.all.tsv"
 
-    paths = [my_dir + "/" + "x_newstest2014.bleu.meteor.cobalt.comb.hi-en.tsv",
-             my_dir + "/" + "x_newstest2014.fluency.quest.hi-en.tsv",
+    bleu_file = open(my_dir + "/" + "x_newstest2014.bleu.all.tsv", "w")
+    cobalt_file = open(my_dir + "/" + "x_newstest2014.cobalt.all.tsv", "w")
+    meteor_file = open(my_dir + "/" + "x_newstest2014.meteor.all.tsv", "w")
+
+    metrics_feature_values = read_features_file(metrics_file, "\t")
+
+    for i, instance in enumerate(metrics_feature_values):
+        bleu_file.write('\t'.join([str(x) for x in instance[:2]]) + "\n")
+        cobalt_file.write('\t'.join([str(x) for x in instance[2:4]]) + "\n")
+        meteor_file.write('\t'.join([str(x) for x in instance[4:]]) + "\n")
+
+    bleu_file.close()
+    cobalt_file.close()
+    meteor_file.close()
+
+
+def write_files_with_selected_features(selected_features_indexes):
+
+    # Inputs the indexes of the selected features 0-indexed
+
+    my_dir = os.path.expanduser("~/Dropbox/informative_features_for_evaluation/data")
+    input_file = my_dir + "/" + "x_newstest2015.fluency_features_pos.all.tsv"
+    output_file = open(my_dir + "/" + "combination_analysis" + "/" + "x_newstest2015.fluency.word.level.pos.all.tsv", "w")
+
+    feature_values = read_features_file(input_file, "\t")
+
+    for instance in feature_values:
+
+        for i, feature_idx in enumerate(selected_features_indexes):
+            resulting = feature_idx * 2
+
+            if i == len(selected_features_indexes) - 1:
+                end = "\n"
+            else:
+                end = "\t"
+
+            output_file.write('\t'.join([str(instance[resulting]), str(instance[resulting + 1])]) + end)
+
+    output_file.close()
+
+if __name__ == '__main__':
+
+    # write_files_with_selected_features([0, 1, 2, 3, 4, 5, 6, 9, 10])
+
+    my_dir = os.path.expanduser("~/Dropbox/informative_features_for_evaluation/data/combination_analysis")
+
+    paths = [my_dir + "/" + "x_newstest2015.miscellaneous.all.tsv",
+             my_dir + "/" + "x_newstest2015.fluency.sentence.level.pos.all.tsv",
+             my_dir + "/" + "x_newstest2015.fluency.word.level.pos.all.tsv",
+             my_dir + "/" + "x_newstest2015.pos_tag_counts.all.tsv",
+             my_dir + "/" + "x_newstest2015.pos_tag_counts_alignment.all.tsv"
              ]
-
-    path_to_out = my_dir + "/" + "x_newstest2014.metrics.comb.fluency.quest.hi-en.tsv"
+    path_to_out = my_dir + "/" + "x_newstest2015.linguistic.features.all.tsv"
 
     feature_arrays = concatenate_features_files(paths)
 
     write_feature_file(path_to_out, feature_arrays)
 
-
+    #
 
 
