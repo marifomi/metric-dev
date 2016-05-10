@@ -371,6 +371,7 @@ class RankingTask(object):
     def load_get_coefficients(config_learning, config_data):
 
         feature_names = FeatureExtractor.get_features_from_config_file(config_data)
+        combination_methods = FeatureExtractor.get_combinations_from_config_file(config_data)
 
         learning_config = config_learning.get("learning", None)
         method_name = learning_config.get("method", None)
@@ -378,9 +379,16 @@ class RankingTask(object):
         estimator = joblib.load(os.path.expanduser(config_data.get("Learner", "models")) + "/" + method_name + ".pkl")
         coefficients = estimator.coef_
 
-        for i, name in enumerate(feature_names):
+        feature_list = []
+        for i, feature_name in enumerate(feature_names):
+            if combination_methods[i] == 'both':
+                feature_list.append(feature_name)
+                feature_list.append(feature_name)
+            else:
+                feature_list.append(feature_name)
+
+        for i, name in enumerate(feature_list):
             print(name + "\t" + str(coefficients[0][i]))
-            print(name + "\t" + str(coefficients[0][i + 1]))
 
     @staticmethod
     def train_save(config_learning, config_data):
