@@ -422,7 +422,7 @@ class RankingTask(object):
         return [x[0] for x in estimator.predict_proba(x_test)]
 
     @staticmethod
-    def recursive_feature_elimination(config_learning, config_data):
+    def recursive_feature_elimination(config_learning, config_data, number_features):
 
         feature_names = FeatureExtractor.get_features_from_config_file_unsorted(config_data)
         combination_methods = FeatureExtractor.get_combinations_from_config_file_unsorted(config_data)
@@ -437,7 +437,7 @@ class RankingTask(object):
         if scale:
             x_train, x_test = scale_datasets(x_train, x_test)
 
-        rfe = RFE(estimator, 10, step=1)
+        rfe = RFE(estimator, number_features, step=1)
         rfe.fit(x_train, y_train)
 
         feature_list = []
