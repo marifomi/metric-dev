@@ -432,6 +432,11 @@ class RankingTask(object):
         x_test = read_features_file(config_learning.get('x_test'), '\t')
         estimator, scorers = learn_model.set_learning_method(config_learning, x_train, y_train)
 
+        scale = config_learning.get("scale", True)
+
+        if scale:
+            x_train, x_test = scale_datasets(x_train, x_test)
+
         rfe = RFE(estimator, 10, step=1)
         rfe.fit(x_train, y_train)
 
@@ -461,6 +466,11 @@ class RankingTask(object):
         y_train = read_reference_file(config_learning.get('y_train'), '\t')
         x_test = read_features_file(config_learning.get('x_test'), '\t')
         estimator, scorers = learn_model.set_learning_method(config_learning, x_train, y_train)
+
+        scale = config_learning.get("scale", True)
+
+        if scale:
+            x_train, x_test = scale_datasets(x_train, x_test)
 
         rfecv = RFECV(estimator=estimator, step=1, cv=StratifiedKFold(y_train, 2), scoring='accuracy')
         rfecv.fit(x_train, y_train)
