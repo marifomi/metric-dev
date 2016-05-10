@@ -370,8 +370,8 @@ class RankingTask(object):
     @staticmethod
     def load_get_coefficients(config_learning, config_data):
 
-        feature_names = FeatureExtractor.get_features_from_config_file(config_data)
-        combination_methods = FeatureExtractor.get_combinations_from_config_file(config_data)
+        feature_names = FeatureExtractor.get_features_from_config_file_unsorted(config_data)
+        combination_methods = FeatureExtractor.get_combinations_from_config_file_unsorted(config_data)
 
         learning_config = config_learning.get("learning", None)
         method_name = learning_config.get("method", None)
