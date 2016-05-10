@@ -424,9 +424,8 @@ class RankingTask(object):
     @staticmethod
     def recursive_feature_elimination(config_learning, config_data):
 
-        feature_names = FeatureExtractor.get_features_from_config_file(config_data)
-
-        learning_config = config_learning.get("learning", None)
+        feature_names = FeatureExtractor.get_features_from_config_file_unsorted(config_data)
+        combination_methods = FeatureExtractor.get_combinations_from_config_file_unsorted(config_data)
 
         x_train = read_features_file(config_learning.get('x_train'), '\t')
         y_train = read_reference_file(config_learning.get('y_train'), '\t')
@@ -436,9 +435,17 @@ class RankingTask(object):
         rfecv = RFECV(estimator=estimator, step=1, cv=StratifiedKFold(y_train, 2), scoring='accuracy')
         rfecv.fit(x_train, y_train)
 
-        for i, name in enumerate(feature_names):
+        feature_list = []
+
+        for i, feature_name in enumerate(feature_names):
+            if combination_methods[i] == 'both':
+                feature_list.append(feature_name)
+                feature_list.append(feature_name)
+            else:
+                feature_list.append(feature_name)
+
+        for i, name in enumerate(feature_list):
             print(name + "\t" + str(rfecv.ranking_[i]))
-            print(name + "\t" + str(rfecv.ranking_[i + 1]))
 
         predictions = rfecv.predict(x_test)
 
