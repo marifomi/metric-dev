@@ -10,7 +10,7 @@ from src.learning.features_file_utils import write_reference_file, write_feature
 from src.learning.learn_model import scale_datasets
 from sklearn.metrics import accuracy_score
 from sklearn.externals import joblib
-from sklearn.feature_selection import RFECV
+from sklearn.feature_selection import RFECV, RFE
 from sklearn.cross_validation import StratifiedKFold
 from configparser import ConfigParser
 from json import loads
@@ -432,17 +432,47 @@ class RankingTask(object):
         x_test = read_features_file(config_learning.get('x_test'), '\t')
         estimator, scorers = learn_model.set_learning_method(config_learning, x_train, y_train)
 
+        rfe = RFE(estimator, 10, step=1)
+        rfe.fit(x_train, y_train)
+
+        feature_list = []
+
+        for i, feature_name in enumerate(feature_names):
+             if combination_methods[i] == 'both':
+                 feature_list.append(feature_name)
+                 feature_list.append(feature_name)
+             else:
+                 feature_list.append(feature_name)
+
+        for i, name in enumerate(feature_list):
+            print(name + "\t" + str(rfe.ranking_[i]))
+
+        predictions = rfe.predict(x_test)
+
+        return predictions
+
+    @staticmethod
+    def recursive_feature_elimination_cv(config_learning, config_data):
+
+        feature_names = FeatureExtractor.get_features_from_config_file_unsorted(config_data)
+        combination_methods = FeatureExtractor.get_combinations_from_config_file_unsorted(config_data)
+
+        x_train = read_features_file(config_learning.get('x_train'), '\t')
+        y_train = read_reference_file(config_learning.get('y_train'), '\t')
+        x_test = read_features_file(config_learning.get('x_test'), '\t')
+        estimator, scorers = learn_model.set_learning_method(config_learning, x_train, y_train)
+
         rfecv = RFECV(estimator=estimator, step=1, cv=StratifiedKFold(y_train, 2), scoring='accuracy')
         rfecv.fit(x_train, y_train)
 
         feature_list = []
 
         for i, feature_name in enumerate(feature_names):
-            if combination_methods[i] == 'both':
-                feature_list.append(feature_name)
-                feature_list.append(feature_name)
-            else:
-                feature_list.append(feature_name)
+             if combination_methods[i] == 'both':
+                 feature_list.append(feature_name)
+                 feature_list.append(feature_name)
+             else:
+                 feature_list.append(feature_name)
 
         for i, name in enumerate(feature_list):
             print(name + "\t" + str(rfecv.ranking_[i]))
