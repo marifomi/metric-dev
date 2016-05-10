@@ -88,6 +88,26 @@ class FeatureExtractor(object):
         return config_features
 
     @staticmethod
+    def get_features_from_config_file_unsorted(config):
+
+        config_features = []
+        f_features = open(os.path.expanduser(config.get('Features', 'feature_set')), 'r').readlines()
+        for line in f_features:
+            config_features.append(line.strip().split(':')[0])
+
+        return config_features
+
+    @staticmethod
+    def get_combinations_from_config_file_unsorted(config):
+
+        config_features = []
+        f_features = open(os.path.expanduser(config.get('Features', 'feature_set')), 'r').readlines()
+        for line in f_features:
+            config_features.append(line.strip().split(':')[1])
+
+        return config_features
+
+    @staticmethod
     def get_features_group_name(config):
         file_name = config.get('Features', 'feature_set')
         return file_name.split('/')[-1]
