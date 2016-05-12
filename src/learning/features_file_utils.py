@@ -148,13 +148,6 @@ def split_dataset_repeated_segments(input_path_x, input_path_y, output_dir, numb
     write_lines_to_file(output_dir + '/' + 'y_test' + '.' + 'tsv', y_test)
 
 
-def write_lines_to_file(file_path, lines):
-
-    with open(os.path.expanduser(file_path), 'w') as f:
-        for line in lines:
-            f.write(line)
-    f.close()
-
 def concatenate_features_files(file_paths):
 
     feature_arrays = []
@@ -176,6 +169,13 @@ def write_feature_file(output_path, feature_matrix):
     for row in feature_matrix:
         output_file.write('\t'.join([str(x) for x in row]) + '\n')
     output_file.close()
+
+def write_lines_to_file(file_path, lines):
+
+    with open(os.path.expanduser(file_path), 'w') as f:
+        for line in lines:
+            f.write(line)
+    f.close()
 
 def combine_alignment_files(language_pairs, directory, file_name):
 
@@ -245,24 +245,56 @@ def write_files_with_selected_features(selected_features_indexes):
 
     output_file.close()
 
+def get_number_features():
+
+    my_dir = os.path.expanduser("~/Dropbox/informative_features_for_evaluation/data")
+    input_file = my_dir + "/" + "x_newstest2015.metrics_comb_fluency_comb_diff.all.tsv"
+
+    features_values = read_features_file(input_file, "\t")
+
+    print(features_values.shape)
+
+def convert_concatenated_to_difference():
+
+    my_dir = os.path.expanduser("~/Dropbox/informative_features_for_evaluation/data")
+    input_file = my_dir + "/" + "x_newstest2015.metrics.comb.fluency.comb.all.tsv"
+    output_file = my_dir + "/" + "x_newstest2015.metrics_comb_fluency_comb_diff.all.tsv"
+
+    features_values = read_features_file(input_file, "\t")
+
+    differences_values = []
+
+    for i, sentence in enumerate(features_values):
+
+        sentence_feature_values = []
+
+        for k, feature in enumerate(sentence):
+
+            if is_even(k):
+                continue
+            else:
+                sentence_feature_values.append(feature - sentence[k - 1])
+
+        differences_values.append(sentence_feature_values)
+
+    write_feature_file(output_file, differences_values)
+
+def is_even(number):
+    return number % 2 == 0
+
 if __name__ == '__main__':
 
-    # write_files_with_selected_features([0, 1, 2, 3, 4, 5, 6, 9, 10])
-
-    my_dir = os.path.expanduser("~/Dropbox/informative_features_for_evaluation/data/combination_analysis")
-
-    paths = [my_dir + "/" + "x_newstest2015.miscellaneous.all.tsv",
-             my_dir + "/" + "x_newstest2015.fluency.sentence.level.pos.all.tsv",
-             my_dir + "/" + "x_newstest2015.fluency.word.level.pos.all.tsv",
-             my_dir + "/" + "x_newstest2015.pos_tag_counts.all.tsv",
-             my_dir + "/" + "x_newstest2015.pos_tag_counts_alignment.all.tsv"
-             ]
-    path_to_out = my_dir + "/" + "x_newstest2015.linguistic.features.all.tsv"
-
-    feature_arrays = concatenate_features_files(paths)
-
-    write_feature_file(path_to_out, feature_arrays)
-
+    # convert_concatenated_to_difference()
+    get_number_features()
+    # my_dir = os.path.expanduser("~/Dropbox/informative_features_for_evaluation/data/combination_analysis")
     #
+    # paths = [my_dir + "/" + "x_newstest2015.surface.features.all.tsv",
+    #          my_dir + "/" + "x_newstest2015.linguistic.features.all.tsv",
+    #          ]
+    # path_to_out = my_dir + "/" + "x_newstest2015.fluency.features.all.all.tsv"
+    #
+    # feature_arrays = concatenate_features_files(paths)
+    #
+    # write_feature_file(path_to_out, feature_arrays)
 
 
