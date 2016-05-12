@@ -41,10 +41,12 @@ class ScoringTask():
 
         for lp in loads(self.config.get("WMT16", "lang_pairs_train")):
 
-            input_tgt = codecs.open(os.path.expanduser(self.config.get("WMT16", "input_dir")) + "/" + data_type + "/" + lp + "/" + dataset + "." + "mt-system" + "." + lp + "." + "out", "r", "utf-8").readlines()
-            input_ref = codecs.open(os.path.expanduser(self.config.get("WMT16", "input_dir")) + "/" + data_type + "/" + lp + "/" + dataset + "." + "reference" + "." + lp + "." + "out", "r", "utf-8").readlines()
-
-            if not data_type == 'parse':
+            if data_type == 'parse':
+                input_tgt = codecs.open(os.path.expanduser(self.config.get("WMT16", "input_dir")) + "/" + data_type + "/" + lp + "/" + dataset + "." + "mt-system" + "." + lp + "." + "out", "r", "utf-8").readlines()
+                input_ref = codecs.open(os.path.expanduser(self.config.get("WMT16", "input_dir")) + "/" + data_type + "/" + lp + "/" + dataset + "." + "reference" + "." + lp + "." + "out", "r", "utf-8").readlines()
+            else:
+                input_tgt = codecs.open(os.path.expanduser(self.config.get("WMT16", "input_dir")) + "/" + data_type + "/" + lp + "/" + dataset + "." + "mt-system" + "." + lp, "r", "utf-8").readlines()
+                input_ref = codecs.open(os.path.expanduser(self.config.get("WMT16", "input_dir")) + "/" + data_type + "/" + lp + "/" + dataset + "." + "reference" + "." + lp, "r", "utf-8").readlines()
                 input_human = codecs.open(os.path.expanduser(self.config.get("WMT16", "input_dir")) + "/" + data_type + "/" + lp + "/" + dataset + "." + "human" + "." + lp, "r", "utf-8").readlines()
                 input_src = codecs.open(os.path.expanduser(self.config.get("WMT16", "input_dir")) + "/" + data_type + "/" + lp + "/" + dataset + "." + "source" + "." + lp, "r", "utf-8").readlines()
 
