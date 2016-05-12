@@ -370,6 +370,8 @@ class RankingTask(object):
     @staticmethod
     def load_get_coefficients(config_learning, config_data):
 
+        output = open(os.path.expanduser(config_data.get("Learner", "models")) + "/" + "coefficients.txt", "w")
+
         feature_names = FeatureExtractor.get_features_from_config_file_unsorted(config_data)
         combination_methods = FeatureExtractor.get_combinations_from_config_file_unsorted(config_data)
 
@@ -388,7 +390,9 @@ class RankingTask(object):
                 feature_list.append(feature_name)
 
         for i, name in enumerate(feature_list):
-            print(name + "\t" + str(coefficients[0][i]))
+            output.write(name + "\t" + str(coefficients[0][i]) + "\n")
+
+        output.close()
 
     @staticmethod
     def train_save(config_learning, config_data):
@@ -424,6 +428,8 @@ class RankingTask(object):
     @staticmethod
     def recursive_feature_elimination(config_learning, config_data, number_features):
 
+        output = open(os.path.expanduser(config_data.get("Learner", "models")) + "/" + "feature_ranks.txt", "w")
+
         feature_names = FeatureExtractor.get_features_from_config_file_unsorted(config_data)
         combination_methods = FeatureExtractor.get_combinations_from_config_file_unsorted(config_data)
 
@@ -450,14 +456,18 @@ class RankingTask(object):
                  feature_list.append(feature_name)
 
         for i, name in enumerate(feature_list):
-            print(name + "\t" + str(rfe.ranking_[i]))
+            output.write(name + "\t" + str(rfe.ranking_[i]) + "\n")
 
         predictions = rfe.predict(x_test)
+
+        output.close()
 
         return predictions
 
     @staticmethod
     def recursive_feature_elimination_cv(config_learning, config_data):
+
+        output = open(os.path.expanduser(config_data.get("Learner", "models")) + "/" + "feature_ranks.txt", "w")
 
         feature_names = FeatureExtractor.get_features_from_config_file_unsorted(config_data)
         combination_methods = FeatureExtractor.get_combinations_from_config_file_unsorted(config_data)
@@ -485,7 +495,9 @@ class RankingTask(object):
                  feature_list.append(feature_name)
 
         for i, name in enumerate(feature_list):
-            print(name + "\t" + str(rfecv.ranking_[i]))
+            output.write(name + "\t" + str(rfecv.ranking_[i]) + "\n")
+
+        output.close()
 
         predictions = rfecv.predict(x_test)
 
