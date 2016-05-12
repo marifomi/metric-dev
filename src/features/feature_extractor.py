@@ -73,7 +73,10 @@ class FeatureExtractor(object):
         config_features = []
         f_features = open(os.path.expanduser(config.get('Features', 'feature_set')), 'r').readlines()
         for line in sorted(f_features):
-            config_features.append(line.strip().split(':')[0])
+            if ':' in line:
+                config_features.append(line.strip().split(':')[0])
+            else:
+                config_features.append(line.strip())
 
         return config_features
 
