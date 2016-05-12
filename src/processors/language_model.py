@@ -122,10 +122,12 @@ class LanguageModel(object):
 def main():
 
     f_in = os.getcwd() + '/' + 'data' + '/' + 'wmt13_graham' + '/' + 'system.pos.join.train'
-    f_lm = os.path.expanduser('~/Dropbox/workspace/questplusplus/lang_resources/english/wmt15_baseline/nc.pos.1.en.lm')
+    f_corpus = os.path.expanduser('~/Dropbox/workspace/questplusplus/lang_resources/english/arabic_english_data/TrainingFileFiltred.sgm.En.Tok.LC.cut1-100')
     lm = LanguageModel()
-    lm.set_path_to_tools('/Users/MarinaFomicheva/workspace/srilm-1.7.1/bin/macosx/')
-    lm.produce_ppl(f_in, f_in + '.ppl', f_lm, 3)
+    lm.produce_ngram_counts(f_corpus, 3)
+    lm.sort_ngram_counts(2, f_corpus + "." + "ngram")
+    lm.compute_cut_offs(4, 3)
+    lm.write_clean_ngram_counts(f_corpus + "." + "ngram", 4, 3)
 
 
 if __name__ == '__main__':
