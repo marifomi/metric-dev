@@ -45,3 +45,4 @@ prop_non_aligned_candidate:both
 prop_non_aligned_content_candidate:both
 prop_non_aligned_function_candidate:both
 prop_non_aligned_reference:both
+prop_pen_high
