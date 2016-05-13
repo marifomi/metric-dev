@@ -140,8 +140,8 @@ class Scorer(object):
 
     def sentence_score_cobalt(self, sentence1, sentence2, alignments, word_level_scores):
 
-        functional_words1 = filter(lambda x: word_sim.function_word(x.form), sentence1)
-        functional_words2 = filter(lambda x: word_sim.function_word(x.form), sentence2)
+        functional_words1 = list(filter(lambda x: word_sim.function_word(x.form), sentence1))
+        functional_words2 = list(filter(lambda x: word_sim.function_word(x.form), sentence2))
 
         weighted_length1 = self.delta * (len(sentence1) - len(functional_words1)) + ((1.0 - self.delta) * len(functional_words1))
         weighted_length2 = self.delta * (len(sentence2) - len(functional_words2)) + ((1.0 - self.delta) * len(functional_words2))
