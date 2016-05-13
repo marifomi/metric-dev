@@ -987,16 +987,13 @@ class QuestSentence(AbstractProcessor):
         quest_config = os.path.expanduser(config.get('Quest', 'config')) + '/' + 'config.' + 'sl.' + tgt_lang + '.properties'
         out_file = os.path.expanduser(config.get('Quest', 'output')) + '/' + 'quest.sl' + '.out'
 
-        case = 'none'
-
-        if 'LowerCaser' in loads(config.get("Resources", "processors")):
-            case = 'lower'
-
         # Copy target to dummy source (for quest)
         if not os.path.exists(src_path):
             shutil.copyfile(tgt_path, src_path)
 
-        subprocess.call(['java',
+        if 'LowerCaser' in loads(config.get("Resources", "processors")):
+            case = 'lower'
+            subprocess.call(['java',
                          '-jar',
                          quest_dir + '/' + 'dist/QuEstSentenceLevel.jar',
                          '-lang',
@@ -1012,7 +1009,29 @@ class QuestSentence(AbstractProcessor):
                          case,
                          '-output_file',
                          out_file
-        ])
+            ])
+
+        else:
+            subprocess.call(['java',
+                         '-jar',
+                         quest_dir + '/' + 'dist/QuEstSentenceLevel.jar',
+                         '-lang',
+                         src_lang,
+                         tgt_lang,
+                         '-input',
+                         src_path,
+                         tgt_path,
+                         '-config',
+                         quest_config,
+                         '-tok',
+                         '-output_file',
+                         out_file
+            ])
+
+
+
+
+
         shutil.rmtree(os.getcwd() + '/' + 'input')
 
     def get(self, config, from_file=False):
