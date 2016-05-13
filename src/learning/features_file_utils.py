@@ -282,19 +282,30 @@ def convert_concatenated_to_difference():
 def is_even(number):
     return number % 2 == 0
 
+def combine_feature_files():
+
+    my_dir = os.path.expanduser("~/workspace/upf-cobalt/test")
+
+    paths = [my_dir + "/" + "x_newstest2015.fluency_features_all.ru-en.tsv",
+             my_dir + "/" + "x_newstest2015.metrics_simple.ru-en.tsv",
+             ]
+    path_to_out = my_dir + "/" + "x_newstest2015.metrics_simple_fluency_features_all.ru-en.tsv"
+
+    feature_arrays = concatenate_features_files(paths)
+
+    write_feature_file(path_to_out, feature_arrays)
+
 if __name__ == '__main__':
 
-    # convert_concatenated_to_difference()
-    get_number_features()
-    # my_dir = os.path.expanduser("~/Dropbox/informative_features_for_evaluation/data/combination_analysis")
-    #
-    # paths = [my_dir + "/" + "x_newstest2015.surface.features.all.tsv",
-    #          my_dir + "/" + "x_newstest2015.linguistic.features.all.tsv",
-    #          ]
-    # path_to_out = my_dir + "/" + "x_newstest2015.fluency.features.all.all.tsv"
-    #
-    # feature_arrays = concatenate_features_files(paths)
-    #
-    # write_feature_file(path_to_out, feature_arrays)
+    my_dir = os.path.expanduser("~/workspace/upf-cobalt/test")
+
+    paths = [my_dir + "/" + "x_newstest2015.fluency_features_all.ru-en.tsv",
+             my_dir + "/" + "x_newstest2015.metrics_simple.ru-en.tsv",
+             ]
+    path_to_out = my_dir + "/" + "x_newstest2015.metrics_simple_fluency_features_all.ru-en.tsv"
+
+    feature_arrays = concatenate_features_files(paths)
+
+    write_feature_file(path_to_out, feature_arrays)
 
 
