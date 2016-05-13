@@ -1818,8 +1818,9 @@ class PropPenHigh(AbstractFeature):
         AbstractFeature.set_name(self, 'prop_pen_high')
         AbstractFeature.set_description(self,
                                         "Prop of words with penalty higher than avg over the number of aligned words")
+        AbstractFeature.set_group(self, 'cobalt_context_penalty')
 
-        # This should be higher than average context penalty estimated over some big dataset
+        # Average context penalty estimated over newstest2015 approx. equals 1.0
 
     def run(self, cand, ref):
 
@@ -1849,7 +1850,7 @@ class PropPenHigh(AbstractFeature):
             if penalty > 0:
                 penalties.append(penalty)
 
-        avg_pen = numpy.mean(penalties)
+        avg_pen = 1.0
         count_high = 0
 
         for pen in penalties:
