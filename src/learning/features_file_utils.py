@@ -9,6 +9,8 @@ import logging as log
 import os
 import math
 from sklearn.cross_validation import train_test_split
+from configparser import ConfigParser
+from src.features.feature_extractor import FeatureExtractor
 
 def read_labels_file(path, delim, encoding='utf-8'):
     '''Reads the labels of each column in the training and test files (features 
@@ -295,17 +297,45 @@ def combine_feature_files():
 
     write_feature_file(path_to_out, feature_arrays)
 
+def average_feature_values():
+
+    config_path = os.getcwd() + '/' + 'config' + '/' + 'wmt.cfg'
+    config = ConfigParser()
+    config.readfp(open(config_path))
+
+    my_dir = os.path.expanduser("~/Dropbox/informative_features_for_evaluation/data")
+    feature_file = my_dir + "/" + "x_newstest2015.cobalt.comb.min.ru-en.tsv"
+    feature_names = FeatureExtractor.get_features_from_config_file(config)
+    strategies = FeatureExtractor.get_combinations_from_config_file(config)
+
+    feature_values = read_features_file(feature_file, "\t")
+    averages = np.mean(feature_values, axis=0)
+
+    feature_list = []
+    for i, feature_name in enumerate(feature_names):
+        if strategies[i] == 'both':
+            feature_list.append(feature_name)
+            feature_list.append(feature_name)
+        else:
+            feature_list.append(feature_name)
+
+    for i, name in enumerate(feature_list):
+        print(name + '\t' + str(averages[i]))
+
+
 if __name__ == '__main__':
 
-    my_dir = os.path.expanduser("~/workspace/upf-cobalt/test")
+    average_feature_values()
 
-    paths = [my_dir + "/" + "x_newstest2015.fluency_features_all.ru-en.tsv",
-             my_dir + "/" + "x_newstest2015.metrics_simple.ru-en.tsv",
-             ]
-    path_to_out = my_dir + "/" + "x_newstest2015.metrics_simple_fluency_features_all.ru-en.tsv"
-
-    feature_arrays = concatenate_features_files(paths)
-
-    write_feature_file(path_to_out, feature_arrays)
+    # my_dir = os.path.expanduser("~/workspace/upf-cobalt/test")
+    #
+    # paths = [my_dir + "/" + "x_newstest2015.fluency_features_all.ru-en.tsv",
+    #          my_dir + "/" + "x_newstest2015.metrics_simple.ru-en.tsv",
+    #          ]
+    # path_to_out = my_dir + "/" + "x_newstest2015.metrics_simple_fluency_features_all.ru-en.tsv"
+    #
+    # feature_arrays = concatenate_features_files(paths)
+    #
+    # write_feature_file(path_to_out, feature_arrays)
 
 
