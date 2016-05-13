@@ -2,7 +2,7 @@ import os.path
 import codecs
 
 
-class ExtendedStopwords(object):
+class ExtendedStopwordsList(object):
 
     stopwords_list = []
 
