@@ -8,7 +8,7 @@ from src.features.feature_extractor import FeatureExtractor as FE
 from src.processors.run_processors import RunProcessors
 from sklearn import cross_validation as cv
 from src.learning import learn_model
-from src.learning.features_file_utils import read_reference_file, write_lines_to_file
+from src.learning.features_file_utils import read_reference_file, write_lines_to_file, read_features_file, write_feature_file, write_reference_file
 from src.features.feature_extractor import FeatureExtractor
 from src.learning.customize_scorer import pearson_corrcoef
 from json import loads
@@ -39,7 +39,7 @@ class ScoringTask():
         counter_tgt = 0
         counter_ref = 0
 
-        for lp in loads(self.config.get("WMT16", "lang_pairs_train")):
+        for lp in loads(self.config.get("WMT16", "lang_pairs")):
 
             if data_type == 'parse':
                 input_tgt = codecs.open(os.path.expanduser(self.config.get("WMT16", "input_dir")) + "/" + data_type + "/" + lp + "/" + dataset + "." + "mt-system" + "." + lp + "." + "out", "r", "utf-8").readlines()
@@ -96,8 +96,18 @@ class ScoringTask():
 
         data_set = self.config.get('Settings', 'dataset')
 
-        f_features = open(os.path.expanduser(self.config.get('Data', 'output_dir')) + '/' + 'x_' + data_set + '.tsv', 'w')
-        f_objective = open(os.path.expanduser(self.config.get('Data', 'output_dir')) + '/' + 'y_' + data_set + '.tsv', 'w')
+        # f_features = open(os.path.expanduser(self.config.get('Data', 'output_dir')) + '/' + 'x_' + data_set + '.tsv', 'w')
+        # f_objective = open(os.path.expanduser(self.config.get('Data', 'output_dir')) + '/' + 'y_' + data_set + '.tsv', 'w')
+
+        f_features = open(os.path.expanduser(self.config.get('Data', 'output_dir'))
+                          + '/' + 'x_' + data_set
+                          + '.' + self.config.get("Features", "feature_set").split('/')[-1].replace('.txt', '')
+                          + '.' + self.config.get("WMT16", "lang_pair") + '.tsv', 'w')
+
+        f_objective = open(os.path.expanduser(self.config.get('Data', 'output_dir'))
+                           + '/' + 'y_' + data_set
+                           + '.' + self.config.get("Features", "feature_set").split('/')[-1].replace('.txt', '')
+                           + '.' + self.config.get("WMT16", "lang_pair") + '.tsv', 'w')
 
         for i, score in enumerate(human_scores):
             f_objective.write(str(score) + '\n')
@@ -105,6 +115,62 @@ class ScoringTask():
 
         f_features.close()
         f_objective.close()
+
+    @staticmethod
+    def get_train_lps(lps, test_lp):
+
+        results = []
+        for lp in lps:
+            if lp == test_lp:
+                continue
+            results.append(lp)
+        return results
+
+    def round_robin(self, config_path_learning, feature_set, lps):
+
+        f_results = open("results.txt", "w")
+
+        for test_lp in sorted(lps):
+
+            x_train = os.path.expanduser(self.config.get('Data', 'output_dir')) + "/" + "x_" + self.config.get("Settings", "dataset") + "." + "train" + "." + "tsv"
+            y_train = os.path.expanduser(self.config.get('Data', 'output_dir')) + "/" + "y_" + self.config.get("Settings", "dataset") + "." + "train" + "." + "tsv"
+            x_test = os.path.expanduser(self.config.get('Data', 'output_dir')) + "/" + "x_" + self.config.get("Settings", "dataset") + "." + "test" + "." + "tsv"
+            y_test = os.path.expanduser(self.config.get('Data', 'output_dir')) + "/" + "y_" + self.config.get("Settings", "dataset") + "." + "test" + "." + "tsv"
+
+            train_lps = ScoringTask.get_train_lps(lps, test_lp)
+
+            train_feature_values = []
+            train_reference_values = []
+
+            test_feature_values = read_features_file(os.path.expanduser(self.config.get('Data', 'output_dir')) + "/" + \
+                                                    "x_" + self.config.get("Settings", "dataset") + "." + feature_set + "." + test_lp + "." + "tsv", "\t")
+            test_reference_values = read_reference_file(os.path.expanduser(self.config.get('Data', 'output_dir')) + "/" + \
+                                                    "y_" + self.config.get("Settings", "dataset") + "." + feature_set + "." + test_lp + "." + "tsv", "\t")
+
+            for train_lp in sorted(train_lps):
+                feature_values = read_features_file(os.path.expanduser(self.config.get('Data', 'output_dir')) + "/" + \
+                                                    "x_" + self.config.get("Settings", "dataset") + "." + feature_set + "." + train_lp + "." + "tsv", "\t")
+                reference_values = read_reference_file(os.path.expanduser(self.config.get('Data', 'output_dir')) + "/" + \
+                                                    "y_" + self.config.get("Settings", "dataset") + "." + feature_set + "." + train_lp + "." + "tsv", "\t")
+
+                train_feature_values += list(feature_values)
+                train_reference_values += list(reference_values)
+
+            write_feature_file(x_train, train_feature_values)
+            write_reference_file(y_train, train_reference_values)
+            write_feature_file(x_test, test_feature_values)
+            write_reference_file(y_test, test_reference_values)
+
+            gold_standard = test_reference_values
+            predictions = ScoringTask.train_predict(config_path_learning)
+            correlation = ScoringTask.evaluate_predicted(predictions, gold_standard)
+
+            f_results.write(test_lp + " " + str(correlation) + " with " + feature_set + "\n")
+            os.remove(x_train)
+            os.remove(x_test)
+            os.remove(y_train)
+            os.remove(y_test)
+
 
     @staticmethod
     def train_predict(config_path):
@@ -117,6 +183,8 @@ class ScoringTask():
             print("Pearson correlation is " + str(pearson_corrcoef(gold_class_labels, predicted)))
         else:
             print("Error! Unknown type of error metric!")
+
+        return pearson_corrcoef(gold_class_labels, predicted)
 
     @staticmethod
     def get_human_scores(config):
