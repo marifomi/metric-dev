@@ -30,6 +30,49 @@ class RankingTask(object):
         self.config = ConfigParser()
         self.config.readfp(open(os.path.expanduser(config_path)))
 
+    def prepare_feature_files(self):
+
+        process_wmt = PrepareWmt()
+        data_structure1 = process_wmt.get_data_structure(self.config)
+        data_structure2 = process_wmt.get_data_structure2(self.config)
+        process_wmt.print_data_set(self.config, data_structure1)
+
+        if 'Parse' in loads(self.config.get("Resources", "processors")):
+            process_wmt_parse = PrepareWmt(data_type='parse')
+            data_structure_parse = process_wmt_parse.get_data_structure(self.config)
+            process_wmt_parse.print_data_set(self.config, data_structure_parse)
+
+        process = RunProcessors(self.config)
+        sents_tgt, sents_ref = process.run_processors()
+
+        extractor = FeatureExtractor(self.config)
+        features_to_extract = FeatureExtractor.get_features_from_config_file(self.config)
+        extractor.extract_features(features_to_extract, sents_tgt, sents_ref)
+        feature_values = extractor.vals
+
+        datasets_language_pairs = set((x[0], x[1]) for x in data_structure2)
+
+        dataset_for_all = self.config.get('WMT', 'dataset')
+        feature_set_name = os.path.basename(self.config.get('Features', 'feature_set')).replace(".txt", "")
+        f_features_all = open(os.path.expanduser(self.config.get('WMT', 'output_dir')) + '/' + 'x_' + dataset_for_all + '.' + feature_set_name + '.' + 'all' + '.tsv', 'w')
+        f_meta_data_all = open(os.path.expanduser(self.config.get('WMT', 'output_dir')) + '/' + 'meta_' + dataset_for_all + '.' + feature_set_name + '.' + 'all' + '.tsv', 'w')
+
+        for dataset, lp in sorted(datasets_language_pairs):
+
+            f_features = open(os.path.expanduser(self.config.get('WMT', 'output_dir')) + '/' + 'x_' + dataset + '.' + feature_set_name + '.' + lp + '.tsv', 'w')
+
+            for i, sentence_data in enumerate(data_structure2):
+
+                f_features_all.write('\t'.join([str(x) for x in feature_values[i]]) + "\n")
+                f_meta_data_all.write('\t'.join([str(x) for x in sentence_data]) + "\n")
+
+                if dataset in sentence_data and lp in sentence_data:
+                    f_features.write('\t'.join([str(x) for x in feature_values[i]]) + "\n")
+
+            f_features.close()
+
+        f_features_all.close()
+
     def get_data(self):
 
         process_wmt = PrepareWmt()
@@ -166,8 +209,8 @@ class RankingTask(object):
     def training_set_for_learn_to_rank(self, data_structure, human_rankings, feature_values):
 
         data_set_name = self.config.get('WMT', 'dataset')
-        f_features = open(os.path.expanduser(self.config.get('WMT', 'output_dir') + '/' + 'x_' + data_set_name), 'w')
-        f_objective = open(os.path.expanduser(self.config.get('WMT', 'output_dir') + '/' + 'y_' + data_set_name), 'w')
+        f_features = open(os.path.expanduser(self.config.get('WMT', 'output_dir')) + '/' + 'x_' + data_set_name + '.' + 'learn_to_rank' + '.tsv', 'w')
+        f_objective = open(os.path.expanduser(self.config.get('WMT', 'output_dir')) + '/' + 'y_' + data_set_name + '.' + 'learn_to_rank' + '.tsv', 'w')
 
         for dataset, lang_pair in sorted(human_rankings.keys()):
 
@@ -191,6 +234,90 @@ class RankingTask(object):
 
         f_features.close()
         f_objective.close()
+
+    @staticmethod
+    def training_set_for_learn_to_rank_from_feature_file(config_learning, config):
+
+        data_set_name = config.get('WMT', 'dataset')
+
+        feature_values = read_features_file(config_learning.get("x_train", None), '\t')
+        human_rankings = read_reference_file(config_learning.get("y_train", None), '\t')
+
+        new_features = []
+        new_labels = []
+
+        path_features = os.path.expanduser(config.get('WMT', 'output_dir')) + '/' + 'x_' + data_set_name + ".learn_rank.tsv"
+        path_objective = os.path.expanduser(config.get('WMT', 'output_dir')) + '/' + 'y_' + data_set_name + ".learn_rank.tsv"
+
+        for i, label in enumerate(human_rankings):
+            if label == 2:
+                features = np.subtract(RankingTask.split_list(feature_values[i])[0], RankingTask.split_list(feature_values[i])[1])
+                new_label = 1
+            else:
+                features = np.subtract(RankingTask.split_list(feature_values[i])[1], RankingTask.split_list(feature_values[i])[0])
+                new_label = 0
+
+            new_features.append(features)
+            new_labels.append(new_label)
+
+        write_feature_file(path_objective, new_features)
+        write_reference_file(path_features, new_labels)
+
+    @staticmethod
+    def test_learn_to_rank_coefficients(config_learning, config):
+
+        x_train = read_features_file(config_learning.get('x_train'), '\t')
+        x_test = read_features_file(config_learning.get('x_test'), '\t')
+
+        scale = config_learning.get("scale", True)
+
+        if scale:
+            x_train, x_test = scale_datasets(x_train, x_test)
+
+        learner = config_learning.get("learning", None)
+        method_name = learner.get("method", None)
+
+        estimator = joblib.load(os.path.expanduser(config.get('Learner', 'models')) + '/' + method_name + '.pkl')
+
+        coefficients = estimator.coef_[0]
+
+        predictions = []
+
+        for instance in x_test:
+            result = 0.0
+            for k, val in enumerate(instance):
+                result += val * coefficients[k]
+
+            predictions.append(result)
+
+        return predictions
+
+    @staticmethod
+    def test_learn_to_rank(config_learning, config):
+
+        x_train = read_features_file(config_learning.get('x_train'), '\t')
+        x_test = read_features_file(config_learning.get('x_test'), '\t')
+
+        scale = config_learning.get("scale", True)
+
+        if scale:
+            x_train, x_test = scale_datasets(x_train, x_test)
+
+        learner = config_learning.get("learning", None)
+        method_name = learner.get("method", None)
+
+        estimator = joblib.load(os.path.expanduser(config.get('Learner', 'models')) + '/' + method_name + '.pkl')
+
+        return [x[0] for x in estimator.predict_proba(x_test)]
+
+    @staticmethod
+    def test_set_for_learn_to_rank(config_learning, config):
+        pass
+
+    @staticmethod
+    def split_list(a_list):
+        half = len(a_list)/2
+        return a_list[:half], a_list[half:]
 
     @staticmethod
     def eliminate_ties(human_comparisons):
@@ -403,7 +530,6 @@ class RankingTask(object):
         x_train = read_features_file(config_learning.get('x_train'), '\t')
         y_train = read_reference_file(config_learning.get('y_train'), '\t')
         x_test = read_features_file(config_learning.get('x_test'), '\t')
-        y_test = read_reference_file(config_learning.get('y_test'), '\t')
 
         scale = config_learning.get("scale", True)
 
@@ -414,16 +540,6 @@ class RankingTask(object):
 
         estimator.fit(x_train, y_train)
         joblib.dump(estimator, os.path.expanduser(config_data.get('Learner', 'models')) + '/' + method_name + '.pkl')
-
-    @staticmethod
-    def test_learn_to_rank(config_path):
-
-        with open(config_path, 'r') as cfg_file:
-            config = yaml.load(cfg_file.read())
-
-        x_test = read_features_file(config.get('x_test'), '\t')
-        estimator = joblib.load(os.path.expanduser(config.get('Learner', 'models')) + '/' + 'logistic.pkl')
-        return [x[0] for x in estimator.predict_proba(x_test)]
 
     @staticmethod
     def recursive_feature_elimination(config_learning, config_data, number_features):
