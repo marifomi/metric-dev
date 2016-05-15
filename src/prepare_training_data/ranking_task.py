@@ -63,10 +63,9 @@ class RankingTask(object):
 
             for i, sentence_data in enumerate(data_structure2):
 
-                f_features_all.write('\t'.join([str(x) for x in feature_values[i]]) + "\n")
-                f_meta_data_all.write('\t'.join([str(x) for x in sentence_data]) + "\n")
-
                 if dataset in sentence_data and lp in sentence_data:
+                    f_features_all.write('\t'.join([str(x) for x in feature_values[i]]) + "\n")
+                    f_meta_data_all.write('\t'.join([str(x) for x in sentence_data]) + "\n")
                     f_features.write('\t'.join([str(x) for x in feature_values[i]]) + "\n")
 
             f_features.close()
