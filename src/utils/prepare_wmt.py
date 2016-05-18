@@ -280,7 +280,7 @@ class PrepareWmt(object):
 
         my_directory = data_dir + '/' + 'references'
 
-        if data_set == 'newstest2015' or data_set == 'newsdiscusstest2015':
+        if data_set == 'newstest2015' or data_set == 'newsdiscusstest2015' or data_set == 'newstest2016':
             reference_path = my_directory + '/' + data_set + '/' + data_set + '-' + lang_pair.split('-')[0] + lang_pair.split('-')[1] + '-' + 'ref' + '.' + 'en'
 
         if data_set == 'newstest2014':
@@ -335,7 +335,7 @@ class PrepareWmt(object):
         if data_set == 'newstest2014':
             return '.'.join(system_file.split('.')[1:-1])
 
-        if data_set == 'newstest2015' or data_set == 'newsdiscusstest2015':
+        if data_set == 'newstest2015' or data_set == 'newsdiscusstest2015' or data_set == 'newstest2016':
             return '.'.join(system_file.split('.')[1:-1])
 
     @staticmethod
