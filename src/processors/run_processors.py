@@ -20,18 +20,19 @@ class RunProcessors(object):
         sentences_target = []
         sentences_reference = []
 
-        select_names = loads(self.config.get('Resources', 'processors'))
-        select_procs = []
-        exist_procs = {}
+        selected_names = loads(self.config.get('Resources', 'processors'))
+        selected_processors = []
+        existing_processors = {}
+        processors_with_output = []
 
         for name, my_class in inspect.getmembers(processors):
-            exist_procs[name] = my_class
+            existing_processors[name] = my_class
 
-        for proc in select_names:
-            name_class = (proc, exist_procs[proc])
-            select_procs.append(name_class)
+        for proc in selected_names:
+            name_class = (proc, existing_processors[proc])
+            selected_processors.append(name_class)
 
-        for name, my_class in select_procs:
+        for name, my_class in selected_processors:
 
             instance = my_class()
 
@@ -48,15 +49,18 @@ class RunProcessors(object):
 
             print(instance.get_name() + ' ' + 'finished!')
 
-            results_target.append(instance.get_result_tgt())
-            results_reference.append(instance.get_result_ref())
+            if instance.get_output() is not None:
+
+                processors_with_output.append((name, my_class))
+                results_target.append(instance.get_result_tgt())
+                results_reference.append(instance.get_result_ref())
 
         for i in range(len(results_target[0])):
 
             my_sentence_tgt = Sentence()
             my_sentence_ref = Sentence()
 
-            for k, (name, my_class) in enumerate(select_procs):
+            for k, (name, my_class) in enumerate(processors_with_output):
                 instance = my_class()
 
                 if instance.get_output() is not None:
