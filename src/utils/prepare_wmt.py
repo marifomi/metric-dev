@@ -77,9 +77,9 @@ class PrepareWmt(object):
         my_output.close()
 
 
-    def wmt_format(self, config, feature_name, data_set, scores, data_structure):
+    def wmt_format(self, config, feature_name, data_set_name, scores, data_structure):
 
-        f_output = os.path.expanduser(config.get('WMT', 'output_dir')) + '/' + data_set + '.' + feature_name + '.' + 'out'
+        f_output = os.path.expanduser(config.get('WMT', 'output_dir')) + '/' + data_set_name + '.' + feature_name + '.' + 'out'
 
         if os.path.exists(f_output):
             print("Feature file already exist.")
@@ -106,16 +106,16 @@ class PrepareWmt(object):
 
         my_output.close()
 
-    def run_processor(self, processor, data_structure, output_dir, data_set):
+    def run_processor(self, processor, data_structure, output_dir, data_set_name):
 
         """ Receives a processor object, runs the commands on the whole wmt dataset,
         writes file with the output in wmt format """
 
         result = []
 
-        f_output = output_dir + '/' + data_set + '.' + processor.name + '.' + 'out'
+        f_output = output_dir + '/' + data_set_name + '.' + processor.name + '.' + 'out'
 
-        if os.path.exists(output_dir + '/' + data_set + '.' + processor.name + '.' + 'out'):
+        if os.path.exists(output_dir + '/' + data_set_name + '.' + processor.name + '.' + 'out'):
             print("Feature file already exist.\n Processor will not run.")
             return
 
