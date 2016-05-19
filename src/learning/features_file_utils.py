@@ -249,8 +249,8 @@ def write_files_with_selected_features(selected_features_indexes):
 
 def get_number_features():
 
-    my_dir = os.path.expanduser("~/Dropbox/informative_features_for_evaluation/data")
-    input_file = my_dir + "/" + "x_newstest2015.metrics_comb_fluency_comb_diff.all.tsv"
+    my_dir = os.path.expanduser("~/Dropbox/experiments_fluency/test_learn_to_rank")
+    input_file = my_dir + "/" + "x_newstest2015.cobalt_comb_min_fluency_features_all.cs-en.tsv"
 
     features_values = read_features_file(input_file, "\t")
 
@@ -303,9 +303,9 @@ def average_feature_values():
     config = ConfigParser()
     config.readfp(open(config_path))
 
-    my_dir = os.path.expanduser("~/Dropbox/informative_features_for_evaluation/data")
-    feature_file = my_dir + "/" + "x_newstest2015.cobalt.comb.min.ru-en.tsv"
-    feature_names = FeatureExtractor.get_features_from_config_file(config)
+    my_dir = os.path.expanduser("~/Dropbox/experiments_fluency/test_learn_to_rank")
+    feature_file = my_dir + "/" + "x_newstest2015.cobalt_comb_min_fluency_features_all.cs-en.tsv"
+    feature_names = FeatureExtractor.get_features_from_config_file_unsorted(config)
     strategies = FeatureExtractor.get_combinations_from_config_file(config)
 
     feature_values = read_features_file(feature_file, "\t")
@@ -313,10 +313,10 @@ def average_feature_values():
 
     feature_list = []
     for i, feature_name in enumerate(feature_names):
-        if strategies[i] == 'both':
-            feature_list.append(feature_name)
-            feature_list.append(feature_name)
-        else:
+        # if strategies[i] == 'both':
+        #     feature_list.append(feature_name)
+        #     feature_list.append(feature_name)
+        # else:
             feature_list.append(feature_name)
 
     for i, name in enumerate(feature_list):
@@ -325,6 +325,7 @@ def average_feature_values():
 
 if __name__ == '__main__':
 
+    get_number_features()
     average_feature_values()
 
     # my_dir = os.path.expanduser("~/workspace/upf-cobalt/test")
