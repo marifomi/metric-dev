@@ -29,8 +29,8 @@ def evaluate_feature_ranking(config, features_to_extract):
 
     if 'Parse' in loads(config.get("Resources", "processors")):
         process_wmt_parse = PrepareWmt(data_type='parse')
-        data_structure = process_wmt_parse.get_data_structure(config)
-        process_wmt_parse.print_data_set(config, data_structure)
+        data_structure_parse = process_wmt_parse.get_data_structure(config)
+        process_wmt_parse.print_data_set(config, data_structure_parse)
 
     process_wmt = PrepareWmt()
     data_structure = process_wmt.get_data_structure(config)
