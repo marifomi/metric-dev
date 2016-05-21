@@ -2,8 +2,9 @@
 
 use warnings;
 use strict;
-use utf8::all;
 use Encode;
+use Encode::Unicode;
+use utf8;
 use XML::Twig;
 
 binmode STDOUT, ":utf8";
