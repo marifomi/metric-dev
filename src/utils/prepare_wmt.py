@@ -199,10 +199,10 @@ class PrepareWmt(object):
         data_to_process = []
         data_sets = self.get_data_sets(data_dir)
 
+        counter = 0
+
         for data_set in sorted(data_sets):
             lang_pairs = self.get_lang_pairs(data_dir, data_set)
-
-            counter = 0
 
             for i, lang_pair in enumerate(sorted(lang_pairs)):
 
