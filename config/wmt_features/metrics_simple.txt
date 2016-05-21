@@ -1,3 +1,3 @@
-cobalt_from_file:both
+cobalt:both
 meteor:both
 bleu:both
