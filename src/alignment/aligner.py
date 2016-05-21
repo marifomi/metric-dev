@@ -1070,7 +1070,7 @@ class Aligner(object):
 
         for i, candidate in enumerate(tst_phrases):
             self.alignments.append(self.align_sentence(candidate, ref_phrases[i]))
-            # print(str(i))
+            print(str(i))
 
     def write_alignments(self, output_file_name):
 
