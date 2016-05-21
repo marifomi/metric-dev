@@ -49,6 +49,8 @@ def run(src_path, ref_path, tgt_path):
 def phrase(line, counter):
     line = re.sub("gt;y", "", line)
     line = re.sub("&", "and", line)
+    line = line.replace("<", "")
+    line = line.replace(">", "")
     return "<seg id=\"" + str(counter + 1) + "\">" + line.strip() + "</seg>\n"
 
 def start_refset(o, **kwargs):
