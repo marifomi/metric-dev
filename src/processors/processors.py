@@ -4,7 +4,6 @@ from collections import defaultdict
 from configparser import ConfigParser
 from src.processors.abstract_processor import AbstractProcessor
 from src.alignment.aligner import Aligner
-from src.alignment.aligner import stopwords
 from src.alignment.aligner import punctuations
 from src.utils.cobalt_align_reader import CobaltAlignReader
 from src.utils.meteor_align_reader import MeteorAlignReader
