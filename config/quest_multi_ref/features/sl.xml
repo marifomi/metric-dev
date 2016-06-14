@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<features>
-<feature index="1012" description="log probability of the target" class="shef.mt.features.impl.bb.Feature1012"></feature>
-<feature index="1013" description="perplexity of the target" class="shef.mt.features.impl.bb.Feature1013"></feature>
-<feature index="1014" description="perplexity of the target sentence without end of sentence marker" class="shef.mt.features.impl.bb.Feature1014"></feature>
-</features>

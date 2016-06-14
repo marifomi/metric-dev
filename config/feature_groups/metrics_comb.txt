@@ -1,3 +1,0 @@
-cobalt_from_file:both
-meteor:both
-bleu:both
