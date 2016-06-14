@@ -11,8 +11,11 @@ from src.learning import learn_model
 from src.learning.features_file_utils import read_reference_file, write_lines_to_file, read_features_file, write_feature_file, write_reference_file
 from src.features.feature_extractor import FeatureExtractor
 from src.learning.customize_scorer import pearson_corrcoef
+from src.learning.learn_model import scale_datasets
+from sklearn.feature_selection import RFECV, RFE
 from json import loads
 import codecs
+import yaml
 import re
 
 
@@ -126,7 +129,13 @@ class ScoringTask():
             results.append(lp)
         return results
 
-    def round_robin(self, config_path_learning, feature_set, lps):
+    def round_robin(self, config_path_learning, config_path, feature_set, lps):
+
+        config = ConfigParser()
+        config.readfp(open(config_path))
+
+        with open(config_path_learning, "r") as cfg_file:
+            config_learning = yaml.load(cfg_file.read())
 
         f_results = open("results.txt", "w")
 
@@ -163,6 +172,8 @@ class ScoringTask():
 
             gold_standard = test_reference_values
             predictions = ScoringTask.train_predict(config_path_learning)
+            # predictions = ScoringTask.recursive_feature_elimination(config_learning, config, 50)
+
             correlation = ScoringTask.evaluate_predicted(predictions, gold_standard)
 
             f_results.write(test_lp + " " + str(correlation) + " with " + feature_set + "\n")
@@ -170,7 +181,6 @@ class ScoringTask():
             os.remove(x_test)
             os.remove(y_train)
             os.remove(y_test)
-
 
     @staticmethod
     def train_predict(config_path):
@@ -195,6 +205,36 @@ class ScoringTask():
                 human_scores.append(float(line.strip()))
             f.close()
         return human_scores
+
+    @staticmethod
+    def recursive_feature_elimination(config_learning, config_data, number_features):
+
+        output = open(os.path.expanduser(config_data.get("Learner", "models")) + "/" + "feature_ranks.txt", "w")
+
+        feature_names = FeatureExtractor.get_combinations_from_config_file_unsorted(config_data)
+
+        x_train = read_features_file(config_learning.get('x_train'), '\t')
+        y_train = read_reference_file(config_learning.get('y_train'), '\t')
+        x_test = read_features_file(config_learning.get('x_test'), '\t')
+        estimator, scorers = learn_model.set_learning_method(config_learning, x_train, y_train)
+
+        scale = config_learning.get("scale", True)
+
+        if scale:
+            x_train, x_test = scale_datasets(x_train, x_test)
+
+        rfe = RFE(estimator, number_features, step=1)
+        rfe.fit(x_train, y_train)
+
+        for i, name in enumerate(feature_names):
+            output.write(name + "\t" + str(rfe.ranking_[i]) + "\n")
+            print(name + "\t" + str(rfe.ranking_[i]))
+
+        predictions = rfe.predict(x_test)
+
+        output.close()
+
+        return predictions
 
 def main():
     pass
