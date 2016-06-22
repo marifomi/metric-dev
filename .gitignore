@@ -10,4 +10,6 @@ models/
 src/learning/logistic_temp.py
 test.py
 test_tokenizer/
+data_test/
+.gitignore
 **/*.pyc
