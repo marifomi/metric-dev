@@ -1,5 +1,3 @@
-import math
-
 from lex_resources.config import *
 from numpy import dot
 from gensim import matutils

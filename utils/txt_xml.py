@@ -1,7 +1,6 @@
-__author__ = 'MarinaFomicheva'
-
 import re
 import codecs
+
 
 def run(src_path, ref_path, tgt_path):
 

@@ -1,7 +1,5 @@
 from nltk import SnowballStemmer
 
-__author__ = 'anton'
-
 
 class Stemmer(object):
 

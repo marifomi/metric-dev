@@ -1,11 +1,8 @@
-__author__ = 'MarinaFomicheva'
-
-from sklearn import cross_validation as cv
-from src.learning import learn_model
 import os
-import numpy as np
-from src.utils.core_nlp_utils import read_parsed_sentences
 import codecs
+
+from utils.core_nlp_utils import read_parsed_sentences
+
 
 def save_sampled_phrs(sampled_phrs, file1, file2):
 

@@ -1,5 +1,4 @@
 from collections import defaultdict
-from utils.core_nlp_utils import prepareSentence2
 
 
 class Sentence(defaultdict):

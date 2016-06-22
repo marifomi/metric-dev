@@ -1,4 +1,3 @@
-__author__ = 'MarinaFomicheva'
 
 
 variants_definitions = {

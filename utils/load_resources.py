@@ -1,8 +1,7 @@
-__author__ = 'MarinaFomicheva'
-
 import os
-from src.lex_resources.config import *
 import numpy as np
+
+from lex_resources.config import *
 
 
 def load_ppdb(ppdbFileName):

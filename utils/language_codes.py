@@ -1,4 +1,3 @@
-__author__ = 'MarinaFomicheva'
 
 
 LANGUAGE_CODE_TO_NAME = {

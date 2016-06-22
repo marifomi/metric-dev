@@ -1,9 +1,9 @@
-__author__ = 'MarinaFomicheva'
+import weka.core.jvm as jvm
+import javabridge
 
 from weka.core.converters import Loader
 from weka.classifiers import Classifier
-import weka.core.jvm as jvm
-import javabridge
+
 
 class Logistic(Classifier):
     """

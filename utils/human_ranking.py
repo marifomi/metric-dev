@@ -7,7 +7,6 @@ from collections import defaultdict
 from collections import namedtuple
 from collections import Counter
 from csv import DictReader
-from utils.language_codes import *
 from json import loads
 
 

@@ -1,5 +1,3 @@
-__author__ = 'MarinaFomicheva'
-
 import codecs
 import re
 import os

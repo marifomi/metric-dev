@@ -1,5 +1,3 @@
-__author__ = 'MarinaFomicheva'
-
 import scipy.stats as stats
 import math
 import os

@@ -1,12 +1,11 @@
-__author__ = 'MarinaFomicheva'
-
 import os
 import codecs
-from collections import defaultdict
-from src.utils.language_codes import *
+
+from utils.language_codes import *
 from configparser import ConfigParser
 import re
 from json import loads
+
 
 """ This class processes and prepares the data
     from WMT datasets.
