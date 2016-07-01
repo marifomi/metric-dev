@@ -9,10 +9,10 @@ from json import loads
 
 """ This class processes and prepares the data
     from WMT datasets.
-    Reads the data into a data structure of the form
+    The data is read into a data structure of the form
     [data_dir, data_set, lang_pair, system_path, system_name,
     reference_path, counter_start, counter_end].
-    Print all wmt data in a single file for source, reference and translations."""
+    All the data is printed in single files for source, reference and translations."""
 
 
 class PrepareWmt(object):
