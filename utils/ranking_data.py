@@ -1,7 +1,7 @@
+"""This class stores wmt-style ranking data (references and MT outputs) with dataset, language pairs and system ids"""
+
 import codecs
 
-from os.path import expanduser as usr
-from os.path import exists
 from utils import wmt
 from collections import defaultdict
 from json import loads
@@ -12,7 +12,6 @@ class Dataset(object):
     def __init__(self, name):
         self.name = name
         self.system_names = defaultdict(list)
-        self.number_sentences = {}
 
 
 class RankingData(object):
@@ -21,6 +20,7 @@ class RankingData(object):
         self.cfg = config
         self.dir = self.cfg.get('Paths', 'input_dir')
         self.datasets = []
+        self.plain = []
 
     def read_dataset(self):
 
@@ -31,14 +31,16 @@ class RankingData(object):
             lang_pairs = wmt.get_lang_pairs(self.dir, dataset_name)
 
             for lp in lang_pairs:
-                if len(loads(self.cfg.get('Settings', 'lang_pairs'))) > 0 and lp not in loads(self.cfg.get('Settings', 'lang_pairs')):
+                if lp not in loads(self.cfg.get('Settings', 'lang_pairs')):
                     continue
 
                 system_names = wmt.get_system_names(self.dir, dataset_name, lp)
-                number_sentences = wmt.sentences(wmt.reference_path(self.dir, dataset.name, lp))
-
                 dataset.system_names[lp] = system_names
-                dataset.number_sentences[lp] = number_sentences
+
+                for system_name in system_names:
+                    for sentence in range(wmt.sentences(wmt.reference_path(self.dir, dataset.name, lp))):
+                        data_instance = (dataset.name, lp, system_name, sentence + 1)
+                        self.plain.append(data_instance)
 
             self.datasets.append(dataset)
 
@@ -46,8 +48,8 @@ class RankingData(object):
 
         print("Copying dataset to " + self.cfg.get('Paths', 'working_dir') + ' ...')
 
-        path_tgt = usr(self.cfg.get('Paths', 'working_dir') + '/' + 'tgt.txt')
-        path_ref = usr(self.cfg.get('Paths', 'working_dir') + '/' + 'ref.txt')
+        path_tgt = self.cfg.get('Paths', 'working_dir') + '/' + 'tgt.txt'
+        path_ref = self.cfg.get('Paths', 'working_dir') + '/' + 'ref.txt'
 
         with codecs.open(path_tgt, 'w', 'utf8') as output_tgt:
             with codecs.open(path_ref, 'w', 'utf8') as output_ref:
