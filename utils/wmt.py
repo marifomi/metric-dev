@@ -77,12 +77,33 @@ def substitute_line_number(line, counter):
     return 'Sentence #' + str(counter) + ' ' + tokens + '\n'
 
 
-def wmt_format(config, metric, scores, ranking_data):
+def write_wmt_format(output_path, metric, scores, ranking_data):
 
-    with open(config.get('Paths', 'working_dir'), 'w') as o:
+    with open(output_path, 'w') as o:
 
         for i, score in enumerate(scores):
 
             dataset, lang_pair, system_name, phrase = index_to_phrase(i, ranking_data)
 
             o.write('{0}\t{1}\t{2}\t{3}\t{4}\t{5}\n'.format(metric, dataset, lang_pair, system_name, str(phrase), score))
+
+
+def read_wmt_format(path, lang_pairs):
+
+    data = []
+
+    with open(path, 'r') as input_file:
+
+        for line in input_file.readlines():
+
+            feature, data_set, lang_pair, system_name, seg_id, value = line.strip().split('\t')
+
+            if not '-en' in lang_pair:
+                continue
+
+            if lang_pair not in lang_pairs:
+                continue
+
+            data.append([feature, data_set, lang_pair, system_name, int(seg_id), float(value)])
+
+        return [x[-1] for x in sorted(data)]
