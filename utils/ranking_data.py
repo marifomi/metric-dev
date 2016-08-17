@@ -1,7 +1,6 @@
 import codecs
 
 from os.path import expanduser as usr
-from os.path import exists
 from utils import wmt
 from collections import defaultdict
 from json import loads
@@ -42,12 +41,15 @@ class RankingData(object):
 
             self.datasets.append(dataset)
 
-    def write_dataset(self):
+    def write_dataset(self, parsed=False):
 
         print("Copying dataset to " + self.cfg.get('Paths', 'working_dir') + ' ...')
 
         path_tgt = usr(self.cfg.get('Paths', 'working_dir') + '/' + 'tgt.txt')
         path_ref = usr(self.cfg.get('Paths', 'working_dir') + '/' + 'ref.txt')
+
+        counter_tgt = 0
+        counter_ref = 0
 
         with codecs.open(path_tgt, 'w', 'utf8') as output_tgt:
             with codecs.open(path_ref, 'w', 'utf8') as output_ref:
@@ -61,7 +63,35 @@ class RankingData(object):
                         for sys_name in dataset.system_names[lp]:
                             with codecs.open(wmt.system_path(self.dir, dataset.name, lp, sys_name), 'r', 'utf8') as input_sys:
                                 for line in input_sys.readlines():
-                                    output_tgt.write(line)
+
+                                    if parsed and line.startswith('Sentence #'):
+                                        counter_tgt += 1
+                                        output_tgt.write(wmt.substitute_line_number(line, counter_tgt))
+                                    else:
+                                        output_tgt.write(line)
 
                                 for line in ref_lines:
-                                    output_ref.write(line)
+                                    if parsed and line.startswith('Sentence #'):
+                                        counter_ref += 1
+                                        output_ref.write(wmt.substitute_line_number(line, counter_ref))
+                                    else:
+                                        output_ref.write(line)
+
+    def write_scores_wmt_format(self, scores, metric='metric', output_path='scores.txt'):
+
+        with open(output_path, 'w') as o:
+            counter = 0
+            for dataset in self.datasets:
+                for lp in sorted(dataset.system_names.keys()):
+                    for sys_name in dataset.system_names[lp]:
+                        for i in range(dataset.number_sentences[lp]):
+                            o.write('{0}\t{1}\t{2}\t{3}\t{4}\t{5}\n'.format(metric, dataset.name, lp, sys_name, str(i + 1), scores[counter]))
+                            counter += 1
+
+    def get_sentence_idx(self, dataset_name, lang_pair, seg_id, loser):
+
+        dataset_index = [dataset.name for dataset in self.datasets].index(dataset_name)
+        lang_pair_index = [sorted(dataset.system_names.keys()) for dataset in self.datasets if dataset.name == dataset_name].index(lang_pair)
+
+        # better create plain structure
+        pass

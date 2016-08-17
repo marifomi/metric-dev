@@ -15,27 +15,26 @@ class HumanRanking(defaultdict):
     def __init__(self):
         defaultdict.__init__(self, list)
 
-    def add_human_data(self, f_judgments, config, max_comparisons=-1):
+    def add_human_data(self, cfg, max_comparisons=-1):
+
+        path = cfg.get('Paths', 'human_judgments')
+        lang_pairs = loads(cfg.get('Settings', 'lang_pairs'))
 
         counter = 1
 
-        ranks = open(os.path.expanduser(f_judgments), 'r')
-
-        directions = loads(config.get('WMT', 'directions')) if config.get('WMT', 'directions') != 'None' else 'None'
-
-        for line in DictReader(ranks):
+        for line in DictReader(open(path)):
 
             if max_comparisons > 0 and counter > max_comparisons:
                 return
 
-            direction = self.get_direction(line)
+            lp = self.get_lang_pair(line)
 
-            if not directions == 'None' and direction not in directions:
+            if len(lang_pairs) > 0 and lp not in lang_pairs:
                 continue
 
             dataset = self.get_dataset(line)
             segment = self.get_segment(line)
-            systems_ranks = self.get_system_ranks(line, dataset, direction)
+            systems_ranks = self.get_system_ranks(line, dataset, lp)
             systems_ranks.sort(key=lambda x: x.id.lower())
 
             # Extract all comparisons (Making sure that two systems are extracted only once)
@@ -50,9 +49,8 @@ class HumanRanking(defaultdict):
                     and sys2.rank != -1
                 ]
 
-            self[dataset, direction] += extracted_comparisons
+            self[dataset, lp] += extracted_comparisons
             counter += len(extracted_comparisons)
-
 
     @staticmethod
     def deduplicate(human_comparisons):
@@ -147,13 +145,11 @@ class HumanRanking(defaultdict):
 
         return comparisons
 
-    def get_direction(self, line):
+    def get_lang_pair(self, line):
 
         if '2013' in line['system1Id']:
             return line['system1Id'].split('.')[1]
         elif '2015' in line['system1Id']:
-            # src, tgt = re.sub(r'^.+\.(?P<l1>..)-(?P<l2>..)\.txt$', '\g<l1>-\g<l2>', line['system1Id']).split('-')
-            # language_pair = LANGUAGE_THREE_TO_TWO[src] + '-' + LANGUAGE_THREE_TO_TWO[tgt]
             return re.sub(r'^.+\.(?P<l1>..)-(?P<l2>..)\.txt$', '\g<l1>-\g<l2>', line['system1Id'])
         else:
             return line['system1Id'].split('.')[-1]
@@ -187,10 +183,11 @@ class HumanRanking(defaultdict):
 
         return systems_ranks
 
-    def print_out(self, file_like):
-        for direction in self.human_comparisons.keys():
-            for test_case in self.human_comparisons[direction]:
-                print >>file_like, direction + ',' + ','.join(test_case)
+    def write(self, path):
+        with open(path, 'w'):
+            for direction in self.human_comparisons.keys():
+                for test_case in self.human_comparisons[direction]:
+                    path.write(direction + ',' + ','.join(test_case) + '\n')
 
 
 class HumanComparison(object):
@@ -201,18 +198,8 @@ class HumanComparison(object):
         self.sys2 = sys2
         self.sign = sign
 
-
-def main():
-    import os
-    from configparser import ConfigParser
-    cfg = ConfigParser()
-    cfg.readfp(open(os.getcwd() + '/config/system.cfg'))
-    lps = ['cs-en', 'es-en', 'de-en', 'fr-en', 'ru-en']
-
-    fjudge = cfg.get('Data', 'human')
-    human_ranks = HumanRanking()
-    human_ranks.add_human_data(fjudge, lps)
-    clean_data = human_ranks.clean_data(['cs-en', 'es-en', 'de-en', 'fr-en', 'ru-en'])
-
-if __name__ == '__main__':
-    main()
+    def winner_loser(self):
+        if self.sign == '<':
+            return self.sys1, self.sys2
+        else:
+            return self.sys2, self.sys1

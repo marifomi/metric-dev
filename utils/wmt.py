@@ -1,5 +1,10 @@
 import os
+import re
 
+
+def substitute_line_number(line, counter):
+    tokens = re.sub(r'^.+(\(.+\):)$\n', r'\1', line)
+    return 'Sentence #' + str(counter) + ' ' + tokens + '\n'
 
 def get_datasets(data_dir):
     return sorted([dataset for dataset in os.listdir(data_dir + '/' + 'system-outputs') if not dataset.startswith('.')])
@@ -40,7 +45,7 @@ def reference_path(data_dir, dataset, lang_pair):
         return '/'.join([ref_dir, dataset]) + '/' + ref_name
 
     if dataset == 'newstest2013':
-        ref_name =  dataset + '-' + 'ref' + '.' + lang_pair.split('-')[1]
+        ref_name = dataset + '-' + 'ref' + '.' + lang_pair.split('-')[1]
         return ref_dir + '/' + ref_name
 
 

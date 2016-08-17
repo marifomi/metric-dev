@@ -13,3 +13,5 @@ test_tokenizer/
 data_test/
 .gitignore
 **/*.pyc
+test.cfg
+data_test
