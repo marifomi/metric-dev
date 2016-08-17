@@ -1,3 +1,5 @@
+""" Methods for the data in WMT format """
+
 import os
 import re
 
@@ -55,7 +57,8 @@ def system_path(data_dir, dataset, lang_pair, sys_name):
 
     if '2013' in dataset:
         sys_file = dataset + '.' + lang_pair + '.' + sys_name
-    if '2014' in dataset or '2015' in dataset or '2016' in dataset:
+    else:
+        # for 2014, 2015 and 2016 wmt
         sys_file = dataset + '.' + sys_name + '.' + lang_pair
 
     return sys_dir + '/' + sys_file
@@ -63,3 +66,48 @@ def system_path(data_dir, dataset, lang_pair, sys_name):
 
 def sentences(path):
     return sum(1 for line in open(path))
+
+
+def phrase_to_index(dataset, lang_pair, sys_name, phrase_number, data):
+    return data.plain.index((dataset, lang_pair, sys_name, phrase_number))
+
+
+def index_to_phrase(index, data):
+    return data.plain[index]
+
+
+def substitute_line_number(line, counter):
+    tokens = re.sub(r'^.+(\(.+\):)$\n', r'\1', line)
+    return 'Sentence #' + str(counter) + ' ' + tokens + '\n'
+
+
+def write_wmt_format(output_path, metric, scores, ranking_data):
+
+    with open(output_path, 'w') as o:
+
+        for i, score in enumerate(scores):
+
+            dataset, lang_pair, system_name, phrase = index_to_phrase(i, ranking_data)
+
+            o.write('{0}\t{1}\t{2}\t{3}\t{4}\t{5}\n'.format(metric, dataset, lang_pair, system_name, str(phrase), score))
+
+
+def read_wmt_format(path, lang_pairs):
+
+    data = []
+
+    with open(path, 'r') as input_file:
+
+        for line in input_file.readlines():
+
+            feature, data_set, lang_pair, system_name, seg_id, value = line.strip().split('\t')
+
+            if not '-en' in lang_pair:
+                continue
+
+            if lang_pair not in lang_pairs:
+                continue
+
+            data.append([feature, data_set, lang_pair, system_name, int(seg_id), float(value)])
+
+        return [x[-1] for x in sorted(data)]

@@ -15,6 +15,7 @@ from alignment.aligner import punctuations
 from utils.cobalt_align_reader import CobaltAlignReader
 from utils.meteor_align_reader import MeteorAlignReader
 from utils.prepare_wmt import PrepareWmt
+from utils import wmt
 from utils.core_nlp_utils import read_parsed_sentences, prepareSentence2, parseText, dependencyParseAndPutOffsets
 from utils.features_reader import FeaturesReader
 from utils import txt_xml as xml
@@ -445,7 +446,8 @@ class Bleu(AbstractProcessor):
         result = []
 
         if from_file is True:
-            result = PrepareWmt.read_wmt_format_into_features_data(config, self.get_name())
+            lang_pairs = loads(config.get('Settings', 'lang_pairs'))
+            result = wmt.read_wmt_format(os.path.expanduser(config.get("Metrics", "bleu")), lang_pairs)
         else:
             tgt_path = os.path.expanduser(config.get('Data', 'tgt'))
             scores_file = os.path.expanduser(config.get('Metrics', 'dir')) + '/' + tgt_path.split('/')[-1] + '.bleu.scores'
@@ -470,7 +472,8 @@ class CobaltScorer(AbstractProcessor):
 
     def get(self, config, from_file=True):
 
-        result = PrepareWmt.read_wmt_format_into_features_data(config, self.get_name())
+        lang_pairs = loads(config.get('Settings', 'lang_pairs'))
+        result = wmt.read_wmt_format(os.path.expanduser(config.get("Metrics", "cobalt")), lang_pairs)
 
         AbstractProcessor.set_result_tgt(self, result)
         AbstractProcessor.set_result_ref(self, result)
@@ -509,7 +512,8 @@ class MeteorScorer(AbstractProcessor):
         result = []
 
         if from_file is True:
-            result = PrepareWmt.read_wmt_format_into_features_data(config, self.get_name())
+            lang_pairs = loads(config.get('Settings', 'lang_pairs'))
+            result = wmt.read_wmt_format(os.path.expanduser(config.get("Metrics", "meteor")), lang_pairs)
         else:
             tgt_path = os.path.expanduser(config.get('Data', 'tgt'))
             scores_file = os.path.expanduser(config.get('Metrics', 'dir')) + '/' + tgt_path.split('/')[-1] + '.meteor.scores'
@@ -1265,15 +1269,3 @@ class POSLanguageModelSentenceFeatures(AbstractProcessor):
 
         AbstractProcessor.set_result_tgt(self, result)
         AbstractProcessor.set_result_ref(self, result)
-
-
-def main():
-    cfg = ConfigParser()
-    cfg.readfp(open(os.getcwd() + '/config/absolute.cfg'))
-
-    lm = PosLangModel()
-    lm.run(cfg, 'train')
-    lm.get(cfg, 'train')
-
-if __name__ == '__main__':
-    main()

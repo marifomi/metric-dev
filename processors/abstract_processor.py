@@ -30,3 +30,10 @@ class AbstractProcessor(object):
 
     def get_result_ref(self):
         return self.result_ref
+
+    def test_processor(self, processor, output_dir, dataset, data):
+
+        """ Receives a processor object, runs the commands on the whole wmt dataset,
+        writes file with the output in wmt format """
+
+        pass

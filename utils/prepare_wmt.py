@@ -372,17 +372,3 @@ class PrepareWmt(object):
 
         return '{0}-{1}'.format(src, tgt)
 
-
-def main():
-
-    cfg = ConfigParser()
-    cfg.readfp(open(os.getcwd() + '/config/wmt.fluency_features_alignment_quest.cfg'))
-
-    data_dir = os.path.expanduser('~/Dropbox/workspace/dataSets/wmt14-data/parse')
-    prepare_wmt = PrepareWmt(data_type='parse')
-    data_structure = prepare_wmt.get_data_structure2(data_dir)
-    prepare_wmt.print_data_set(cfg, data_structure)
-
-if __name__ == '__main__':
-    main()
-

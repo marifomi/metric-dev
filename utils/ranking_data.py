@@ -1,6 +1,9 @@
+"""This class stores wmt-style ranking data (references and MT outputs) with dataset, language pairs and system ids"""
+
 import codecs
 
 from os.path import expanduser as usr
+from os.path import exists
 from utils import wmt
 from collections import defaultdict
 from json import loads
@@ -20,6 +23,7 @@ class RankingData(object):
         self.cfg = config
         self.dir = self.cfg.get('Paths', 'input_dir')
         self.datasets = []
+        self.plain = []
 
     def read_dataset(self):
 
@@ -38,6 +42,11 @@ class RankingData(object):
 
                 dataset.system_names[lp] = system_names
                 dataset.number_sentences[lp] = number_sentences
+
+                for system_name in system_names:
+                    for sentence in range(wmt.sentences(wmt.reference_path(self.dir, dataset.name, lp))):
+                        data_instance = (dataset.name, lp, system_name, sentence + 1)
+                        self.plain.append(data_instance)
 
             self.datasets.append(dataset)
 
