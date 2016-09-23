@@ -1,11 +1,10 @@
-from utils.parsed_sentences_loader import parsed_sentences_loader
+from utils.parsed_sentences_loader import ParsedSentencesLoader
 from utils.word import Word
 
 
 def parse_text(sentences):
 
-    loader = parsed_sentences_loader()
-
+    loader = ParsedSentencesLoader()
     parseResult = loader.load(sentences)
 
     if len(parseResult['sentences']) == 1:
@@ -51,11 +50,11 @@ def parse_text(sentences):
     parseResult['sentences'] = parseResult['sentences'][0:1]
 
     return parseResult
+
+##############################################################################################################################
 ##############################################################################################################################
 
 
-
-##############################################################################################################################
 def nerWordAnnotator(parseResult):
 
     res = []
@@ -318,6 +317,7 @@ def findChildren(dependencyParse, wordIndex, word):
             return []
         for i in range(len(dependencyParse)):
             if int(dependencyParse[i][2].split('{')[1].split('}')[0].split(' ')[2]) == nextIndex:
+            # if child index of the word i == next index
                    pos = i
                    break
         for i in range(pos, len(dependencyParse)):
