@@ -1,6 +1,6 @@
 import numpy
 
-from processors.run_processors import RunProcessors
+from processors.process import Process
 from utils.prepare_wmt import PrepareWmt
 from features.feature_extractor import FeatureExtractor as FE
 from json import loads
@@ -14,7 +14,7 @@ from json import loads
 def evaluate_feature_scoring(config, feature_names, data_set, lang_pair, system_name):
 
     wmt = PrepareWmt()
-    process = RunProcessors(config)
+    process = Process(config)
     sents_tgt, sents_ref = process.run_processors()
 
     for feature in feature_names:
@@ -35,7 +35,7 @@ def evaluate_feature_ranking(config, features_to_extract):
     data_structure = process_wmt.get_data_structure(config)
     process_wmt.print_data_set(config, data_structure)
 
-    process = RunProcessors(config)
+    process = Process(config)
     sents_tgt, sents_ref = process.run_processors()
 
     for feature in features_to_extract:

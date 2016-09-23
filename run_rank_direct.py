@@ -1,22 +1,7 @@
 import os
-import fileinput
-import codecs
-import yaml
-import re
-
-from processors.processors import CobaltAligner
 from configparser import ConfigParser
-from utils.prepare_wmt import PrepareWmt
-from features.feature_extractor import FeatureExtractor
-from prepare_training_data.ranking_task import RankingTask
-from learning.features_file_utils import read_reference_file, split_dataset, split_dataset_repeated_segments, read_features_file
-from prepare_training_data.scoring_task import ScoringTask
-from processors.processors import POSLanguageModelWordFeatures
-from processors.processors import POSTaggerParse
-from utils.human_ranking import HumanRanking
-from prepare_training_data.evaluate_feature import evaluate_feature_scoring, evaluate_feature_ranking
-from utils.human_ranking import HumanRanking
 
+import yaml
 
 # Ranking Task
 

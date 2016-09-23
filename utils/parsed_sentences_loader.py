@@ -23,7 +23,7 @@ CR_PATTERN = re.compile(r"\((\d*),(\d)*,\[(\d*),(\d*)\]\) -> \((\d*),(\d)*,\[(\d
 STATE_START, STATE_TEXT, STATE_WORDS, STATE_TREE, STATE_DEPENDENCY, STATE_COREFERENCE = 0, 1, 2, 3, 4, 5
 
 
-class ParsedSentencesLoader(object):
+class parsed_sentences_loader(object):
 
     def parse_bracketed(self, s):
         '''Parse word features [abc=... def = ...]

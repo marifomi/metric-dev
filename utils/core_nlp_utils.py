@@ -1,10 +1,10 @@
-from utils.parsed_sentences_loader import ParsedSentencesLoader
+from utils.parsed_sentences_loader import parsed_sentences_loader
 from utils.word import Word
 
 
-def parseText(sentences):
+def parse_text(sentences):
 
-    loader = ParsedSentencesLoader()
+    loader = parsed_sentences_loader()
 
     parseResult = loader.load(sentences)
 
@@ -15,7 +15,7 @@ def parseText(sentences):
 
     for i in range(len(parseResult['sentences'])):
 
-        if i>0:
+        if i > 0:
             for j in range(len(parseResult['sentences'][i]['dependencies'])):
 
                 for k in range(1,3):
@@ -150,7 +150,7 @@ def lemmatize(parseResult):
 
 
 def prepareSentence(sentence):
-    sentenceParseResult = parseText(sentence)
+    sentenceParseResult = parse_text(sentence)
 
     sentenceLemmatized = lemmatize(sentenceParseResult)
 
@@ -170,7 +170,7 @@ def prepareSentence(sentence):
 
 
 def prepareSentence2(sentence):
-    sentenceParseResult = parseText(sentence)
+    sentenceParseResult = parse_text(sentence)
 
     sentenceLemmatized = lemmatize(sentenceParseResult)
 

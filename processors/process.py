@@ -5,7 +5,7 @@ from processors import processors
 from utils.sentence import Sentence
 
 
-class RunProcessors(object):
+class Process(object):
 
     def __init__(self, config):
         self.config = config
@@ -19,7 +19,7 @@ class RunProcessors(object):
         sentences_target = []
         sentences_reference = []
 
-        selected_names = loads(self.config.get('Resources', 'processors'))
+        selected_names = loads(self.config.get('Processors', 'processors'))
         selected_processors = []
         existing_processors = {}
         processors_with_output = []
@@ -34,11 +34,10 @@ class RunProcessors(object):
         for name, my_class in selected_processors:
 
             instance = my_class()
-
             from_file = False
-
-            if instance.__class__.__name__ in loads(self.config.get('Resources', 'from_file')):
-                from_file = True
+            if self.config.has_option('Processors', 'from_file'):
+                if instance.__class__.__name__ in loads(self.config.get('Processors', 'from_file')):
+                    from_file = True
 
             print('Running ' + instance.get_name())
             instance.run(self.config, from_file=from_file)

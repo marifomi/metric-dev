@@ -4,10 +4,6 @@ import os
 import re
 
 
-def substitute_line_number(line, counter):
-    tokens = re.sub(r'^.+(\(.+\):)$\n', r'\1', line)
-    return 'Sentence #' + str(counter) + ' ' + tokens + '\n'
-
 def get_datasets(data_dir):
     return sorted([dataset for dataset in os.listdir(data_dir + '/' + 'system-outputs') if not dataset.startswith('.')])
 
@@ -80,7 +76,6 @@ def substitute_line_number(line, counter):
     tokens = re.sub(r'^.+(\(.+\):)$\n', r'\1', line)
     return 'Sentence #' + str(counter) + ' ' + tokens + '\n'
 
-
 def write_wmt_format(output_path, metric, scores, ranking_data):
 
     with open(output_path, 'w') as o:
@@ -89,7 +84,7 @@ def write_wmt_format(output_path, metric, scores, ranking_data):
 
             dataset, lang_pair, system_name, phrase = index_to_phrase(i, ranking_data)
 
-            o.write('{0}\t{1}\t{2}\t{3}\t{4}\t{5}\n'.format(metric, dataset, lang_pair, system_name, str(phrase), score))
+            o.write('{}\t{}\t{}\t{}\t{}\t{}\n'.format(metric, dataset, lang_pair, system_name, phrase, score))
 
 
 def read_wmt_format(path, lang_pairs):

@@ -43,7 +43,7 @@ class Scorer(object):
 
     def __init__(self):
         config = ConfigParser()
-        config.readfp(open('config/scorer.cfg'))
+        config.readfp(open('config/scorer/scorer.cfg'))
 
         self.alpha = config.getfloat('Scorer', 'alpha')
         self.beta = config.getfloat('Scorer', 'beta')
@@ -160,6 +160,50 @@ class Scorer(object):
                 weighted_matches2 += self.delta * (max(word_level_scores[i].similarity - word_level_scores[i].penalty_mean, self.minimal_aligned_relatedness))
             else:
                 weighted_matches2 += (1 - self.delta) * (max(word_level_scores[i].similarity - word_level_scores[i].penalty_mean, self.minimal_aligned_relatedness))
+
+        if weighted_length1 == 0:
+            precision = weighted_matches1
+        else:
+            precision = weighted_matches1 / weighted_length1
+
+        if weighted_length2 == 0:
+            recall = weighted_matches2
+        else:
+            recall = weighted_matches2 / weighted_length2
+
+        if precision == 0 or recall == 0 or (((1.0 - self.alpha) / precision) + (self.alpha / recall)) == 0:
+            fmean = 0
+        else:
+            fmean = 1.0 / (((1.0 - self.alpha) / precision) + (self.alpha / recall))
+
+        score = fmean
+
+        return score
+
+    def sentence_score_cobalt_no_punctuation(self, sentence1, sentence2, alignments, word_level_scores):
+
+        punctuation_words1 = list(filter(lambda x: word_sim.ispunct(x.form), sentence1))
+        punctuation_words2 = list(filter(lambda x: word_sim.ispunct(x.form), sentence2))
+
+        punct = 1
+
+        weighted_length1 = punct * (len(sentence1) - len(punctuation_words1)) + ((1.0 - punct) * len(punctuation_words1))
+        weighted_length2 = punct * (len(sentence2) - len(punctuation_words2)) + ((1.0 - punct) * len(punctuation_words2))
+
+        weighted_matches1 = 0
+        weighted_matches2 = 0
+
+        for i, a in enumerate(alignments[0]):
+
+            if not word_sim.ispunct(sentence1[a[0] - 1].form):
+                weighted_matches1 += punct * (max(word_level_scores[i].similarity - word_level_scores[i].penalty_mean, self.minimal_aligned_relatedness))
+            else:
+                weighted_matches1 += (1 - punct) * (max(word_level_scores[i].similarity - word_level_scores[i].penalty_mean, self.minimal_aligned_relatedness))
+
+            if not word_sim.ispunct(sentence2[a[1] - 1].form):
+                weighted_matches2 += punct * (max(word_level_scores[i].similarity - word_level_scores[i].penalty_mean, self.minimal_aligned_relatedness))
+            else:
+                weighted_matches2 += (1 - punct) * (max(word_level_scores[i].similarity - word_level_scores[i].penalty_mean, self.minimal_aligned_relatedness))
 
         if weighted_length1 == 0:
             precision = weighted_matches1

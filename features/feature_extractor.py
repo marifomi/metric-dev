@@ -10,10 +10,42 @@ class FeatureExtractor(object):
         self.cfg = cfg
         self.feature_names = []
 
+    @staticmethod
+    def extract_features_static(feature_names, sentences_tgt, sentences_ref):
+        print("Validating feature names...")
+
+        FeatureExtractor.validate_feature_names(feature_names, FeatureExtractor.existing_features())
+
+        print("Extracting features...")
+
+        feature_vectors = []
+
+        for my_class in sorted(list(FeatureExtractor.__iter_subclasses__(AbstractFeature)),
+                               key=lambda x: str(x)):
+
+            instance = my_class()
+
+            if str(instance) not in feature_names:
+                continue
+
+            feature_vector = []
+
+            print("Running " + str(instance))
+
+            for i, sent_tgt in enumerate(sentences_tgt):
+                instance.run(sent_tgt, sentences_ref[i])
+                feature_vector.append(instance.get_value())
+
+            feature_vectors.append(feature_vector)
+
+        print("Finished extracting features")
+
+        return [list(x) for x in zip(*feature_vectors)]
+
     def extract_features(self, features_to_extract, sents_tgt, sents_ref):
         print("Validating feature names...")
 
-        self.validate_feature_names(features_to_extract, self.get_feature_names())
+        self.validate_feature_names(features_to_extract, self.existing_features())
 
         print("Extracting features...")
 
@@ -60,17 +92,9 @@ class FeatureExtractor(object):
         return sum(1 for line in open(my_file))
 
     @staticmethod
-    def get_features_from_config_file(config):
-
-        config_features = []
-        f_features = open(os.path.expanduser(config.get('Features', 'feature_set')), 'r').readlines()
-        for line in sorted(f_features):
-            if ':' in line:
-                config_features.append(line.strip().split(':')[0])
-            else:
-                config_features.append(line.strip())
-
-        return config_features
+    def read_feature_names(cfg):
+        features_path = os.path.expanduser(cfg.get('Features', 'feature_set'))
+        return [f.strip().split(':')[0] for f in open(features_path).readlines()]
 
     @staticmethod
     def get_combinations_from_config_file(config):
@@ -112,7 +136,7 @@ class FeatureExtractor(object):
         print('\n'.join(feature_names))
 
     @staticmethod
-    def get_feature_names():
+    def existing_features():
 
         my_features = []
         for my_class in sorted(list(FeatureExtractor.__iter_subclasses__(AbstractFeature)),
@@ -126,7 +150,7 @@ class FeatureExtractor(object):
 
         for f in features_to_extract:
             if f not in feature_module_names:
-                print("Warning! Feature " + f + "does not exist!")
+                print("Warning! Feature " + f + " does not exist!")
 
     @staticmethod
     def __iter_subclasses__(cls, _seen=None):

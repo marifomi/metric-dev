@@ -11,7 +11,7 @@ def test_feature_sets():
     cfg.readfp(open(os.getcwd() + '/config/system.cfg'))
 
     group_name = FE.get_features_group_name(cfg)
-    features_to_test = FE.get_features_from_config_file(cfg)
+    features_to_test = FE.read_feature_names(cfg)
 
     if os.path.exists(cfg.get('Data', 'output') + '/' + group_name + '.' + 'summary'):
         "Path exists!"

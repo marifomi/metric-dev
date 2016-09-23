@@ -130,6 +130,7 @@ def word_relatedness_feature(word1, word2):
 
     return lexSim
 
+
 def cosine_similarity(word1, word2):
 
     global word_vector
@@ -138,6 +139,7 @@ def cosine_similarity(word1, word2):
         return dot(matutils.unitvec(word_vector[word1.lower()]), matutils.unitvec(word_vector[word2.lower()]))
     else:
         return 0
+
 
 def presentInPPDB(word1, word2):
     if (word1.lower(), word2.lower()) in ppdb_dict:
@@ -148,6 +150,11 @@ def presentInPPDB(word1, word2):
 
 def function_word(word):
     return (word.lower() in cobalt_stopwords) or (word.lower() in punctuations) or (word.lower().isdigit())
+
+
+def ispunct(word):
+    return word.lower() in punctuations
+
 
 def function_word_extended(word):
     return (word.lower() in extended_stopwords.stopwords_list) or (word.lower() in punctuations) or (word.lower().isdigit())
