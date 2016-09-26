@@ -1,18 +1,18 @@
-import os
-import scipy
 import codecs
-import yaml
+import os
 import re
-
 from configparser import ConfigParser
-from processors.run_processors import RunProcessors
-from learning import learn_model
-from learning.features_file_utils import read_reference_file, write_lines_to_file, read_features_file, write_feature_file, write_reference_file
+from json import loads
+
+import yaml
+from sklearn.feature_selection import RFE
+
 from features.feature_extractor import FeatureExtractor
+from learning import learn_model
 from learning.customize_scorer import pearson_corrcoef
 from learning.learn_model import scale_datasets
-from sklearn.feature_selection import RFECV, RFE
-from json import loads
+from processors.process import Process
+from utils.file_utils import read_reference_file, write_lines_to_file, read_features_file, write_feature_file, write_reference_file
 
 
 class ScoringTask():
@@ -82,11 +82,11 @@ class ScoringTask():
     def get_data(self):
 
         human_scores = read_reference_file(os.path.expanduser(self.config.get('Data', 'human_scores')), '\t')
-        process = RunProcessors(self.config)
+        process = Process(self.config)
         sents_tgt, sents_ref = process.run_processors()
 
         extractor = FeatureExtractor(self.config)
-        features_to_extract = FeatureExtractor.get_features_from_config_file(self.config)
+        features_to_extract = FeatureExtractor.read_feature_names(self.config)
         extractor.extract_features(features_to_extract, sents_tgt, sents_ref)
 
         return extractor.vals, human_scores

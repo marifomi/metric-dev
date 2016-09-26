@@ -1,9 +1,3 @@
-'''
-Created on Aug 29, 2012
-
-@author: desouza
-'''
-
 import codecs
 import numpy as np
 import logging as log
@@ -13,17 +7,16 @@ from sklearn.cross_validation import train_test_split
 from configparser import ConfigParser
 from features.feature_extractor import FeatureExtractor
 
+
 def read_labels_file(path, delim, encoding='utf-8'):
-    '''Reads the labels of each column in the training and test files (features 
-    and reference files).
+    # Reads the labels of each column in the training and test files (features  and reference files).
     
-    @param path: the path of the labels file
-    @param delim: the character used to separate the label strings.
-    @param encoding: the character encoding used to read the file. 
-    Default is 'utf-8'.
-    
-    @return: a list of strings representing each feature column.
-    '''
+    # @param path: the path of the labels file
+    # @param delim: the character used to separate the label strings.
+    # @param encoding: the character encoding used to read the file.
+    # Default is 'utf-8'.
+    # @return: a list of strings representing each feature column.
+
     labels_file = codecs.open(path, 'r', encoding)
     lines = labels_file.readlines()
     
@@ -39,13 +32,10 @@ def read_labels_file(path, delim, encoding='utf-8'):
     
     
 def read_reference_file(path, delim, encoding='utf-8', tostring=False):
-    """Parses the file that contains the references and stores it in a numpy array.
-    
-       @param path the path of the file.
-       @delim char the character used to separate values.
-       
-       @return: a numpy array representing each instance response value
-    """
+    # Parses the file that contains the references and stores it in a numpy array.
+    # @param path the path of the file.
+    # @delim char the character used to separate values.
+    # @return: a numpy array representing each instance response value
     
     # reads the references to a vector
     refs_file = codecs.open(path, 'r', encoding)
@@ -63,15 +53,14 @@ def read_reference_file(path, delim, encoding='utf-8', tostring=False):
 
 
 def read_features_file(path, delim, encoding='utf-8', tostring=False):
-    '''
-    Reads the features for each instance and stores it on an numpy array.
+
+    # Reads the features for each instance and stores it on an numpy array.
     
-    @param path: the path to the file containing the feature set.
-    @param delim: the character used to separate the values in the file pointed by path.
-    @param encoding: the character encoding used to read the file.
-    
-    @return: an numpy array where the columns are the features and the rows are the instances.
-    '''
+    # @param path: the path to the file containing the feature set.
+    # @param delim: the character used to separate the values in the file pointed by path.
+    # @param encoding: the character encoding used to read the file.
+    # @return: an numpy array where the columns are the features and the rows are the instances.
+
     # this method is memory unneficient as all the mtc is kept in memory
     feats_file = codecs.open(path, 'r', encoding='utf-8')
     feats_lines = []
@@ -94,7 +83,7 @@ def read_features_file(path, delim, encoding='utf-8', tostring=False):
         line_num += 1
         feats_lines.append(cols)
     
-    #    print feats_lines
+    # print feats_lines
     feats = np.asarray(feats_lines)
     
     return feats
@@ -119,6 +108,8 @@ def split_dataset(input_path_x, input_path_y, output_dir):
 
 
 def split_dataset_repeated_segments(input_path_x, input_path_y, output_dir, number_of_segments):
+
+    # Avoid using same data by different systems
 
     with open(os.path.expanduser(input_path_x), 'r') as f:
         read_data_x = f.readlines()
@@ -159,12 +150,14 @@ def concatenate_features_files(file_paths):
 
     return np.concatenate(feature_arrays, axis=1)
 
+
 def write_reference_file(output_path, labels):
 
     output_file = codecs.open(output_path, 'w', 'utf-8')
     for l in labels:
         output_file.write(str(l) + '\n')
     output_file.close()
+
 
 def write_feature_file(output_path, feature_matrix):
 
@@ -173,6 +166,7 @@ def write_feature_file(output_path, feature_matrix):
         output_file.write('\t'.join([str(x) for x in row]) + '\n')
     output_file.close()
 
+
 def write_lines_to_file(file_path, lines):
 
     with open(os.path.expanduser(file_path), 'w') as f:
@@ -180,9 +174,10 @@ def write_lines_to_file(file_path, lines):
             f.write(line)
     f.close()
 
+
 def combine_alignment_files(language_pairs, directory, file_name):
 
-    # Method to combine alignment files for different languages in a single file
+    # Combine alignment files for different languages in a single file
 
     output_file = codecs.open(directory + "/" + "full_dataset/" + file_name, "w", "utf-8")
 
@@ -202,8 +197,6 @@ def combine_alignment_files(language_pairs, directory, file_name):
 
 
 def create_single_metrics():
-
-    # Method to combine alignment files for different languages in a single file
 
     my_dir = os.path.expanduser("~/Dropbox/informative_features_for_evaluation/data")
     metrics_file = my_dir + "/" + "x_newstest2014.metrics.simple.all.tsv"
@@ -248,6 +241,7 @@ def write_files_with_selected_features(selected_features_indexes):
 
     output_file.close()
 
+
 def get_number_features():
 
     my_dir = os.path.expanduser("~/Dropbox/experiments_fluency/test_learn_to_rank")
@@ -256,6 +250,7 @@ def get_number_features():
     features_values = read_features_file(input_file, "\t")
 
     print(features_values.shape)
+
 
 def convert_concatenated_to_difference():
 
@@ -282,8 +277,10 @@ def convert_concatenated_to_difference():
 
     write_feature_file(output_file, differences_values)
 
+
 def is_even(number):
     return number % 2 == 0
+
 
 def combine_feature_files():
 
@@ -297,6 +294,7 @@ def combine_feature_files():
     feature_arrays = concatenate_features_files(paths)
 
     write_feature_file(path_to_out, feature_arrays)
+
 
 def average_feature_values():
 

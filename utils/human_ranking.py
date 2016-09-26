@@ -110,6 +110,13 @@ class HumanRanking(defaultdict):
 
         return unique_comparisons
 
+    def get_sentence_ids(self, data):
+
+        for dataset, lp in sorted(self.keys()):
+            for comparison in self[dataset, lp]:
+                comparison.idx_phrase_sys1 = data.index((dataset, lp, comparison.sys1, comparison.phrase))
+                comparison.idx_phrase_sys2 = data.index((dataset, lp, comparison.sys2, comparison.phrase))
+
     @staticmethod
     def lang_pair(line):
 

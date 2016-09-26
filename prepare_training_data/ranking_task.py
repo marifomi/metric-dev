@@ -1,25 +1,26 @@
-import yaml
-import os
-import numpy as np
 import itertools
+import os
+from collections import defaultdict
+from configparser import ConfigParser
+from itertools import combinations
+from json import loads
 
-from utils.prepare_wmt import PrepareWmt
-from utils.human_ranking import HumanRanking
-from utils.wmt_kendall_variants import variants_definitions
-from processors.run_processors import RunProcessors
-from features.feature_extractor import FeatureExtractor
-from learning import learn_model
-from learning.features_file_utils import read_reference_file, read_features_file
-from learning.features_file_utils import write_reference_file, write_feature_file
-from learning.learn_model import scale_datasets
-from sklearn.metrics import accuracy_score
+import numpy as np
+import yaml
+from sklearn.cross_validation import StratifiedKFold
 from sklearn.externals import joblib
 from sklearn.feature_selection import RFECV, RFE
-from sklearn.cross_validation import StratifiedKFold
-from configparser import ConfigParser
-from json import loads
-from collections import defaultdict
-from itertools import combinations
+from sklearn.metrics import accuracy_score
+
+from features.feature_extractor import FeatureExtractor
+from learning import learn_model
+from learning.learn_model import scale_datasets
+from processors.process import Process
+from utils.file_utils import read_reference_file, read_features_file
+from utils.file_utils import write_reference_file, write_feature_file
+from utils.human_ranking import HumanRanking
+from utils.prepare_wmt import PrepareWmt
+from utils.wmt_kendall_variants import variants_definitions
 
 
 class RankingTask(object):
@@ -40,11 +41,11 @@ class RankingTask(object):
             data_structure_parse = process_wmt_parse.get_data_structure(self.config)
             process_wmt_parse.print_data_set(self.config, data_structure_parse)
 
-        process = RunProcessors(self.config)
+        process = Process(self.config)
         sents_tgt, sents_ref = process.run_processors()
 
         extractor = FeatureExtractor(self.config)
-        features_to_extract = FeatureExtractor.get_features_from_config_file(self.config)
+        features_to_extract = FeatureExtractor.read_feature_names(self.config)
         extractor.extract_features(features_to_extract, sents_tgt, sents_ref)
         feature_values = extractor.vals
 
@@ -87,11 +88,11 @@ class RankingTask(object):
         human_rankings = HumanRanking()
         human_rankings.add_human_data(f_judgements, self.config, max_comparisons=maximum_comparisons)
 
-        process = RunProcessors(self.config)
+        process = Process(self.config)
         sents_tgt, sents_ref = process.run_processors()
 
         extractor = FeatureExtractor(self.config)
-        features_to_extract = FeatureExtractor.get_features_from_config_file(self.config)
+        features_to_extract = FeatureExtractor.read_feature_names(self.config)
 
         extractor.extract_features(features_to_extract, sents_tgt, sents_ref)
 
@@ -615,7 +616,6 @@ class RankingTask(object):
         predictions = rfecv.predict(x_test)
 
         return predictions
-
 
     def evaluate_predicted(self, predicted, gold_class_labels):
         output_file = open('test_result.out', 'w')

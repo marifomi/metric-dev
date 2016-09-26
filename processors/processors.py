@@ -16,7 +16,7 @@ from utils.cobalt_align_reader import CobaltAlignReader
 from utils.meteor_align_reader import MeteorAlignReader
 from utils.prepare_wmt import PrepareWmt
 from utils import wmt
-from utils.core_nlp_utils import read_parsed_sentences, prepareSentence2, parseText, dependencyParseAndPutOffsets
+from utils.core_nlp_utils import read_parsed_sentences, prepareSentence2, parse_text, dependencyParseAndPutOffsets
 from utils.features_reader import FeaturesReader
 from utils import txt_xml as xml
 from gensim.models.word2vec import Word2Vec
@@ -360,8 +360,10 @@ class Parse(AbstractProcessor):
 
     def get(self, config, from_file=False):
 
-        result_tgt = read_parsed_sentences(codecs.open(os.path.expanduser(config.get('Data', 'tgt') + '.' + 'parse'), 'r', 'utf-8'))
-        result_ref = read_parsed_sentences(codecs.open(os.path.expanduser(config.get('Data', 'ref') + '.' + 'parse'), 'r', 'utf-8'))
+        working_dir = os.path.expanduser(config.get('Data', 'working_dir'))
+
+        result_tgt = read_parsed_sentences(codecs.open(working_dir + '/' + 'tgt.parse', 'r', 'utf-8'))
+        result_ref = read_parsed_sentences(codecs.open(working_dir + '/' + 'ref.parse', 'r', 'utf-8'))
 
         sents_tgt = []
         sents_ref = []
@@ -395,11 +397,11 @@ class Parse2(AbstractProcessor):
         sents_ref = []
 
         for sent in result_tgt:
-            sentence_parse_result = parseText(sent)
+            sentence_parse_result = parse_text(sent)
             sents_tgt.append(dependencyParseAndPutOffsets(sentence_parse_result))
 
         for sent in result_ref:
-            sentence_parse_result = parseText(sent)
+            sentence_parse_result = parse_text(sent)
             sents_tgt.append(dependencyParseAndPutOffsets(sentence_parse_result))
 
         AbstractProcessor.set_result_tgt(self, sents_tgt)
@@ -599,13 +601,13 @@ class CobaltAligner(AbstractProcessor):
 
     def run(self, config, from_file=False):
 
-        tgt_path = os.path.expanduser(config.get('Data', 'tgt') + '.' + 'parse')
-        ref_path = os.path.expanduser(config.get('Data', 'ref') + '.' + 'parse')
-        align_dir = os.path.expanduser(config.get('Alignment', 'dir'))
+        working_dir = os.path.expanduser(config.get('Data', 'working_dir'))
+        tgt_path = working_dir + '/' + 'tgt.parse'
+        ref_path = working_dir + '/' + 'ref.parse'
 
         align_cfg = AlignerConfig('english')
 
-        if os.path.exists(align_dir + '/' + tgt_path.split('/')[-1] + '.' + ref_path.split('/')[-1] + '.cobalt-align.out'):
+        if os.path.exists(working_dir + '/' + tgt_path.split('/')[-1] + '.' + ref_path.split('/')[-1] + '.cobalt-align.out'):
             print("Alignments already exist.\n Aligner will not run.")
             return
 
@@ -617,16 +619,14 @@ class CobaltAligner(AbstractProcessor):
 
         aligner = Aligner('english')
         aligner.align_documents(tgt_path, ref_path)
-        aligner.write_alignments(align_dir + '/' + tgt_path.split('/')[-1] + '.' + ref_path.split('/')[-1] + '.cobalt-align.out')
+        aligner.write_alignments(working_dir + '/' + tgt_path.split('/')[-1] + '.' + ref_path.split('/')[-1] + '.cobalt-align.out')
 
     def get(self, config, from_file=False):
-
-        tgt_path = os.path.expanduser(config.get('Data', 'tgt') + '.' + 'parse')
-        ref_path = os.path.expanduser(config.get('Data', 'ref') + '.' + 'parse')
-        align_dir = os.path.expanduser(config.get('Alignment', 'dir'))
+        working_dir = os.path.expanduser(config.get('Data', 'working_dir'))
+        tgt_path = working_dir + '/' + 'tgt.parse'
+        ref_path = working_dir + '/' + 'ref.parse'
         reader = CobaltAlignReader()
-
-        result = reader.read(align_dir + '/' + tgt_path.split('/')[-1] + '.' + ref_path.split('/')[-1] + '.cobalt-align.out')
+        result = reader.read(working_dir + '/' + tgt_path.split('/')[-1] + '.' + ref_path.split('/')[-1] + '.cobalt-align.out')
         AbstractProcessor.set_result_tgt(self, result)
         AbstractProcessor.set_result_ref(self, result)
 

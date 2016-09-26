@@ -424,6 +424,34 @@ class PropAlignedFunctionReference(AbstractFeature):
                                       len(set(function_words).intersection(aligned_words)) / float(len(function_words)))
 
 
+class MWASimilarity(AbstractFeature):
+
+    def __init__(self):
+        AbstractFeature.__init__(self)
+        AbstractFeature.set_name(self, 'mwa')
+        AbstractFeature.set_description(self, "Alignment-based similarity using MWA submission strategy from SemEval-2014")
+        AbstractFeature.set_group(self, "MWA")
+
+    def run(self, cand, ref):
+        content = {}
+        aligned = {}
+
+        for i, s in enumerate([[x.form for x in cand['parse']], [x.form for x in ref['parse']]]):
+            content[i] = 0.0
+            aligned[i] = 0.0
+            for j, word in enumerate(s):
+                if not word_sim.function_word(word.lower()):
+                    content[i] += 1
+                    if j in [x[i] - 1 for x in cand['alignments'][0]]:
+                        aligned[i] += 1
+
+        if aligned[0] + aligned[1] == 0:
+            sem_sim = 0
+        else:
+            sem_sim = 2 * aligned[0] * aligned[1] / (aligned[0] + aligned[1])
+        AbstractFeature.set_value(self, sem_sim)
+
+
 ###########################################</Common Alignment Features>#################################################
 ########################################################################################################################
 

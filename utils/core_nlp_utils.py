@@ -2,10 +2,9 @@ from utils.parsed_sentences_loader import ParsedSentencesLoader
 from utils.word import Word
 
 
-def parseText(sentences):
+def parse_text(sentences):
 
     loader = ParsedSentencesLoader()
-
     parseResult = loader.load(sentences)
 
     if len(parseResult['sentences']) == 1:
@@ -15,7 +14,7 @@ def parseText(sentences):
 
     for i in range(len(parseResult['sentences'])):
 
-        if i>0:
+        if i > 0:
             for j in range(len(parseResult['sentences'][i]['dependencies'])):
 
                 for k in range(1,3):
@@ -51,11 +50,11 @@ def parseText(sentences):
     parseResult['sentences'] = parseResult['sentences'][0:1]
 
     return parseResult
+
+##############################################################################################################################
 ##############################################################################################################################
 
 
-
-##############################################################################################################################
 def nerWordAnnotator(parseResult):
 
     res = []
@@ -150,7 +149,7 @@ def lemmatize(parseResult):
 
 
 def prepareSentence(sentence):
-    sentenceParseResult = parseText(sentence)
+    sentenceParseResult = parse_text(sentence)
 
     sentenceLemmatized = lemmatize(sentenceParseResult)
 
@@ -170,7 +169,7 @@ def prepareSentence(sentence):
 
 
 def prepareSentence2(sentence):
-    sentenceParseResult = parseText(sentence)
+    sentenceParseResult = parse_text(sentence)
 
     sentenceLemmatized = lemmatize(sentenceParseResult)
 
@@ -318,6 +317,7 @@ def findChildren(dependencyParse, wordIndex, word):
             return []
         for i in range(len(dependencyParse)):
             if int(dependencyParse[i][2].split('{')[1].split('}')[0].split(' ')[2]) == nextIndex:
+            # if child index of the word i == next index
                    pos = i
                    break
         for i in range(pos, len(dependencyParse)):

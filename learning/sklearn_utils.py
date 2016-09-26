@@ -1,23 +1,47 @@
-'''
-sklearn_utils -- Helper functions to deal with data in the formats sklearn uses.
-Utilities to read from text files to numpy arrays used by sklearn.
- 
-@author:     Jose' de Souza
-        
-@copyright:  2012. All rights reserved.
-        
-@license:    Apache License 2.0
-
-@contact:    jose.camargo.souza@gmail.com
-@deffield    updated: Updated
-'''
 import logging as log
-import numpy as np
 import os
+import numpy as np
 
-from learning.features_file_utils import read_labels_file, read_features_file, \
-    read_reference_file
 from sklearn import preprocessing
+from utils.file_utils import read_labels_file, read_features_file, read_reference_file
+from sklearn.externals import joblib
+from learning import learn_model
+
+
+def predict(cfg, model_path, probabilities=True):
+    x_train = read_features_file(cfg.get('x_train'), '\t')
+    x_test = read_features_file(cfg.get('x_test'), '\t')
+    scale = cfg.get("scale", True)
+
+    if scale:
+        x_train, x_test = scale_datasets(x_train, x_test)
+
+    estimator = joblib.load(model_path)
+    if probabilities:
+        return [x[0] for x in estimator.predict_proba(x_test)]
+    else:
+        return estimator.predict(x_test)
+
+
+def train_model(cfg, model_path):
+
+    x_train = read_features_file(cfg.get('x_train'), '\t')
+    y_train = read_reference_file(cfg.get('y_train'), '\t')
+    x_test = read_features_file(cfg.get('x_test'), '\t')
+    scale = cfg.get("scale", True)
+
+    if scale:
+        x_train, x_test = scale_datasets(x_train, x_test)
+
+    estimator, scorers = learn_model.set_learning_method(cfg, x_train, y_train)
+    estimator.fit(x_train, y_train)
+    joblib.dump(estimator, model_path)
+
+
+def get_confidence_scores(model_path, features_path):
+    x_test = read_features_file(features_path, '\t')
+    estimator = joblib.load(model_path)
+    return estimator.decision_function(x_test)
 
 
 def assert_number(generic_list):

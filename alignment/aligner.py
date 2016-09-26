@@ -1041,13 +1041,13 @@ class Aligner(object):
         return contextInfo
 
     def align_sentence(self, sentence1, sentence2):
-        sentence1ParseResult = parseText(sentence1)
-        sentence2ParseResult = parseText(sentence2)
+        sentence1ParseResult = parse_text(sentence1)
+        sentence2ParseResult = parse_text(sentence2)
 
         sentence1LemmasAndPosTags = prepareSentence(sentence1)
         sentence2LemmasAndPosTags = prepareSentence(sentence2)
 
-        myWordAlignments = sorted(self.alignWords(sentence1LemmasAndPosTags, sentence2LemmasAndPosTags, sentence1ParseResult, sentence2ParseResult), key = itemgetter(0))
+        myWordAlignments = sorted(self.alignWords(sentence1LemmasAndPosTags, sentence2LemmasAndPosTags, sentence1ParseResult, sentence2ParseResult), key=itemgetter(0))
         myWordAlignmentTokens = [[sentence1LemmasAndPosTags[item[0]-1][2], sentence2LemmasAndPosTags[item[1]-1][2]] for item in myWordAlignments]
         contextInfo = []
 

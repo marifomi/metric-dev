@@ -1,34 +1,37 @@
-__author__ = 'MarinaFomicheva'
+import numpy as np
+
+from utils.file_utils import write_feature_file, write_reference_file
 
 
-class LearnToRank(object):
+def learn_to_rank(feature_values, human_comparisons, path_x, path_y):
 
-    @staticmethod
-    def training_set(work_dir, data, features, ranks, name):
+    xs = []
+    ys = []
 
-        with open(work_dir + '/' + 'x_' + name + '.tsv', 'w') as x_file:
-            with open(work_dir + '/' + 'y_' + name + '.tsv', 'w') as y_file:
+    for dataset, lp in sorted(human_comparisons.keys()):
+        for comparison in human_comparisons[dataset, lp]:
 
-                for dataset_name, lang_pair in sorted(ranks.keys()):
-                    for human_comparison in ranks[dataset_name, lang_pair]:
+            if comparison.sign == '=':
+                continue
 
-                        if human_comparison.sign == '=':
-                            continue
+            idx_winner, idx_loser = find_winner_loser_index(comparison)
+            xs.append(make_instance(feature_values[idx_winner], feature_values[idx_loser]))
+            xs.append(make_instance(feature_values[idx_loser], feature_values[idx_winner]))
+            ys.append(1)
+            ys.append(0)
 
-                        seg_id = human_comparison.phrase
-                        winner, loser = human_comparison.winner_loser()
-                        idx_winner = data.get_sentence_idx(dataset_name, lang_pair, seg_id, winner)
-                        idx_loser = data.get_sentence_idx(dataset_name, lang_pair, seg_id, loser)
+    write_feature_file(path_x, xs)
+    write_reference_file(path_y, ys)
 
-                        positive_instance, negative_instance = self.get_instance(feature_values[idx_winner],
-                                                                         feature_values[idx_loser])
 
-                        f_features.write('\t'.join([str(x) for x in positive_instance]) + '\n')
-                        f_features.write('\t'.join([str(x) for x in negative_instance]) + '\n')
+def make_instance(feature_values1, feature_values2):
+    return np.subtract(feature_values1, feature_values2)
 
-                        f_objective.write('1' + '\n')
-                        f_objective.write('0' + '\n')
 
-                f_features.close()
-                f_objective.close()
+def find_winner_loser_index(comparison):
+
+    if comparison.sign == '<':
+        return comparison.idx_phrase_sys1, comparison.idx_phrase_sys2
+    else:
+        return comparison.idx_phrase_sys2, comparison.idx_phrase_sys1
 

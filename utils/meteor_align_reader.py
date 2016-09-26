@@ -93,7 +93,6 @@ class MeteorAlignReader(object):
         for val in result:
             modules.append(module)
 
-
         return [result, modules]
 
 def main():
