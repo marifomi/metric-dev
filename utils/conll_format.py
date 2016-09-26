@@ -7,8 +7,6 @@ __author__ = 'marina'
 
 class CONNL(object):
 
-    pass
-
     @staticmethod
     def load(path_input):
         sentences = []
