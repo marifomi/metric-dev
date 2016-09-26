@@ -1,8 +1,15 @@
 import codecs
+import sys
 
 from utils.parsed_sentences_loader import ParsedSentencesLoader
 from utils.stanford_format import StanfordParseLoader
+from utils.conll_format import CONNL
 
+parsed = CONNL.load('/home/marina/workspace/data/TRJuly/txtfile.output.tok.parse')
+print(str(len(parsed)))
+
+
+sys.exit()
 with codecs.open('data_test/test.parse', 'r', 'utf8') as f:
     text = f.read()
 
