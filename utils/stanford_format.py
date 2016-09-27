@@ -53,7 +53,7 @@ class StanfordParseLoader(object):
                         words[w].collapsed = True
                         words[w].dep = complete[i].dep
                         words[w].head = head_word.index
-                        words[w].child = child_word.index
+                        words[w].set_children_nodes([child_word.index])
                 except:
                     break
             if not words[w].collapsed: # head of punctuation marks - previous word
