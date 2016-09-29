@@ -4,6 +4,14 @@ from configparser import ConfigParser
 from json import loads
 
 
+class ContextDifference(object):
+
+    left_context = []
+    right_context = []
+    left_difference = []
+    right_difference = []
+
+
 class ContextEvidence(object):
 
     config = ConfigParser()
@@ -44,10 +52,12 @@ class ContextEvidence(object):
 
     def equivalent_context(self, right_target_word, left_context_words, right_context_words, relation, opposite, alignments):
 
+        """ Alignments: list of tuples (left idx, right idx) idx starts with 1"""
+
         equivalent_context_words = {}
         for left_context_word in left_context_words:
             for right_context_word in right_context_words:
-                if (left_context_word.index, right_context_word.index) not in alignments[0] + [(0, 0)]: # root word indexes
+                if (left_context_word.index, right_context_word.index) not in alignments + [(0, 0)]: # root word indexes
                     continue
                 if left_context_word.dep == right_context_word.dep:
                     equivalent_context_words[left_context_word.index] = right_context_word.index
@@ -68,13 +78,14 @@ class ContextEvidence(object):
 
         left_head = left_parse[left_word.head]
         right_head = right_parse[right_word.head]
-        left_children = [left_parse[x] for x in left_word.find_children_nodes(left_parse)]
-        right_children = [right_parse[x] for x in right_word.find_children_nodes(right_parse)]
+        left_children = [left_parse[x - 1] for x in left_word.find_children_nodes(left_parse)]
+        right_children = [right_parse[x - 1] for x in right_word.find_children_nodes(right_parse)]
 
-        equivalent_context = self.equivalent_context(right_word, [left_head], [right_head], 'parent', False, alignments)
-        equivalent_context += self.equivalent_context(right_word, left_children, right_children, 'child', False, alignments)
-        equivalent_context += self.equivalent_context(right_word, [left_head], right_children, 'child_parent', True, alignments)
-        equivalent_context += self.equivalent_context(right_word, [left_head], right_children, 'parent_child', True, alignments)
+        equivalent_context = {}
+        equivalent_context.update(self.equivalent_context(right_word, [left_head], [right_head], 'parent', False, alignments))
+        equivalent_context.update(self.equivalent_context(right_word, left_children, right_children, 'child', False, alignments))
+        equivalent_context.update(self.equivalent_context(right_word, [left_head], right_children, 'child_parent', True, alignments))
+        equivalent_context.update(self.equivalent_context(right_word, [left_head], right_children, 'parent_child', True, alignments))
 
         different_left_dependencies = []
         different_right_dependencies = []

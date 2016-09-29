@@ -12,7 +12,7 @@ class Word(object):
 
     ner = None
 
-    dep = None
+    dep = ''
 
     head = -1
 
@@ -21,12 +21,9 @@ class Word(object):
     _children = []
     _category = None
 
-    def __init__(self, index, form, lemma, pos, dep):
+    def __init__(self, index, form):
         self.index = index
         self.form = form
-        self.lemma = lemma
-        self.pos = pos
-        self.dep = dep
 
     def find_children_nodes(self, sentence_parse):
         if len(self._children) == 0:

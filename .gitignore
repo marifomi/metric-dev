@@ -16,3 +16,4 @@ data_test/
 config/quest/*
 test.cfg
 data_test
+test_context.py

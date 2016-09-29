@@ -188,7 +188,10 @@ def prepareSentence2(sentence):
     words = []
 
     for rawWord in sentenceLemmasAndPosTags:
-        words.append(Word(rawWord[1] - 1, rawWord[2], rawWord[3], rawWord[4], ''))
+        word = Word(rawWord[1] - 1, rawWord[2])
+        word.lemma = rawWord[3]
+        word.pos = rawWord[4]
+        words.append(word)
 
     return words
 

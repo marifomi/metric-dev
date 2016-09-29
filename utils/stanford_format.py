@@ -7,10 +7,25 @@ from utils.word import Word
 class StanfordParseLoader(object):
 
     @staticmethod
+    def parsed_sentences(input_path):
+        with codecs.open(input_path, 'r', 'utf8') as f:
+            text = f.read()
+
+        loader = ParsedSentencesLoader()
+        sentences = loader.load(text)
+        parsed = []
+        for sentence in sentences['sentences']:
+            parsed.append(StanfordParseLoader._process_parse_result(sentence))
+        return parsed
+
+
+    @staticmethod
     def _get_words(raw_sentence):
         words = []
         for i, item in enumerate(raw_sentence['words']):
-            word = Word(i + 1, item[0], item[1]['Lemma'], item[1]['PartOfSpeech'], '')
+            word = Word(i + 1, item[0])
+            word.lemma = item[1]['Lemma']
+            word.pos = item[1]['PartOfSpeech']
             word.ner = item[1]['NamedEntityTag']
             words.append(word)
         return words
@@ -71,7 +86,7 @@ class StanfordParseLoader(object):
         return words
 
     @staticmethod
-    def process_parse_result(raw_sentence):
+    def _process_parse_result(raw_sentence):
         words = StanfordParseLoader._get_words(raw_sentence)
         dependencies = StanfordParseLoader._get_dependencies(raw_sentence)
         words = StanfordParseLoader._words_with_dependenies(words, dependencies)

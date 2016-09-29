@@ -41,11 +41,16 @@ class Aligner(object):
         for ktem in sourceNodes:
             for ltem in targetNodes:
 
-                word1 = Word(ktem[0], ktem[1], sourceLemmas[ktem[0]-1], sourcePosTags[ktem[0]-1], ktem[2])
-                word2 = Word(ltem[0], ltem[1], targetLemmas[ltem[0]-1], targetPosTags[ltem[0]-1], ltem[2])
+                word1 = Word(ktem[0], ktem[1])
+                word1.lemma = sourceLemmas[ktem[0]-1]
+                word1.pos = sourcePosTags[ktem[0]-1]
+                word1.dep = ktem[2]
+                word2 = Word(ltem[0], ltem[1])
+                word2.lemma = targetLemmas[ltem[0]-1]
+                word2.pos = targetPosTags[ltem[0]-1]
+                word2.dep = ltem[2]
 
                 if ([ktem[0], ltem[0]] in existingAlignments or word_relatedness_alignment(word1, word2, self.config) >= self.config.alignment_similarity_threshold) and (
-                    #(ktem[2] == ltem[2])):
                     (ktem[2] == ltem[2]) or
                         ((pos != '' and relationDirection != 'child_parent') and (
                             self.is_similar(ktem[2], ltem[2], pos, 'noun', opposite, relationDirection) or
@@ -77,11 +82,16 @@ class Aligner(object):
         for ktem in sourceNodes:
             for ltem in targetNodes:
 
-                word1 = Word(ktem[0], ktem[1], sourceLemmas[ktem[0]-1], sourcePosTags[ktem[0]-1], ktem[2])
-                word2 = Word(ltem[0], ltem[1], targetLemmas[ltem[0]-1], targetPosTags[ltem[0]-1], ltem[2])
+                word1 = Word(ktem[0], ktem[1])
+                word1.lemma = sourceLemmas[ktem[0]-1]
+                word1.pos = sourcePosTags[ktem[0]-1]
+                word1.dep = ktem[2]
+                word2 = Word(ltem[0], ltem[1])
+                word2.lemma = targetLemmas[ltem[0]-1]
+                word2.pos = targetPosTags[ltem[0]-1]
+                word2.dep = ltem[2]
 
                 if ([ktem[0], ltem[0]] in existingAlignments or (ktem[0] == 0 and ltem[0] == 0)) and (
-                    #(ktem[2] == ltem[2])):
                     (ktem[2] == ltem[2]) or
                         ((pos != '' and relationDirection != 'child_parent') and (
                             self.is_similar(ktem[2], ltem[2], pos, 'noun', opposite, relationDirection) or
@@ -272,8 +282,12 @@ class Aligner(object):
                 if j in targetWordIndicesAlreadyAligned or (targetPosTags[j-1][0].lower() != posCode and targetPosTags[j-1].lower() != 'prp'):
                     continue
 
-                word1 = Word(i, sourceWords[i-1], sourceLemmas[i-1], sourcePosTags[i-1], '')
-                word2 = Word(j, targetWords[j-1], targetLemmas[j-1], targetPosTags[j-1], '')
+                word1 = Word(i, sourceWords[i-1])
+                word1.lemma = sourceLemmas[i-1]
+                word1.pos = sourcePosTags[i-1]
+                word2 = Word(j, targetWords[j-1])
+                word2.lemma = targetLemmas[j-1]
+                word2.pos = targetPosTags[j-1]
 
                 if word_relatedness_alignment(word1, word2, self.config) < self.config.alignment_similarity_threshold:
                     continue
@@ -723,8 +737,12 @@ class Aligner(object):
                 if j in targetWordIndicesAlreadyAligned or targetLemmas[j-1].lower() in cobalt_stopwords + punctuations + ['\'s', '\'d', '\'ll']:
                     continue
 
-                word1 = Word(i, sourceWords[i-1], sourceLemmas[i-1], sourcePosTags[i-1], '')
-                word2 = Word(j, targetWords[j-1], targetLemmas[j-1], targetPosTags[j-1], '')
+                word1 = Word(i, sourceWords[i-1])
+                word1.lemma = sourceLemmas[i-1]
+                word1.pos = sourcePosTags[i-1]
+                word2 = Word(j, targetWords[j-1])
+                word2.lemma = targetLemmas[j - 1]
+                word2.pos = targetPosTags[j - 1]
 
                 wordSimilarities[(i, j)] = word_relatedness_alignment(word1, word2, self.config)
                 sourceWordIndicesBeingConsidered.append(i)
@@ -738,8 +756,12 @@ class Aligner(object):
 
                 for k in range(len(sourceNeighborhood[0])):
                     for l in range(len(targetNeighborhood[0])):
-                        neighbor1 = Word(sourceNeighborhood[0][k], sourceNeighborhood[1][k], sourceLemmas[sourceNeighborhood[0][k]-1], sourcePosTags[sourceNeighborhood[0][k]-1], '')
-                        neighbor2 = Word(targetNeighborhood[0][l], targetNeighborhood[1][l], targetLemmas[targetNeighborhood[0][l]-1], targetPosTags[targetNeighborhood[0][l]-1], '')
+                        neighbor1 = Word(sourceNeighborhood[0][k], sourceNeighborhood[1][k])
+                        neighbor1.lemma = sourceLemmas[sourceNeighborhood[0][k]-1]
+                        neighbor1.pos = sourcePosTags[sourceNeighborhood[0][k]-1]
+                        neighbor2 = Word(targetNeighborhood[0][l], targetNeighborhood[1][l])
+                        neighbor2.lemma = targetLemmas[targetNeighborhood[0][l]-1]
+                        neighbor2.pos = targetPosTags[targetNeighborhood[0][l]-1]
                         if (sourceNeighborhood[1][k] not in cobalt_stopwords + punctuations) and ((sourceNeighborhood[0][k], targetNeighborhood[0][l]) in alignments or (word_relatedness_alignment(neighbor1, neighbor2, self.config) >= self.config.alignment_similarity_threshold)):
                             evidence += word_relatedness_alignment(neighbor1, neighbor2, self.config)
                 textualNeighborhoodSimilarities[(i, j)] = evidence
@@ -829,8 +851,12 @@ class Aligner(object):
                 if targetLemmas[j-1].lower() not in cobalt_stopwords or j in targetWordIndicesAlreadyAligned:
                     continue
 
-                word1 = Word(i, sourceWords[i-1], sourceLemmas[i-1], sourcePosTags[i-1], '')
-                word2 = Word(j, targetWords[j-1], targetLemmas[j-1], targetPosTags[j-1], '')
+                word1 = Word(i, sourceWords[i-1])
+                word1.lemma = sourceLemmas[i - 1]
+                word1.pos = sourcePosTags[i-1]
+                word2 = Word(j, targetWords[j-1])
+                word2.lemma = targetLemmas[j-1]
+                word2.pos = targetPosTags[j-1]
 
                 if (sourceLemmas[i-1] != targetLemmas[j-1]) and (word_relatedness_alignment(word1, word2, self.config) < self.config.alignment_similarity_threshold):
                     continue
@@ -903,8 +929,12 @@ class Aligner(object):
                 if (targetLemmas[j-1].lower() not in cobalt_stopwords + punctuations + ['\'s', '\'d', '\'ll']) or j in targetWordIndicesAlreadyAligned:
                     continue
 
-                word1 = Word(i, sourceWords[i-1], sourceLemmas[i-1], sourcePosTags[i-1], '')
-                word2 = Word(j, targetWords[j-1], targetLemmas[j-1], targetPosTags[j-1], '')
+                word1 = Word(i, sourceWords[i-1])
+                word1.lemma = sourceLemmas[i-1]
+                word1.pos = sourcePosTags[i-1]
+                word2 = Word(j, targetWords[j-1])
+                word2.lemma = targetLemmas[j-1]
+                word2.pos = targetPosTags[j-1]
 
                 if word_relatedness_alignment(word1, word2, self.config) < self.config.alignment_similarity_threshold:
                     continue
