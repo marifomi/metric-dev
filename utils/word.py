@@ -46,3 +46,6 @@ class Word(object):
                 self._category = ''
         return self._category
 
+    def is_sentence_ending_punctuation(self):
+        return self.form in ['.', '?', '!']
+

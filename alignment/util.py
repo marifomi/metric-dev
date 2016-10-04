@@ -1,4 +1,5 @@
 from lex_resources.config import *
+from utils.word import Word
 
 
 def is_sublist(A, B):
@@ -27,9 +28,9 @@ def find_all_common_contiguous_sublists(A, B, turn_to_lower_cases=True):
     a = []
     b = []
     for item in A:
-        a.append(item)
+        a.append(item.form if isinstance(item, Word) else item)
     for item in B:
-        b.append(item)
+        b.append(item.form if isinstance(item, Word) else item)
 
     if turn_to_lower_cases:
         for i in range(len(a)):
@@ -37,8 +38,7 @@ def find_all_common_contiguous_sublists(A, B, turn_to_lower_cases=True):
         for i in range(len(b)):
             b[i] = b[i].lower()
             
-
-    commonContiguousSublists = []
+    sublists = []
 
     swapped = False
     if len(a) > len(b):
@@ -47,31 +47,31 @@ def find_all_common_contiguous_sublists(A, B, turn_to_lower_cases=True):
         b = temp
         swapped = True
 
-    maxSize = len(a)
-    for size in range(maxSize, 0, -1):
-        startingIndicesForA = [item for item in range(0, len(a)-size+1)]
-        startingIndicesForB = [item for item in range(0, len(b)-size+1)]
-        for i in startingIndicesForA:
-            for j in startingIndicesForB:
+    max_size = len(a)
+    for size in range(max_size, 0, -1):
+        starting_a = [item for item in range(0, len(a)-size+1)]
+        starting_b = [item for item in range(0, len(b)-size+1)]
+        for i in starting_a:
+            for j in starting_b:
                 if a[i:i+size] == b[j:j+size]:
                     # check if a contiguous superset has already been inserted; don't insert this one in that case
-                    alreadyInserted = False
-                    currentAIndices = [item for item in range(i,i+size)]
-                    currentBIndices = [item for item in range(j,j+size)]
-                    for item in commonContiguousSublists:
-                        if is_sublist(currentAIndices, item[0]) and is_sublist(currentBIndices, item[1]):
-                            alreadyInserted = True
+                    already_inserted = False
+                    current_a = [item for item in range(i,i+size)]
+                    current_b = [item for item in range(j,j+size)]
+                    for item in sublists:
+                        if is_sublist(current_a, item[0]) and is_sublist(current_b, item[1]):
+                            already_inserted = True
                             break
-                    if not alreadyInserted:
-                        commonContiguousSublists.append([currentAIndices, currentBIndices])
+                    if not already_inserted:
+                        sublists.append([current_a, current_b])
 
     if swapped:
-        for item in commonContiguousSublists:
+        for item in sublists:
             temp = item[0]
             item[0] = item[1]
             item[1] = temp
 
-    return commonContiguousSublists
+    return sublists
 
 
 def find_textual_neighborhood(sentenceDetails, wordIndex, leftSpan, rightSpan):
