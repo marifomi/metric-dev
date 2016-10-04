@@ -21,7 +21,10 @@ class CONNL(object):
                 continue
 
             parts = line.strip().split('\t')
-            word = Word(parts[0], parts[1], parts[2], parts[4], parts[7]) # punctuation head is root
+            word = Word(parts[0], parts[1]) # punctuation head is root
+            word.lemma = parts[2]
+            word.pos = parts[4]
+            word.dep = parts[7]
             word.head = parts[6]
             sentence.append(word)
 

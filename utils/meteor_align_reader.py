@@ -2,10 +2,14 @@ import codecs
 import re
 import os
 
+from utils.aligned_word_pair import AlignedWordPair
+from utils.word import Word
+
 
 class MeteorAlignReader(object):
 
-    def read(self, alignment_file):
+    @staticmethod
+    def read(alignment_file):
 
         alignments = []
         lines = codecs.open(alignment_file, 'r', 'utf-8').readlines()
@@ -20,7 +24,7 @@ class MeteorAlignReader(object):
                 phrase = int(re.sub(r'^Alignment\t([0-9]+).+$', r'\1', line.strip()))
 
                 if phrase > 1:
-                    alignments.append([self.add_one(indexes), words, matchers])
+                    alignments.append([MeteorAlignReader._add_one(indexes), words, matchers])
 
                 indexes = []
                 words = []
@@ -34,12 +38,12 @@ class MeteorAlignReader(object):
                     wpair = [words_test[pair[0]], words_ref[pair[1]]]
                     words.append(wpair)
 
-        alignments.append([self.add_one(indexes), words, matchers])
+        alignments.append([MeteorAlignReader._add_one(indexes), words, matchers])
 
         return alignments
 
     @staticmethod
-    def add_one(indexes):
+    def _add_one(indexes):
 
         result = []
         for pair in indexes:
@@ -95,12 +99,18 @@ class MeteorAlignReader(object):
 
         return [result, modules]
 
-def main():
+    @staticmethod
+    def alignments(meteor_alignments):
+        result = []
+        for meteor_alignment in meteor_alignments:
+            alignment = []
+            for i in range(len(meteor_alignment[0])):
+                indexes = meteor_alignment[0][i]
+                words = meteor_alignment[1][i]
+                similarity = meteor_alignment[2][i]
+                word_pair = AlignedWordPair(Word(indexes[0], words[0]), Word(indexes[1], words[1]))
+                word_pair.similarity = similarity
+                alignment.append(word_pair)
+            result.append(alignment)
 
-    my_file = os.getcwd() + '/' + 'test' + '/' + 'meteor.align-align.out'
-    reader = MeteorAlignReader()
-    alignments = reader.read(my_file)
-    print
-
-if __name__ == '__main__':
-    main()
+        return result
