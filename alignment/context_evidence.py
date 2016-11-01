@@ -76,23 +76,24 @@ class ContextEvidence(object):
 
     def context_differences(self, left_word, right_word, left_parse, right_parse, alignments):
 
-        left_head = left_parse[left_word.head]
-        right_head = right_parse[right_word.head]
+        left_parents = [] if left_word.head is None else [left_word.head]
+        right_parents = [] if right_word.head is None else [right_word.head]
+
         left_children = [left_parse[x - 1] for x in left_word.find_children_nodes(left_parse)]
         right_children = [right_parse[x - 1] for x in right_word.find_children_nodes(right_parse)]
 
         equivalent_context = {}
-        equivalent_context.update(self.equivalent_context(right_word, [left_head], [right_head], 'parent', False, alignments))
+        equivalent_context.update(self.equivalent_context(right_word, left_parents, right_parents, 'parent', False, alignments))
         equivalent_context.update(self.equivalent_context(right_word, left_children, right_children, 'child', False, alignments))
-        equivalent_context.update(self.equivalent_context(right_word, [left_head], right_children, 'child_parent', True, alignments))
-        equivalent_context.update(self.equivalent_context(right_word, [left_head], right_children, 'parent_child', True, alignments))
+        equivalent_context.update(self.equivalent_context(right_word, left_parents, right_children, 'child_parent', True, alignments))
+        equivalent_context.update(self.equivalent_context(right_word, left_parents, right_children, 'parent_child', True, alignments))
 
         different_left_dependencies = []
         different_right_dependencies = []
-        for word in [left_head] + left_children:
+        for word in left_parents + left_children:
             if word.index not in equivalent_context.keys():
                 different_left_dependencies.append(word.dep)
-        for word in [right_head] + right_children:
+        for word in right_parents + right_children:
             if word.index not in equivalent_context.values():
                 different_right_dependencies.append(word.dep)
 

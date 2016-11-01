@@ -1,7 +1,8 @@
 from alignment.aligner_config import AlignerConfig
 from utils import load_resources
 from alignment.util import *
-
+from utils.word_sim import *
+from utils.core_nlp_utils import *
 
 __author__ = 'anton'
 
@@ -9,9 +10,9 @@ __author__ = 'anton'
 class AlignerStanford(object):
 
     config = None
-    alignments = []
-    source_indices_aligned = []
-    target_indices_aligned = []
+    alignments = set()
+    source_indices_aligned = set()
+    target_indices_aligned = set()
 
     def __init__(self, language):
         self.config = AlignerConfig(language)
@@ -22,9 +23,9 @@ class AlignerStanford(object):
             load_resources.load_word_vectors(self.config.path_to_vectors)
 
     def _add_to_alignments(self, source_index, target_index):
-        self.alignments.append([source_index, target_index])
-        self.source_indices_aligned.append(source_index)
-        self.target_indices_aligned.append(target_index)
+        self.alignments.add((source_index, target_index))
+        self.source_indices_aligned.add(source_index)
+        self.target_indices_aligned.add(target_index)
 
     def _align_ending_punctuation(self, source, target):
         if (source[len(source) - 1].is_sentence_ending_punctuation() and target[len(target) - 1].is_sentence_ending_punctuation())\
@@ -35,11 +36,11 @@ class AlignerStanford(object):
         elif source[len(source) - 1].is_sentence_ending_punctuation() and target[len(target) - 2].is_sentence_ending_punctuation():
             self._add_to_alignments(len(source), len(target) - 1)
         elif source[len(source) - 2].is_sentence_ending_punctuation() and target[len(target) - 2].is_sentence_ending_punctuation():
-            self._add_to_alignments(len(source) -1, len(target) - 1)
+            self._add_to_alignments(len(source) - 1, len(target) - 1)
 
         return
 
-    def _align_contignuous_sublists(self, source, target):
+    def _align_contiguous_sublists(self, source, target):
         sublists = find_all_common_contiguous_sublists(source, target, True)
 
         for item in sublists:
@@ -52,18 +53,222 @@ class AlignerStanford(object):
                 for j in range(len(item[0])):
                     if item[0][j]+1 not in self.source_indices_aligned \
                             and item[1][j]+1 not in self.source_indices_aligned \
-                            and [item[0][j]+1, item[1][j]+1] not in self.alignments:
+                            and (item[0][j]+1, item[1][j]+1) not in self.alignments:
                         self._add_to_alignments(item[0][j]+1, item[1][j]+1)
 
-    def align(self, source, target):
+    def _align_hyphenated_word_groups(self, source, target):
+        for word in source:
+            if word.index in self.source_indices_aligned:
+                continue
+            if '-' in word.form and word.form != '-':
+                tokens = word.form.split('-')
+                sublists = find_all_common_contiguous_sublists(tokens, target)
+                for item in sublists:
+                    if len(item[1]) > 1:
+                        for jtem in item[1]:
+                            if (word.index, jtem+1) not in self.alignments:
+                                self._add_to_alignments(word.index, jtem+1)
 
-        self.alignments = []
-        self.source_indices_aligned = []
-        self.target_indices_aligned = []
+        for word in target:
+            if word.index in self.target_indices_aligned:
+                continue
+            if '-' in word.form and word.form != '-':
+                tokens = word.form.split('-')
+                sublists = find_all_common_contiguous_sublists(target, tokens)
+                for item in sublists:
+                    if len(item[0]) > 1:
+                        for jtem in item[0]:
+                            if [jtem+1, word.index] not in self.alignments:
+                                self._add_to_alignments(jtem+1, word.index)
+
+    def _align_named_entities(self, source, target):
+        source_ne = []
+        target_ne = []
+
+        for item in source:
+            if item.is_named_entity():
+                source_ne.append(item)
+
+        for item in target:
+            if item.is_named_entity():
+                target_ne.append(item)
+
+        for item in source_ne:
+            for jtem in target_ne:
+                if item.form == jtem.form or is_acronym(item.form, jtem.form):
+                    self._add_to_alignments(item.index, jtem.index)
+
+        return
+
+    def _is_similar(self, dep1, dep2, pos1, pos2, is_opposite, relation):
+        result = False
+        group = self.config.get_similar_group(pos1, pos2, is_opposite, relation)
+
+        if is_opposite:
+            for subgroup in group:
+                if dep1 in subgroup[0] and dep2 in subgroup[1]:
+                    result = True
+        else:
+            for subgroup in group:
+                if dep1 in subgroup and dep2 in subgroup:
+                    result = True
+
+        return result
+
+    def _compare_nodes(self, source, target, pos, opposite, relation_direction):
+        # search for nodes in common or equivalent function
+        result = {}
+
+        for word1 in source:
+            for word2 in target:
+
+                if ((word1.index, word2.index) in self.alignments or word_relatedness_alignment(word1, word2, self.config) >= self.config.alignment_similarity_threshold) and (
+                    (word1.dep == word2.dep) or
+                        ((pos != '' and relation_direction != 'child_parent') and (
+                            self._is_similar(word1.dep, word2.dep, pos, 'noun', opposite, relation_direction) or
+                            self._is_similar(word1.dep, word2.dep, pos, 'verb', opposite, relation_direction) or
+                            self._is_similar(word1.dep, word2.dep, pos, 'adjective', opposite, relation_direction) or
+                            self._is_similar(word1.dep, word2.dep, pos, 'adverb', opposite, relation_direction))) or
+                        ((pos != '' and relation_direction == 'child_parent') and (
+                            self._is_similar(word1.dep, word2.dep, pos, 'noun', opposite, relation_direction) or
+                            self._is_similar(word1.dep, word2.dep, pos, 'verb', opposite, relation_direction) or
+                            self._is_similar(word1.dep, word2.dep, pos, 'adjective', opposite, relation_direction) or
+                            self._is_similar(word1.dep, word2.dep, pos, 'adverb', opposite, relation_direction)))):
+
+                    result[(word1.index, word2.index)] = word_relatedness_alignment(word1, word2, self.config)
+
+        return result
+
+    def _calculate_absolute_score(self, word_similarities):
+
+        max_left = {}
+        max_right = {}
+
+        for similarity in word_similarities.keys():
+            if not similarity[0] in max_left or word_similarities[max_left[similarity[0]]] < word_similarities[similarity]:
+                max_left[similarity[0]] = similarity
+
+            if not similarity[1] in max_right or word_similarities[max_right[similarity[1]]] < word_similarities[similarity]:
+                max_right[similarity[1]] = similarity
+
+        left_right = dict()
+        left_right.update(max_left)
+        left_right.update(max_right)
+
+        max_relations = set(left_right.values())
+
+        score = 0
+        source_nodes_considered = []
+        target_nodes_considered = []
+
+        for rel in max_relations:
+
+            if rel[0] not in source_nodes_considered and rel[1] not in target_nodes_considered:
+                score += word_similarities[rel]
+                source_nodes_considered.append(rel[0])
+                target_nodes_considered.append(rel[1])
+
+        return score
+
+    def _find_dependency_similarity(self, pos, source_word, target_word):
+        comparison = dict()
+        comparison.update(self._compare_nodes(source_word.parents, target_word.parents, pos, False, 'parent'))
+        comparison.update(self._compare_nodes(source_word.children, target_word.children, pos, False, 'child'))
+        comparison.update(self._compare_nodes(source_word.parents, target_word.children, pos, True, 'parent_child'))
+        comparison.update(self._compare_nodes(source_word.parents, target_word.children, pos, True, 'child_parent'))
+
+        alignments = []
+        word_similarities = {}
+
+        for alignment in comparison.keys():
+            alignments.append([alignment[0], alignment[1]])
+            word_similarities[alignment] = comparison[alignment]
+
+        return [self._calculate_absolute_score(word_similarities), alignments]
+
+    def _align_on_dependency_match(self, pos, pos_code, source, target):
+        pos_count_in_source = 0
+        evidence_counts_matrix = {}
+        relative_alignments_matrix = {}
+        word_similarities = {}
+
+        # construct the two matrices in the following loop
+        for item in source:
+            i = item.index
+
+            if i in self.source_indices_aligned or (not item.pos.startswith(pos_code) and item.pos != 'prp'):
+                continue
+
+            pos_count_in_source += 1
+
+            for jtem in target:
+                j = jtem.index
+
+                if j in self.target_indices_aligned or (not item.pos.startswith(pos_code) and jtem.pos != 'prp'):
+                    continue
+
+                if word_relatedness_alignment(item, jtem, self.config) < self.config.alignment_similarity_threshold:
+                    continue
+
+                word_similarities[(i, j)] = word_relatedness_alignment(item, jtem, self.config)
+
+                dependency_similarity = self._find_dependency_similarity(pos, item, jtem)
+
+                if word_similarities[(i, j)] == self.config.alignment_similarity_threshold:
+                    if word_similarities[(i, j)] + dependency_similarity[0] <= 1.0:
+                        continue
+
+                if dependency_similarity[0] >= self.config.alignment_similarity_threshold:
+                    evidence_counts_matrix[(i, j)] = dependency_similarity[0]
+                    relative_alignments_matrix[(i, j)] = dependency_similarity[1]
+                else:
+                    evidence_counts_matrix[(i, j)] = 0
+
+        # now use the collected stats to align_sentence
+        for n in range(pos_count_in_source):
+
+            max_overall_value_for_pass = 0
+            index_pair_with_strongest_tie_for_pass = [-1, -1]
+
+            for item in source:
+                i = item.index
+
+                if i in self.source_indices_aligned or not item.pos.startswith(pos_code) or item.lemma in cobalt_stopwords:
+                    continue
+
+                for jtem in target:
+                    j = jtem.index
+                    if j in self.target_indices_aligned or jtem.pos.startswith(pos_code) or jtem.lemma in cobalt_stopwords:
+                        continue
+
+                    if (i, j) in evidence_counts_matrix and self.config.theta * word_similarities[(i, j)] + (1 - self.config.theta) * evidence_counts_matrix[(i, j)] > max_overall_value_for_pass:
+                        max_overall_value_for_pass = self.config.theta * word_similarities[(i, j)] + (1 - self.config.theta) * evidence_counts_matrix[(i, j)]
+                        index_pair_with_strongest_tie_for_pass = [i, j]
+
+            if max_overall_value_for_pass > 0:
+                self._add_to_alignments(index_pair_with_strongest_tie_for_pass[0], index_pair_with_strongest_tie_for_pass[1])
+            else:
+                break
+
+        return
+
+    def align(self, source, target):
+        self.alignments = set()
+        self.source_indices_aligned = set()
+        self.target_indices_aligned = set()
 
         self._align_ending_punctuation(source, target)
 
-        self._align_contignuous_sublists(source, target)
+        self._align_contiguous_sublists(source, target)
+
+        self._align_hyphenated_word_groups(source, target)
+
+        self._align_named_entities(source, target)
+
+        self._align_on_dependency_match('verb', 'v', source, target)
+        self._align_on_dependency_match('noun', 'n', source, target)
+        self._align_on_dependency_match('adjective', 'j', source, target)
+        self._align_on_dependency_match('adverb', 'r', source, target)
 
         return self.alignments
 

@@ -25,6 +25,6 @@ with codecs.open('data_test/test.parse.out', 'w', 'utf8') as o:
     for i, sentence in enumerate(parsed):
         o.write('Sentence: {}\n'.format(i + 1))
         for word in sentence:
-            o.write('{}\t{}\t{}\t{}\n'.format(word.index, word.form, word.dep, word.head))
+            o.write('{}\t{}\t{}\t{}\n'.format(word.index, word.form, word.dep, -1 if word.head is None else word.head.index))
         o.write('\n')
 o.close()

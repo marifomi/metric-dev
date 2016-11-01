@@ -98,16 +98,16 @@ def find_textual_neighborhood(sentenceDetails, wordIndex, leftSpan, rightSpan):
     return [wordIndices, lemmas, wordIndex-startWordIndex, endWordIndex-wordIndex]
 
 
-def is_acronym(word, namedEntity):
-    # returns whether 'word' is an acronym of 'namedEntity', which is a list of the component words
+def is_acronym(word, named_entity):
+    # returns whether 'word' is an acronym of 'named_entity', which is a list of the component words
 
-    canonicalWord = word.replace('.', '')
-    if not canonicalWord.isupper() or len(canonicalWord) != len(namedEntity) or canonicalWord.lower() in ['a', 'i']:
+    word = word.replace('.', '')
+    if not word.isupper() or len(word) != len(named_entity):
         return False
 
     acronym = True    
-    for i in range(len(canonicalWord)):
-        if canonicalWord[i] != namedEntity[i][0]:
+    for i in range(len(word)):
+        if word[i] != named_entity[i][0]:
             acronym = False
             break
 
