@@ -252,6 +252,100 @@ class AlignerStanford(object):
 
         return
 
+    def _get_unaligned_content_words(self, source, target):
+        content_source = []
+        content_target = []
+
+        for word in source:
+            if word.index in self.source_indices_aligned or word.lemma in cobalt_stopwords + punctuations + ['\'s', '\'d', '\'ll']:
+                continue
+            content_source.append(word)
+
+        for word in target:
+            if word.index in self.target_indices_aligned or word.lemma in cobalt_stopwords + punctuations + ['\'s', '\'d', '\'ll']:
+                continue
+            content_target.append(word)
+
+        return content_source, content_target
+
+    def _align_words(self, unaligned_source, unaligned_target, full_source, full_target):
+        # collect evidence from textual neighborhood for aligning content words
+        word_similarities = {}
+        textual_neighborhood_similarities = {}
+
+        for source_word in unaligned_source:
+            for target_word in unaligned_target:
+
+                word_similarities[(source_word.index, target_word.index)] = word_relatedness_alignment(source_word, target_word, self.config)
+
+                # textual neighborhood similarities
+                source_neighborhood = find_textual_neighborhood_stanford(full_source, source_word.index, 3, 3)
+                target_neighborhood = find_textual_neighborhood_stanford(full_target, target_word.index, 3, 3)
+                evidence = 0
+
+                for source_neighbor in source_neighborhood:
+                    for target_neighbor in target_neighborhood:
+                        if (source_neighbor.index, target_neighbor.index) in self.alignments \
+                                or word_relatedness_alignment(source_neighbor, target_neighbor, self.config) >= self.config.alignment_similarity_threshold:
+                            evidence += word_relatedness_alignment(source_neighbor, target_neighbor, self.config)
+
+                textual_neighborhood_similarities[(source_word.index, target_word.index)] = evidence
+
+        # now align_sentence: find the best alignment in each iteration of the following loop and include in alignments if good enough
+        for item in range(len(unaligned_source)):
+            highest_weighted_similarity = 0
+            best_word_similarity = 0
+            best_source = None
+            best_target = None
+
+            for source_word in unaligned_source:
+                for target_word in unaligned_target:
+                    i = source_word.index
+                    j = target_word.index
+
+                    if (i, j) not in word_similarities:
+                        continue
+
+                    if word_similarities[(i, j)] == self.config.alignment_similarity_threshold:
+                        if word_similarities[(i, j)] + textual_neighborhood_similarities[(i, j)] <= 1.0:
+                            continue
+
+                    if self.config.theta * word_similarities[(i, j)] + (1 - self.config.theta) * textual_neighborhood_similarities[(i, j)] > highest_weighted_similarity:
+                        highest_weighted_similarity = self.config.theta * word_similarities[(i, j)] + (1 - self.config.theta) * textual_neighborhood_similarities[(i, j)]
+                        best_source = source_word
+                        best_target = target_word
+                        best_word_similarity = word_similarities[(i, j)]
+
+            if best_word_similarity >= self.config.alignment_similarity_threshold:
+                self._add_to_alignments(best_source.index, best_target.index)
+
+            if best_source is not None:
+                unaligned_source.remove(best_source)
+            if best_target is not None:
+                unaligned_target.remove(best_target)
+
+        return unaligned_source, unaligned_target
+
+    def _align_remaining_if_hyphenated(self, remaining_source, remaining_target, full_source, full_target):
+         # look if any remaining word is a part of a hyphenated word
+        for source_word in remaining_source:
+            if '-' in source_word.form and source_word.form != '-':
+                tokens = source_word.form.split('-')
+                for item in find_all_common_contiguous_sublists(tokens, full_target):
+                    if len(item[0]) == 1 and full_target[item[1][0]].lemma not in cobalt_stopwords:
+                        for jtem in item[1]:
+                            if (source_word.index, jtem+1) not in self.alignments and jtem+1 not in self.target_indices_aligned:
+                                self._add_to_alignments(source_word.index, jtem+1)
+
+        for target_word in remaining_target:
+            if '-' in target_word.form and target_word.form != '-':
+                tokens = target_word.form.split('-')
+                for item in find_all_common_contiguous_sublists(full_source, tokens):
+                    if len(item[0]) == 1 and full_source[item[0][0]].lemma not in cobalt_stopwords:
+                        for jtem in item[0]:
+                            if (jtem+1, target_word.index) not in self.alignments and i not in self.target_indices_aligned:
+                                self._add_to_alignments(jtem+1, target_word.index)
+
     def align(self, source, target):
         self.alignments = set()
         self.source_indices_aligned = set()
@@ -269,6 +363,11 @@ class AlignerStanford(object):
         self._align_on_dependency_match('noun', 'n', source, target)
         self._align_on_dependency_match('adjective', 'j', source, target)
         self._align_on_dependency_match('adverb', 'r', source, target)
+
+        content_source, content_target = self._get_unaligned_content_words(source, target)
+        remaining_source, remaining_target = self._align_words(content_source, content_target, source, target)
+        self._align_remaining_if_hyphenated(remaining_source, remaining_target, source, target)
+
 
         return self.alignments
 

@@ -98,6 +98,26 @@ def find_textual_neighborhood(sentenceDetails, wordIndex, leftSpan, rightSpan):
     return [wordIndices, lemmas, wordIndex-startWordIndex, endWordIndex-wordIndex]
 
 
+def find_textual_neighborhood_stanford(words, index, left_span, right_span):
+    # return the lemmas in the span [wordIndex-leftSpan, wordIndex+rightSpan] and the positions actually available,
+    # left and right
+
+    global punctuations
+
+    start = max(1, index - left_span)
+    end = min(len(words), index + right_span)
+
+    result_words = []
+    for item in words[start-1:index-1]:
+        if item.lemma not in cobalt_stopwords + punctuations:
+            result_words.append(item)
+    for item in words[index:end]:
+        if item.lemma not in cobalt_stopwords + punctuations:
+            result_words.append(item)
+
+    return result_words
+
+
 def is_acronym(word, named_entity):
     # returns whether 'word' is an acronym of 'named_entity', which is a list of the component words
 
