@@ -1,4 +1,4 @@
-
+from lex_resources.config import *
 
 class Word(object):
 
@@ -23,6 +23,10 @@ class Word(object):
     category = None
 
     head = None
+
+    stopword = None
+
+    punctuation = None
 
     def __init__(self, index, form):
         self.index = index
@@ -55,3 +59,19 @@ class Word(object):
     def is_named_entity(self):
         return self.ner is not None and self.ner != 'O'
 
+    def is_stopword(self):
+        if self.stopword is None:
+            global cobalt_stopwords
+            self.stopword = (self.lemma in cobalt_stopwords + ['\'s', '\'d', '\'ll'])
+
+        return self.stopword
+
+    def is_punctuation(self):
+        if self.punctuation is None:
+            global punctuations
+            self.punctuation = (self.lemma in punctuations)
+
+        return self.punctuation
+
+    def is_content_word(self):
+        return not self.is_stopword() and not self.is_punctuation()
