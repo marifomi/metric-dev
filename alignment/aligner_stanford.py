@@ -432,7 +432,7 @@ class AlignerStanford(object):
                 for item in find_all_common_contiguous_sublists(full_source, tokens):
                     if len(item[0]) == 1 and full_source[item[0][0]].lemma not in cobalt_stopwords:
                         for jtem in item[0]:
-                            if (jtem+1, target_word.index) not in self.alignments and i not in self.target_indices_aligned:
+                            if (jtem+1, target_word.index) not in self.alignments and target_word.index not in self.target_indices_aligned:
                                 self._add_to_alignments(jtem+1, target_word.index)
 
     def _align_content_words(self, source, target):
