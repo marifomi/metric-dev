@@ -637,7 +637,7 @@ class CobaltAlignerStanford(AbstractProcessor):
         for i, alignment in enumerate(alignments):
             print('Sentence #' + str(i + 1), file=output)
 
-            for a in alignment:
+            for a in sorted(alignment, key=lambda x: x[0]):
                 output.write('[' + str(targets[i][a[0] - 1].index) + ', ' + str(references[i][a[1] - 1].index) + ']' + ' : ' +
                              '[' + targets[i][a[0] - 1].form + ', ' + references[i][a[1] - 1].form + ']\n')
 
