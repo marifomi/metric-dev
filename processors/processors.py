@@ -489,41 +489,33 @@ class MeteorScorer(AbstractProcessor):
         AbstractProcessor.set_output(self, True)
 
     def run(self, config, from_file=False):
-
-        if from_file is True:
+        if from_file:
             print("Feature values will be read from file")
             return
 
-        tgt_path = os.path.expanduser(config.get('Data', 'tgt'))
-        ref_path = os.path.expanduser(config.get('Data', 'ref'))
-
-        if os.path.exists(os.path.expanduser(config.get('Metrics', 'dir')) + '/' + tgt_path.split('/')[-1] + '.meteor.scores'):
-            print("Meteor scores already exist!")
-            return
-
-        meteor = os.path.expanduser(config.get('Metrics', 'meteor'))
-        lang = config.get('Settings', 'tgt_lang')
-        my_file = os.path.expanduser(config.get('Metrics', 'dir')) + '/' + tgt_path.split('/')[-1] + '.meteor.scores'
-
-        o = open(my_file, 'w')
+        wd = os.path.expanduser(config.get('Data', 'working_dir'))
+        tgt_path = wd + '/' + 'tgt.txt'
+        ref_path = wd + '/' + 'ref.txt'
+        meteor = os.path.expanduser(config.get('Paths', 'meteor'))
+        lang = config.get('Settings', 'target_language')
+        o = open(wd + '/' + 'meteor.scores', 'w')
         subprocess.call(['java', '-Xmx2G', '-jar', meteor, tgt_path, ref_path, '-l', lang, '-norm'], stdout=o)
         o.close()
 
     def get(self, config, from_file=False):
 
+        wd = os.path.expanduser(config.get('Data', 'working_dir'))
         result = []
 
-        if from_file is True:
+        if from_file:
             lang_pairs = loads(config.get('Settings', 'lang_pairs'))
             result = wmt.read_wmt_format(os.path.expanduser(config.get("Metrics", "meteor")), lang_pairs)
         else:
-            tgt_path = os.path.expanduser(config.get('Data', 'tgt'))
-            scores_file = os.path.expanduser(config.get('Metrics', 'dir')) + '/' + tgt_path.split('/')[-1] + '.meteor.scores'
-
-            for line in open(scores_file).readlines():
-                if not line.startswith('Segment '):
-                    continue
-                result.append(float(line.strip().split('\t')[1]))
+            with open(wd + '/' + 'meteor.scores') as f:
+                for line in f.readlines():
+                    if not line.startswith('Segment '):
+                        continue
+                    result.append(float(line.strip().split('\t')[1]))
 
         AbstractProcessor.set_result_tgt(self, result)
         AbstractProcessor.set_result_ref(self, result)
