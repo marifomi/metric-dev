@@ -9,6 +9,8 @@ analysis/
 models/
 src/learning/logistic_temp.py
 test_tokenizer/
-.gitignore
+data_test/
 **/*.pyc
 config/quest/*
+test.cfg
+data_test

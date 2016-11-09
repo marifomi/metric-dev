@@ -11,6 +11,7 @@ from collections import defaultdict
 from configparser import ConfigParser
 from processors.abstract_processor import AbstractProcessor
 from alignment.aligner import Aligner
+from alignment.aligner_stanford import AlignerStanford
 from alignment.aligner import punctuations
 from utils.cobalt_align_reader import CobaltAlignReader
 from utils.meteor_align_reader import MeteorAlignReader
@@ -19,6 +20,7 @@ from utils import wmt
 from utils.core_nlp_utils import read_parsed_sentences, prepareSentence2, parse_text, dependencyParseAndPutOffsets
 from utils.features_reader import FeaturesReader
 from utils import txt_xml as xml
+from utils.stanford_format import StanfordParseLoader
 from gensim.models.word2vec import Word2Vec
 from numpy import array
 from numpy import zeros
@@ -378,6 +380,27 @@ class Parse(AbstractProcessor):
         AbstractProcessor.set_result_ref(self, sents_ref)
 
 
+class ParseStanford(AbstractProcessor):
+
+    def __init__(self):
+        AbstractProcessor.__init__(self)
+        AbstractProcessor.set_name(self, 'parse')
+        AbstractProcessor.set_output(self, True)
+
+    def run(self, config, from_file=False):
+        print("Parse already exist!")
+
+    def get(self, config, from_file=False):
+
+        working_dir = os.path.expanduser(config.get('Data', 'working_dir'))
+
+        result_tgt = StanfordParseLoader.parsed_sentences(working_dir + '/' + 'tgt.parse')
+        result_ref = StanfordParseLoader.parsed_sentences(working_dir + '/' + 'ref.parse')
+
+        AbstractProcessor.set_result_tgt(self, result_tgt)
+        AbstractProcessor.set_result_ref(self, result_ref)
+
+
 class Parse2(AbstractProcessor):
 
     def __init__(self):
@@ -580,6 +603,53 @@ class MeteorAligner(AbstractProcessor):
         reader = MeteorAlignReader()
 
         result = reader.read(align_dir + '/' + tgt_path.split('/')[-1] + '.' + aligner + name + '-align.out')
+        AbstractProcessor.set_result_tgt(self, result)
+        AbstractProcessor.set_result_ref(self, result)
+
+
+class CobaltAlignerStanford(AbstractProcessor):
+
+    def __init__(self):
+        AbstractProcessor.__init__(self)
+        AbstractProcessor.set_name(self, 'cobalt_aligner_stanford')
+        AbstractProcessor.set_output(self, True)
+
+    def run(self, config, from_file=False):
+        working_dir = os.path.expanduser(config.get('Data', 'working_dir'))
+        tgt_path = working_dir + '/' + 'tgt.parse'
+        ref_path = working_dir + '/' + 'ref.parse'
+
+        if os.path.exists(working_dir + '/' + tgt_path.split('/')[-1] + '.' + ref_path.split('/')[-1] + '.cobalt-align-stanford.out'):
+            print("Alignments already exist.\n Aligner will not run.")
+            return
+
+        targets = StanfordParseLoader.parsed_sentences(tgt_path)
+        references = StanfordParseLoader.parsed_sentences(ref_path)
+
+        aligner = AlignerStanford('english')
+        alignments = []
+
+        for i, sentence in enumerate(targets):
+            alignments.append(aligner.align(sentence, references[i]))
+
+        output = codecs.open(os.path.expanduser(working_dir + '/' + tgt_path.split('/')[-1] + '.' + ref_path.split('/')[-1] + '.cobalt-align-stanford.out'), 'w', 'utf-8')
+
+        for i, alignment in enumerate(alignments):
+            print('Sentence #' + str(i + 1), file=output)
+
+            for a in alignment:
+                output.write('[' + str(targets[i][a[0] - 1].index) + ', ' + str(references[i][a[1] - 1].index) + ']' + ' : ' +
+                             '[' + targets[i][a[0] - 1].form + ', ' + references[i][a[1] - 1].form + ']\n')
+
+            output.write('\n')
+        output.close()
+
+    def get(self, config, from_file=False):
+        working_dir = os.path.expanduser(config.get('Data', 'working_dir'))
+        tgt_path = working_dir + '/' + 'tgt.parse'
+        ref_path = working_dir + '/' + 'ref.parse'
+        reader = CobaltAlignReader()
+        result = reader.read(working_dir + '/' + tgt_path.split('/')[-1] + '.' + ref_path.split('/')[-1] + '.cobalt-align-stanford.out')
         AbstractProcessor.set_result_tgt(self, result)
         AbstractProcessor.set_result_ref(self, result)
 

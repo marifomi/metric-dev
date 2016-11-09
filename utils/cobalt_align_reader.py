@@ -10,15 +10,15 @@ class CobaltAlignReader(object):
         lines = codecs.open(os.path.expanduser(alignment_file), 'r', 'utf-8')
 
         for line in lines:
+            indexes = []
+            words = []
+            differences = []
+
             if line.startswith('Sentence #'):
                 phrase = int(line.strip().replace('Sentence #', ''))
 
                 if phrase > 1:
                     alignments.append([indexes, words, differences])
-
-                indexes = []
-                words = []
-                differences = []
 
             elif line.startswith('['):
                 indexes.append(CobaltAlignReader.read_alignment_idx(line))
@@ -33,14 +33,17 @@ class CobaltAlignReader(object):
 
     def read_differences(self, line):
         values = line.strip().split(' : ')
-        contextInfo = {}
+        context_info = {}
 
-        contextInfo['srcDiff'] = self.my_split(values[2].split(';')[0].split('=')[1])
-        contextInfo['srcCon'] = self.my_split(values[2].split(';')[1].split('=')[1])
-        contextInfo['tgtDiff'] = self.my_split(values[2].split(';')[2].split('=')[1])
-        contextInfo['tgtCon'] = self.my_split(values[2].split(';')[3].split('=')[1])
+        if len(values) < 3:
+            return context_info
 
-        return contextInfo
+        context_info['srcDiff'] = self.my_split(values[2].split(';')[0].split('=')[1])
+        context_info['srcCon'] = self.my_split(values[2].split(';')[1].split('=')[1])
+        context_info['tgtDiff'] = self.my_split(values[2].split(';')[2].split('=')[1])
+        context_info['tgtCon'] = self.my_split(values[2].split(';')[3].split('=')[1])
+
+        return context_info
 
     @staticmethod
     def read_alignment_idx(line):
