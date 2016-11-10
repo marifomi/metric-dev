@@ -384,6 +384,7 @@ class AlignerStanford(object):
         for item in range(len(unaligned_source)):
             highest_weighted_similarity = 0
             best_word_similarity = 0
+            best_neighborhood_similarity = 0
             best_source = None
             best_target = None
 
@@ -404,8 +405,9 @@ class AlignerStanford(object):
                         best_source = source_word
                         best_target = target_word
                         best_word_similarity = word_similarities[(i, j)]
+                        best_neighborhood_similarity = neighborhood_similarities[(i, j)]
 
-            if best_word_similarity >= self.config.alignment_similarity_threshold:
+            if best_word_similarity >= self.config.alignment_similarity_threshold and best_neighborhood_similarity > 0:
                 self._add_to_alignments(best_source.index, best_target.index)
 
             if best_source is not None:
