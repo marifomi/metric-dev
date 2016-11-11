@@ -45,14 +45,14 @@ class AlignerStanford(object):
 
         for item in sublists:
             only_stopwords = True
-            for jtem in item:
+            for jtem in item[0]:
                 if jtem not in cobalt_stopwords and jtem not in punctuations:
                     only_stopwords = False
                     break
             if len(item[0]) >= 2 and not only_stopwords:
                 for j in range(len(item[0])):
                     if item[0][j]+1 not in self.source_indices_aligned \
-                            and item[1][j]+1 not in self.source_indices_aligned \
+                            and item[1][j]+1 not in self.target_indices_aligned \
                             and (item[0][j]+1, item[1][j]+1) not in self.alignments:
                         self._add_to_alignments(item[0][j]+1, item[1][j]+1)
 
@@ -74,11 +74,11 @@ class AlignerStanford(object):
                 continue
             if '-' in word.form and word.form != '-':
                 tokens = word.form.split('-')
-                sublists = find_all_common_contiguous_sublists(target, tokens)
+                sublists = find_all_common_contiguous_sublists(source, tokens)
                 for item in sublists:
                     if len(item[0]) > 1:
                         for jtem in item[0]:
-                            if [jtem+1, word.index] not in self.alignments:
+                            if (jtem+1, word.index) not in self.alignments:
                                 self._add_to_alignments(jtem+1, word.index)
 
     def _align_named_entities(self, source, target):
@@ -379,7 +379,7 @@ class AlignerStanford(object):
 
         return word_similarities, textual_neighborhood_similarities
 
-    def _align_words(self, unaligned_source, unaligned_target, word_similarities, neighborhood_similarities):
+    def _align_words(self, unaligned_source, unaligned_target, word_similarities, neighborhood_similarities, limit_by_neighborhood):
         # now align_sentence: find the best alignment in each iteration of the following loop and include in alignments if good enough
         for item in range(len(unaligned_source)):
             highest_weighted_similarity = 0
@@ -407,13 +407,15 @@ class AlignerStanford(object):
                         best_word_similarity = word_similarities[(i, j)]
                         best_neighborhood_similarity = neighborhood_similarities[(i, j)]
 
-            if best_word_similarity >= self.config.alignment_similarity_threshold and best_neighborhood_similarity > 0:
+            if best_word_similarity >= self.config.alignment_similarity_threshold \
+                    and (not limit_by_neighborhood or best_neighborhood_similarity > 0) \
+                    and best_source.index not in self.source_indices_aligned \
+                    and best_target.index not in self.target_indices_aligned:
                 self._add_to_alignments(best_source.index, best_target.index)
-
-            if best_source is not None:
-                unaligned_source.remove(best_source)
-            if best_target is not None:
-                unaligned_target.remove(best_target)
+                if best_source is not None:
+                    unaligned_source.remove(best_source)
+                if best_target is not None:
+                    unaligned_target.remove(best_target)
 
         return unaligned_source, unaligned_target
 
@@ -423,7 +425,7 @@ class AlignerStanford(object):
             if '-' in source_word.form and source_word.form != '-':
                 tokens = source_word.form.split('-')
                 for item in find_all_common_contiguous_sublists(tokens, full_target):
-                    if len(item[0]) == 1 and full_target[item[1][0]].lemma not in cobalt_stopwords:
+                    if len(item[0]) == 1 and full_target[item[1][0]].is_stopword():
                         for jtem in item[1]:
                             if (source_word.index, jtem+1) not in self.alignments and jtem+1 not in self.target_indices_aligned:
                                 self._add_to_alignments(source_word.index, jtem+1)
@@ -432,7 +434,7 @@ class AlignerStanford(object):
             if '-' in target_word.form and target_word.form != '-':
                 tokens = target_word.form.split('-')
                 for item in find_all_common_contiguous_sublists(full_source, tokens):
-                    if len(item[0]) == 1 and full_source[item[0][0]].lemma not in cobalt_stopwords:
+                    if len(item[0]) == 1 and not full_source[item[0][0]].is_stopword():
                         for jtem in item[0]:
                             if (jtem+1, target_word.index) not in self.alignments and target_word.index not in self.target_indices_aligned:
                                 self._add_to_alignments(jtem+1, target_word.index)
@@ -443,7 +445,7 @@ class AlignerStanford(object):
 
         content_source, content_target = self._get_unaligned_words(source, target, is_content_word)
         word_similarities, neighborhood_similarities = self._collect_evidence_from_textual_neighborhood(content_source, content_target, source, target)
-        remaining_source, remaining_target = self._align_words(content_source, content_target, word_similarities, neighborhood_similarities)
+        remaining_source, remaining_target = self._align_words(content_source, content_target, word_similarities, neighborhood_similarities, False)
         self._align_remaining_if_hyphenated(remaining_source, remaining_target, source, target)
 
     def _align_stop_words_by_dependency_neighborhood(self, source, target):
@@ -452,7 +454,7 @@ class AlignerStanford(object):
 
         stop_source, stop_target = self._get_unaligned_words(source, target, is_stopword)
         word_similarities, neighborhood_similarities = self._collect_evidence_from_dependency_neighborhood(stop_source, stop_target)
-        self._align_words(stop_source, stop_target, word_similarities, neighborhood_similarities)
+        self._align_words(stop_source, stop_target, word_similarities, neighborhood_similarities, True)
 
     def _align_stop_words_and_punctuations_by_textual_neighborhood(self, source, target):
         def is_stopword_or_punctuation(word):
@@ -460,7 +462,7 @@ class AlignerStanford(object):
 
         stop_source, stop_target = self._get_unaligned_words(source, target, is_stopword_or_punctuation)
         word_similarities, neighborhood_similarities = self._collect_evidence_from_textual_neighborhood_for_stopwords(stop_source, stop_target, source, target)
-        self._align_words(stop_source, stop_target, word_similarities, neighborhood_similarities)
+        self._align_words(stop_source, stop_target, word_similarities, neighborhood_similarities, True)
 
     def align(self, source, target):
         self.alignments = set()

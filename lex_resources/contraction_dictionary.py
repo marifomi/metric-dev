@@ -20,3 +20,6 @@ class ContractionDictionary(object):
             return True
 
         return False
+
+    def is_contraction(self, word):
+        return word in self.contraction_table.values()
