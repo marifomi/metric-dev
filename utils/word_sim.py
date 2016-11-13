@@ -61,7 +61,7 @@ def word_relatedness_alignment(word1, word2, config):
         else:
             similarity = 0.0
 
-    else:
+    elif similarity is None:
         similarity = 0.0
 
     __word_relatedness_alignment__[word1.form + '__' + word2.form] = similarity

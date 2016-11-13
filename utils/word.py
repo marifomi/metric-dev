@@ -1,36 +1,22 @@
 from lex_resources.config import *
 
+
 class Word(object):
-
-    index = -1
-
-    form = None
-
-    lemma = None
-
-    pos = None
-
-    ner = None
-
-    dep = ''
-
-    collapsed = False
-
-    children = []
-
-    parents = []
-
-    category = None
-
-    head = None
-
-    stopword = None
-
-    punctuation = None
 
     def __init__(self, index, form):
         self.index = index
         self.form = form
+        self.lemma = None
+        self.pos = None
+        self.ner = None
+        self.dep = ''
+        self.collapsed = False
+        self.children = []
+        self.parents = []
+        self.category = None
+        self.head = None
+        self.stopword = None
+        self.punctuation = None
 
     def find_children_nodes(self, sentence_parse):
         if len(self.children) == 0:
@@ -53,11 +39,14 @@ class Word(object):
                 self.category = ''
         return self.category
 
+    def matches_pos_code(self, code):
+        return (code == 'n' and self.pos == 'prp') or self.pos.startswith(code)
+
     def is_sentence_ending_punctuation(self):
         return self.form in ['.', '?', '!']
 
     def is_named_entity(self):
-        return self.ner is not None and self.ner != 'O'
+        return self.ner is not None and self.ner != 'O' and self.ner in ['PERSON', 'ORGANIZATION', 'LOCATION']
 
     def is_function_word(self):
         return self.is_stopword() or self.is_punctuation() or self.form.isdigit()

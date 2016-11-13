@@ -29,7 +29,7 @@ class AlignerStanford(object):
 
     def _align_ending_punctuation(self, source, target):
         if (source[len(source) - 1].is_sentence_ending_punctuation() and target[len(target) - 1].is_sentence_ending_punctuation())\
-                or source[len(source) - 1].form == source[len(source) - 1].form:
+                or source[len(source) - 1].form == target[len(target) - 1].form:
             self._add_to_alignments(len(source), len(target))
         elif source[len(source) - 2].is_sentence_ending_punctuation() and target[len(target) - 1].is_sentence_ending_punctuation():
             self._add_to_alignments(len(source) - 1, len(target))
@@ -49,7 +49,7 @@ class AlignerStanford(object):
                 if jtem not in cobalt_stopwords and jtem not in punctuations:
                     only_stopwords = False
                     break
-            if len(item[0]) >= 2 and not only_stopwords:
+            if len(item[0]) >= 3 and not only_stopwords:
                 for j in range(len(item[0])):
                     if item[0][j]+1 not in self.source_indices_aligned \
                             and item[1][j]+1 not in self.target_indices_aligned \
@@ -196,7 +196,7 @@ class AlignerStanford(object):
         for item in source:
             i = item.index
 
-            if i in self.source_indices_aligned or (not item.pos.startswith(pos_code) and item.pos != 'prp'):
+            if i in self.source_indices_aligned or not item.matches_pos_code(pos_code):
                 continue
 
             pos_count_in_source += 1
@@ -204,7 +204,7 @@ class AlignerStanford(object):
             for jtem in target:
                 j = jtem.index
 
-                if j in self.target_indices_aligned or (not item.pos.startswith(pos_code) and jtem.pos != 'prp'):
+                if j in self.target_indices_aligned or not jtem.matches_pos_code(pos_code):
                     continue
 
                 if word_relatedness_alignment(item, jtem, self.config) < self.config.alignment_similarity_threshold:
@@ -233,12 +233,12 @@ class AlignerStanford(object):
             for item in source:
                 i = item.index
 
-                if i in self.source_indices_aligned or not item.pos.startswith(pos_code) or item.lemma in cobalt_stopwords:
+                if i in self.source_indices_aligned or not item.matches_pos_code(pos_code):
                     continue
 
                 for jtem in target:
                     j = jtem.index
-                    if j in self.target_indices_aligned or jtem.pos.startswith(pos_code) or jtem.lemma in cobalt_stopwords:
+                    if j in self.target_indices_aligned or not jtem.matches_pos_code(pos_code):
                         continue
 
                     if (i, j) in evidence_counts_matrix and self.config.theta * word_similarities[(i, j)] + (1 - self.config.theta) * evidence_counts_matrix[(i, j)] > max_overall_value_for_pass:

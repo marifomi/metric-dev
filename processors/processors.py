@@ -630,6 +630,8 @@ class CobaltAlignerStanford(AbstractProcessor):
         alignments = []
 
         for i, sentence in enumerate(targets):
+            if i == 122:
+                pass
             alignments.append(aligner.align(sentence, references[i]))
 
         output = codecs.open(os.path.expanduser(working_dir + '/' + tgt_path.split('/')[-1] + '.' + ref_path.split('/')[-1] + '.cobalt-align-stanford.out'), 'w', 'utf-8')
