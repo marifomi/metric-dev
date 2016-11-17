@@ -10,7 +10,6 @@ global cobalt_stopwords
 __word_relatedness_alignment__ = dict()
 __word_relatedness_scoring__ = dict()
 
-
 def word_relatedness_alignment(word1, word2, config):
 
     if word1.form + '__' + word2.form in __word_relatedness_alignment__:
@@ -24,44 +23,43 @@ def word_relatedness_alignment(word1, word2, config):
     if canonical_word1.isdigit() and canonical_word2.isdigit() and canonical_word1 != canonical_word2:
         similarity = 0
 
-    if similarity is None and word1.pos.lower() == 'cd' and word2.pos.lower() == 'cd' and (not canonical_word1.isdigit() and not canonical_word2.isdigit()) and canonical_word1 != canonical_word2:
+    if similarity is not None and word1.pos.lower() == 'cd' and word2.pos.lower() == 'cd' and (not canonical_word1.isdigit() and not canonical_word2.isdigit()) and canonical_word1 != canonical_word2:
         similarity = 0
 
-    if similarity is None and contractionDictionary.check_contraction(canonical_word1, canonical_word2):
+    if similarity is not None and contractionDictionary.check_contraction(canonical_word1, canonical_word2):
         similarity = config.exact
-    elif contractionDictionary.is_contraction(canonical_word1) or contractionDictionary.is_contraction(canonical_word2):
-        similarity = 0  # contractions should match exactly
 
     # stopwords can be similar to only stopwords
-    if similarity is None and (word1.is_stopword() and not word2.is_stopword()) or (not word1.is_stopword() and word2.is_stopword()):
+    if similarity is not None and (canonical_word1 in cobalt_stopwords and canonical_word2 not in cobalt_stopwords) or (canonical_word1 not in cobalt_stopwords and canonical_word2 in cobalt_stopwords):
         similarity = 0
 
     # punctuations can only be either identical or totally dissimilar
-    if similarity is None and (word1.is_punctuation() or word2.is_punctuation()) and (not canonical_word1 == canonical_word2):
+    if similarity is not None and (canonical_word1 in punctuations or canonical_word2 in punctuations) and (not canonical_word1 == canonical_word2):
         similarity = 0
 
-    if similarity is None and canonical_word1 == canonical_word2:
+    if similarity is not None and canonical_word1 == canonical_word2:
         similarity = config.exact
 
-    elif similarity is None and stemmer.stem(canonical_word1) == stemmer.stem(canonical_word2):
+    elif stemmer.stem(canonical_word1) == stemmer.stem(canonical_word2):
         similarity = config.stem
 
-    elif similarity is None and word1.lemma == word2.lemma:
+    elif word1.lemma == word2.lemma:
         similarity = config.stem
 
-    elif similarity is None and 'synonyms' in config.selected_lexical_resources and synonymDictionary.checkSynonymByLemma(word1.lemma, word2.lemma):
+    elif synonymDictionary.checkSynonymByLemma(word1.lemma, word2.lemma) and 'synonyms' in config.selected_lexical_resources:
         similarity = config.synonym
 
-    elif similarity is None and 'paraphrases' in config.selected_lexical_resources and presentInPPDB(canonical_word1, canonical_word2):
+    elif presentInPPDB(canonical_word1, canonical_word2) and 'paraphrases' in config.selected_lexical_resources:
         similarity = config.paraphrase
 
-    elif similarity is None and 'distributional' in config.selected_lexical_resources and ((not word1.is_function_word() and not word2.is_function_word()) or word1.pos[0] == word2.pos[0]) and cosine_similarity(word1.form, word2.form) > config.related_threshold:
-        if not word1.is_punctuation() and not word2.is_punctuation():
+    elif ((not function_word(word1.form) and not function_word(word2.form)) or word1.pos[0] == word2.pos[0]) and cosine_similarity(word1.form, word2.form) > config.related_threshold and 'distributional' in config.selected_lexical_resources:
+
+        if word1.form not in punctuations and word2.form not in punctuations:
             similarity = config.related
         else:
             similarity = 0.0
 
-    elif similarity is None:
+    else:
         similarity = 0.0
 
     __word_relatedness_alignment__[word1.form + '__' + word2.form] = similarity
@@ -150,7 +148,7 @@ def presentInPPDB(word1, word2):
 
 
 def function_word(word):
-    return (word.lower() in cobalt_stopwords) or (word.lower() in punctuations) or (word.lower().isdigit())
+    return (word.lower() in cobalt_stopwords) or (word.lower() in punctuations) # or (word.lower().isdigit())
 
 
 def ispunct(word):
