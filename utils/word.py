@@ -49,7 +49,8 @@ class Word(object):
         return self.ner is not None and self.ner != 'O' and self.ner in ['PERSON', 'ORGANIZATION', 'LOCATION']
 
     def is_function_word(self):
-        return self.is_stopword() or self.is_punctuation() or self.form.isdigit()
+        return self.is_stopword() or self.is_punctuation()
+        # or self.form.isdigit()
 
     def is_stopword(self):
         if self.stopword is None:
