@@ -10,15 +10,15 @@ class CobaltAlignReader(object):
         lines = codecs.open(os.path.expanduser(alignment_file), 'r', 'utf-8')
 
         for line in lines:
-            indexes = []
-            words = []
-            differences = []
-
             if line.startswith('Sentence #'):
                 phrase = int(line.strip().replace('Sentence #', ''))
 
                 if phrase > 1:
                     alignments.append([indexes, words, differences])
+
+                indexes = []
+                words = []
+                differences = []
 
             elif line.startswith('['):
                 indexes.append(CobaltAlignReader.read_alignment_idx(line))
