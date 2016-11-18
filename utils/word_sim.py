@@ -23,8 +23,13 @@ def word_relatedness_alignment(word1, word2, config):
 
     similarity = None
 
-    # First check the cases where the words do not match for sure
+    # First check the cases where the words do not match or do match for sure
+
     # Digits can be aligned only if they are identical
+
+    if contractionDictionary.check_contraction(canonical_word1, canonical_word2):
+        similarity = config.exact
+
     if canonical_word1.isdigit() and canonical_word2.isdigit() and canonical_word1 != canonical_word2:
         similarity = 0
 
@@ -44,9 +49,6 @@ def word_relatedness_alignment(word1, word2, config):
         return similarity
 
     if canonical_word1 == canonical_word2:
-        similarity = config.exact
-
-    elif contractionDictionary.check_contraction(canonical_word1, canonical_word2):
         similarity = config.exact
 
     elif stemmer.stem(canonical_word1) == stemmer.stem(canonical_word2):
