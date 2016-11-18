@@ -14,3 +14,15 @@ data_test/
 config/quest/*
 test.cfg
 data_test
+alignment/__pycache__/
+config/quest/
+features/__pycache__/
+features/impl/__pycache__/
+lex_resources/__pycache__/
+processors/__pycache__/
+scorer/__pycache__/
+sent_bleu/__pycache__/
+utils/__pycache__/
+.gitignore
+test.py
+output_test
