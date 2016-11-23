@@ -133,3 +133,18 @@ def is_acronym(word, named_entity):
 
     return acronym
 
+
+def is_acronym_stanford(word, named_entity_group):
+    # returns whether 'word' is an acronym of 'named_entity', which is a list of the component words
+
+    form = word.form.replace('.', '')
+    if not form.isupper() or len(form) != len(named_entity_group.forms):
+        return False
+
+    acronym = True
+    for i in range(len(named_entity_group.forms)):
+        if form[i] != named_entity_group.forms[i][0]:
+            acronym = False
+            break
+
+    return acronym

@@ -2,6 +2,7 @@ from alignment.aligner_config import AlignerConfig
 from utils import load_resources
 from alignment.util import *
 from utils.word_sim import *
+from utils.named_entity_group import NamedEntityGroup
 from utils.core_nlp_utils import *
 
 __author__ = 'anton'
@@ -81,22 +82,141 @@ class AlignerStanford(object):
                             if (jtem+1, word.index) not in self.alignments:
                                 self._add_to_alignments(jtem+1, word.index)
 
+    def _extend_named_entities_group_using_opposite_sentence(self, sentence, same_ne_groups, opposite_ne_groups):
+        # learn from the other sentence that a certain word/phrase is a named entity
+        for word in sentence:
+            included = False
+            for source_ne_group in same_ne_groups:
+                if word.index in source_ne_group.indicies:
+                    included = True
+                    break
+            if included or not word.form.isupper():
+                continue
+            for opposite_ne_group in opposite_ne_groups:
+                if word.form in opposite_ne_group.forms:
+                    new_ne_group = NamedEntityGroup([word.index], [word], opposite_ne_group.ner)
+
+                    # check if the current item is part of a named entity part of which has already been added (by checking contiguousness)
+                    is_part = False
+                    for group in same_ne_groups:
+                        if group.indicies[-1] == new_ne_group.indicies[0] - 1:
+                            group.indicies.append(word.index)
+                            group.words.append(word)
+                            group.forms.append(word.form)
+                            is_part = True
+                    if not is_part:
+                        same_ne_groups.append(new_ne_group)
+                elif is_acronym_stanford(word, opposite_ne_group) \
+                        and next((x for x in same_ne_groups if word.form in x.forms), None) is None:
+                    same_ne_groups.append(NamedEntityGroup([word.index], [word], opposite_ne_group.ner))
+
+    def _count_form_occurences(self, ne_group, groups):
+        count = 0
+        for group in groups:
+            if group.forms == ne_group.forms:
+                count += 1
+
+        return count
+    
+    def _align_named_entity_subsets(self, smaller_group, bigger_group, source_is_smaller, full_smaller_words):
+        unaligned_indicies_bigger = []
+        unaligned_indicies_bigger.extend(bigger_group.indicies)
+
+        for i, smaller_form in enumerate(smaller_group.forms):
+            for j, bigger_form in enumerate(bigger_group.forms):
+                if smaller_form == bigger_form:
+                    if source_is_smaller:
+                        self._add_to_alignments(smaller_group.indicies[i], bigger_group.indicies[j])
+                    else:
+                        self._add_to_alignments(bigger_group.indicies[j], smaller_group.indicies[i])
+
+                    if bigger_group.indicies[j] in unaligned_indicies_bigger:
+                        unaligned_indicies_bigger.remove(bigger_group.indicies[j])
+
+        for i, smaller_word in enumerate(smaller_group.words):
+            for j, bigger_word in enumerate(bigger_group.words):
+                # find if the current term in the longer name has already been aligned, do not align_sentence it in that case
+                dont_insert = smaller_word.is_punctuation() or bigger_word.is_punctuation()
+                for a in self.alignments:
+                    if (source_is_smaller and a[1] == bigger_group.indicies[j]) or (not source_is_smaller and a[0] == bigger_group.indicies[j]):
+                        dont_insert = True
+                        break
+                for word in full_smaller_words:
+                    if bigger_word.form == word.form:
+                        dont_insert = True
+                        break
+
+                if bigger_group.indicies[j] not in unaligned_indicies_bigger or dont_insert:
+                    continue
+
+                if source_is_smaller:
+                    self._add_to_alignments(smaller_group.indicies[i], bigger_group.indicies[j])
+                else:
+                    self._add_to_alignments(bigger_group.indicies[j], smaller_group.indicies[i])
+
     def _align_named_entities(self, source, target):
-        source_ne = []
-        target_ne = []
+        source_ne_groups = sorted(find_named_entity_groups(source), key=NamedEntityGroup.sort_key)
+        target_ne_groups = sorted(find_named_entity_groups(target), key=NamedEntityGroup.sort_key)
 
-        for item in source:
-            if item.is_named_entity():
-                source_ne.append(item)
+        self._extend_named_entities_group_using_opposite_sentence(source, source_ne_groups, target_ne_groups)
+        self._extend_named_entities_group_using_opposite_sentence(target, target_ne_groups, source_ne_groups)
 
-        for item in target:
-            if item.is_named_entity():
-                target_ne.append(item)
+        if len(source_ne_groups) == 0 or len(target_ne_groups) == 0:
+            return
 
-        for item in source_ne:
-            for jtem in target_ne:
-                if item.form == jtem.form or is_acronym(item.form, jtem.form):
-                    self._add_to_alignments(item.index, jtem.index)
+        source_ne_groups_aligned = []
+        target_ne_groups_aligned = []
+
+        # align_sentence all full matches
+        for source_group in source_ne_groups:
+            if self._count_form_occurences(source_group, source_ne_groups) > 1:
+                continue
+
+            for target_group in target_ne_groups:
+                if self._count_form_occurences(target_group, target_ne_groups) > 1:
+                    continue
+
+                # get rid of dots and hyphens
+                canonical_source_forms = [i.replace('.', '').replace('-', '') for i in source_group.forms]
+                canonical_target_forms = [j.replace('.', '').replace('-', '') for j in target_group.forms]
+
+                if canonical_source_forms == canonical_target_forms:
+                    for k in range(len(source_group.indicies)):
+                        if (source_group.indicies[k], target_group.indicies[k]) not in self.alignments:
+                            self._add_to_alignments(source_group.indicies[k], target_group.indicies[k])
+                    source_ne_groups_aligned.append(source_group)
+                    target_ne_groups_aligned.append(target_group)
+
+        # align_sentence acronyms with their elaborations
+        for source_group in source_ne_groups:
+            for target_group in target_ne_groups:
+                if len(source_group.words) == 1 and is_acronym_stanford(source_group.words[0], target_group):
+                    for i in range(len(target_group.indicies)):
+                        if (source_group.indicies[0], target_group.indicies[i]) not in self.alignments:
+                            self._add_to_alignments(source_group.indicies[0], target_group.indicies[i])
+
+                elif len(target_group.words) == 1 and is_acronym_stanford(target_group.words[0], source_group):
+                    for i in range(len(source_group.indicies)):
+                        if (source_group.indicies[i], target_group.indicies[0]) not in self.alignments:
+                            self._add_to_alignments(source_group.indicies[i], target_group.indicies[0])
+
+
+        # align_sentence subset matches
+        for source_group in source_ne_groups:
+            if source_group in source_ne_groups_aligned or self._count_form_occurences(source_group, source_ne_groups) > 1:
+                continue
+
+            for target_group in target_ne_groups:
+                if target_group in target_ne_groups_aligned or source_group.ner != target_group.ner \
+                        or self._count_form_occurences(target_group, target_ne_groups) > 1:
+                    continue
+
+                # find if the first is a part of the second
+                if is_sublist(source_group.forms, target_group.forms):
+                    self._align_named_entity_subsets(source_group, target_group, True, source)
+                # else find if the second is a part of the first
+                if is_sublist(target_group.forms, source_group.forms):
+                    self._align_named_entity_subsets(target_group, source_group, False, target)
 
         return
 
