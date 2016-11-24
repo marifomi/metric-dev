@@ -33,9 +33,6 @@ def word_relatedness_alignment(word1, word2, config):
     if canonical_word1.isdigit() and canonical_word2.isdigit() and canonical_word1 != canonical_word2:
         similarity = 0
 
-    # if similarity is None and word1.pos.lower() == 'cd' and word2.pos.lower() == 'cd' and (not canonical_word1.isdigit() and not canonical_word2.isdigit()) and canonical_word1 != canonical_word2:
-    #     similarity = 0
-
     # stopwords can be similar to only stopwords
     if similarity is None and ((function_word(canonical_word1) and not function_word(canonical_word2)) or (function_word(canonical_word2) and not function_word(canonical_word1))):
         similarity = 0
