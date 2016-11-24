@@ -1,5 +1,6 @@
 from utils.parsed_sentences_loader import ParsedSentencesLoader
 from utils.word import Word
+from utils.named_entity_group import NamedEntityGroup
 
 
 def parse_text(sentences):
@@ -69,10 +70,8 @@ def nerWordAnnotator(parseResult):
 
 
     return res
-##############################################################################################################################
 
 
-##############################################################################################################################
 def ner(parseResult):
 
     nerWordAnnotations = nerWordAnnotator(parseResult)
@@ -110,10 +109,50 @@ def ner(parseResult):
             if i == len(nerWordAnnotations)-1:
                 namedEntities.append([currentCharacterOffsets, currentWordOffsets, currentNE, nerWordAnnotations[i][3]])
 
-    #print namedEntities  
+    return namedEntities
 
-    return namedEntities    
-##############################################################################################################################
+
+def _find_ne_words(sentence):
+    words = []
+
+    for word in sentence:
+        if word.is_named_entity():
+            words.append(word)
+
+    return words
+
+
+def find_named_entity_groups(sentence):
+    ne_words = _find_ne_words(sentence)
+    named_entity_groups = []
+    current_ne = []
+    current_ne_indicies = []
+    previous_word = None
+
+    for i, word in enumerate(ne_words):
+        if i == 0:
+            current_ne.append(word)
+            current_ne_indicies.append(word.index)
+            if len(ne_words) == 1:
+                named_entity_groups.append(NamedEntityGroup(current_ne_indicies, current_ne, word.ner))
+                break
+            previous_word = word
+            continue
+
+        if word.ner == previous_word.ner and word.index == previous_word.index+1:
+            current_ne.append(word)
+            current_ne_indicies.append(word.index)
+        else:
+            named_entity_groups.append(NamedEntityGroup(current_ne_indicies, current_ne, previous_word.ner))
+            current_ne = [word]
+            current_ne_indicies = [word.index]
+
+        if i == len(ne_words)-1:
+            named_entity_groups.append(NamedEntityGroup(current_ne_indicies, current_ne, word.ner))
+
+        previous_word = word
+
+    return named_entity_groups
 
 
 ##############################################################################################################################
