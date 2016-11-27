@@ -17,8 +17,6 @@ class StanfordParseLoader(object):
         i = 0
         for sentence in sentences['sentences']:
             i += 1
-            if i == 123:
-                pass
             parsed.append(StanfordParseLoader._process_parse_result(sentence))
         return parsed
 

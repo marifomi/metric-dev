@@ -17,6 +17,7 @@ class Word(object):
         self.head = None
         self.stopword = None
         self.punctuation = None
+        self.contraction = None
 
     def find_children_nodes(self, sentence_parse):
         if len(self.children) == 0:
@@ -48,8 +49,14 @@ class Word(object):
     def is_named_entity(self):
         return self.ner is not None and self.ner != 'O' and self.ner in ['PERSON', 'ORGANIZATION', 'LOCATION']
 
+    def is_contraction(self):
+        if self.contraction is None:
+            self.contraction = contractionDictionary.is_contraction(self.form.lower())
+
+        return self.contraction
+
     def is_function_word(self):
-        return self.is_stopword() or self.is_punctuation()
+        return self.is_stopword() or self.is_punctuation() or self.is_contraction()
 
     def is_stopword(self):
         if self.stopword is None:

@@ -14,6 +14,7 @@ class AlignerStanford(object):
     alignments = set()
     source_indices_aligned = set()
     target_indices_aligned = set()
+    similarity_types = dict()
 
     def __init__(self, language):
         self.config = AlignerConfig(language)
@@ -23,10 +24,12 @@ class AlignerStanford(object):
         if "distributional" in self.config.selected_lexical_resources:
             load_resources.load_word_vectors(self.config.path_to_vectors)
 
-    def _add_to_alignments(self, source_index, target_index):
-        self.alignments.add((source_index, target_index))
-        self.source_indices_aligned.add(source_index)
-        self.target_indices_aligned.add(target_index)
+    def _add_to_alignments(self, source_index, target_index, similarity_type='Exact'):
+        if (source_index, target_index) not in self.alignments:
+            self.alignments.add((source_index, target_index))
+            self.source_indices_aligned.add(source_index)
+            self.target_indices_aligned.add(target_index)
+            self.similarity_types[(source_index, target_index)] = similarity_type
 
     def _align_ending_punctuation(self, source, target):
         if (source[len(source) - 1].is_sentence_ending_punctuation() and target[len(target) - 1].is_sentence_ending_punctuation())\
@@ -190,12 +193,12 @@ class AlignerStanford(object):
         # align_sentence acronyms with their elaborations
         for source_group in source_ne_groups:
             for target_group in target_ne_groups:
-                if len(source_group.words) == 1 and is_acronym_stanford(source_group.words[0], target_group):
+                if len(source_group.words) == 1 and len(source_group.forms[0].replace('.', '')) > 1 and is_acronym_stanford(source_group.words[0], target_group):
                     for i in range(len(target_group.indicies)):
                         if (source_group.indicies[0], target_group.indicies[i]) not in self.alignments:
                             self._add_to_alignments(source_group.indicies[0], target_group.indicies[i])
 
-                elif len(target_group.words) == 1 and is_acronym_stanford(target_group.words[0], source_group):
+                elif len(target_group.words) == 1 and len(target_group.forms[0].replace('.', '')) > 1 and is_acronym_stanford(target_group.words[0], source_group):
                     for i in range(len(source_group.indicies)):
                         if (source_group.indicies[i], target_group.indicies[0]) not in self.alignments:
                             self._add_to_alignments(source_group.indicies[i], target_group.indicies[0])
@@ -241,8 +244,8 @@ class AlignerStanford(object):
 
         for word1 in source:
             for word2 in target:
-
-                if ((word1.index, word2.index) in self.alignments or word_relatedness_alignment(word1, word2, self.config) >= self.config.alignment_similarity_threshold) and (
+                similarity, similarity_type = word_relatedness_alignment_stanford(word1, word2, self.config)
+                if ((word1.index, word2.index) in self.alignments or similarity >= self.config.alignment_similarity_threshold) and (
                     (word1.dep == word2.dep) or
                         ((pos != '' and relation_direction != 'child_parent') and (
                             self._is_similar(word1.dep, word2.dep, pos, 'noun', opposite, relation_direction) or
@@ -255,7 +258,7 @@ class AlignerStanford(object):
                             self._is_similar(word1.dep, word2.dep, pos, 'adjective', opposite, relation_direction) or
                             self._is_similar(word1.dep, word2.dep, pos, 'adverb', opposite, relation_direction)))):
 
-                    result[(word1.index, word2.index)] = word_relatedness_alignment(word1, word2, self.config)
+                    result[(word1.index, word2.index)] = (similarity, similarity_type)
 
         return result
 
@@ -265,10 +268,10 @@ class AlignerStanford(object):
         max_right = {}
 
         for similarity in word_similarities.keys():
-            if not similarity[0] in max_left or word_similarities[max_left[similarity[0]]] < word_similarities[similarity]:
+            if not similarity[0] in max_left or word_similarities[max_left[similarity[0]]][0] < word_similarities[similarity][0]:
                 max_left[similarity[0]] = similarity
 
-            if not similarity[1] in max_right or word_similarities[max_right[similarity[1]]] < word_similarities[similarity]:
+            if not similarity[1] in max_right or word_similarities[max_right[similarity[1]]][0] < word_similarities[similarity][0]:
                 max_right[similarity[1]] = similarity
 
         left_right = dict()
@@ -284,7 +287,7 @@ class AlignerStanford(object):
         for rel in max_relations:
 
             if rel[0] not in source_nodes_considered and rel[1] not in target_nodes_considered:
-                score += word_similarities[rel]
+                score += word_similarities[rel][0]
                 source_nodes_considered.append(rel[0])
                 target_nodes_considered.append(rel[1])
 
@@ -327,15 +330,17 @@ class AlignerStanford(object):
                 if j in self.target_indices_aligned or not jtem.matches_pos_code(pos_code):
                     continue
 
-                if word_relatedness_alignment(item, jtem, self.config) < self.config.alignment_similarity_threshold:
+                similarity, similarity_type = word_relatedness_alignment_stanford(item, jtem, self.config)
+
+                if similarity < self.config.alignment_similarity_threshold:
                     continue
 
-                word_similarities[(i, j)] = word_relatedness_alignment(item, jtem, self.config)
+                word_similarities[(i, j)] = similarity, similarity_type
 
                 dependency_similarity = self._find_dependency_similarity(pos, item, jtem)
 
-                if word_similarities[(i, j)] == self.config.alignment_similarity_threshold:
-                    if word_similarities[(i, j)] + dependency_similarity[0] <= 1.0:
+                if word_similarities[(i, j)][0] == self.config.alignment_similarity_threshold:
+                    if word_similarities[(i, j)][0] + dependency_similarity[0] <= 1.0:
                         continue
 
                 if dependency_similarity[0] >= self.config.alignment_similarity_threshold:
@@ -361,12 +366,14 @@ class AlignerStanford(object):
                     if j in self.target_indices_aligned or not jtem.matches_pos_code(pos_code):
                         continue
 
-                    if (i, j) in evidence_counts_matrix and self.config.theta * word_similarities[(i, j)] + (1 - self.config.theta) * evidence_counts_matrix[(i, j)] > max_overall_value_for_pass:
-                        max_overall_value_for_pass = self.config.theta * word_similarities[(i, j)] + (1 - self.config.theta) * evidence_counts_matrix[(i, j)]
+                    if (i, j) in evidence_counts_matrix and self.config.theta * word_similarities[(i, j)][0] + (1 - self.config.theta) * evidence_counts_matrix[(i, j)] > max_overall_value_for_pass:
+                        max_overall_value_for_pass = self.config.theta * word_similarities[(i, j)][0] + (1 - self.config.theta) * evidence_counts_matrix[(i, j)]
                         index_pair_with_strongest_tie_for_pass = [i, j]
 
             if max_overall_value_for_pass > 0:
-                self._add_to_alignments(index_pair_with_strongest_tie_for_pass[0], index_pair_with_strongest_tie_for_pass[1])
+                strongest_i = index_pair_with_strongest_tie_for_pass[0]
+                strongest_j = index_pair_with_strongest_tie_for_pass[1]
+                self._add_to_alignments(strongest_i, strongest_j, similarity_type=word_similarities[(strongest_i, strongest_j)][1])
             else:
                 break
 
@@ -396,7 +403,7 @@ class AlignerStanford(object):
         for source_word in unaligned_source:
             for target_word in unaligned_target:
 
-                word_similarities[(source_word.index, target_word.index)] = word_relatedness_alignment(source_word, target_word, self.config)
+                word_similarities[(source_word.index, target_word.index)] = word_relatedness_alignment_stanford(source_word, target_word, self.config)
 
                 # textual neighborhood similarities
                 source_neighborhood = find_textual_neighborhood_stanford(full_source, source_word.index, 3, 3)
@@ -405,9 +412,10 @@ class AlignerStanford(object):
 
                 for source_neighbor in source_neighborhood:
                     for target_neighbor in target_neighborhood:
+                        similarity, similarity_type = word_relatedness_alignment_stanford(source_neighbor, target_neighbor, self.config)
                         if (source_neighbor.index, target_neighbor.index) in self.alignments \
-                                or word_relatedness_alignment(source_neighbor, target_neighbor, self.config) >= self.config.alignment_similarity_threshold:
-                            evidence += word_relatedness_alignment(source_neighbor, target_neighbor, self.config)
+                                or similarity >= self.config.alignment_similarity_threshold:
+                            evidence += similarity
 
                 textual_neighborhood_similarities[(source_word.index, target_word.index)] = evidence
 
@@ -421,13 +429,14 @@ class AlignerStanford(object):
             for target_word in unaligned_target:
                 i = source_word.index
                 j = target_word.index
+                similarity, similarity_type = word_relatedness_alignment_stanford(source_word, target_word, self.config)
 
-                if (source_word.lemma != target_word.lemma) and (word_relatedness_alignment(source_word, target_word, self.config) < self.config.alignment_similarity_threshold):
-                    word_similarities[(i, j)] = 0
+                if (source_word.lemma != target_word.lemma) and (similarity < self.config.alignment_similarity_threshold):
+                    word_similarities[(i, j)] = (0, similarity_type)
                     dependency_neighborhood_similarities[(i, j)] = 0
                     continue
 
-                word_similarities[(i, j)] = word_relatedness_alignment(source_word, target_word, self.config)
+                word_similarities[(i, j)] = (similarity, similarity_type)
 
                 evidence = 0
                 for source_parent in source_word.parents:
@@ -451,13 +460,14 @@ class AlignerStanford(object):
             for target_word in unaligned_target:
                 i = source_word.index
                 j = target_word.index
+                similarity, similarity_type = word_relatedness_alignment_stanford(source_word, target_word, self.config)
 
-                if word_relatedness_alignment(source_word, target_word, self.config) < self.config.alignment_similarity_threshold:
-                    word_similarities[(i, j)] = 0
+                if similarity < self.config.alignment_similarity_threshold:
+                    word_similarities[(i, j)] = (0, similarity_type)
                     textual_neighborhood_similarities[(i, j)] = 0
                     continue
 
-                word_similarities[(i, j)] = word_relatedness_alignment(source_word, target_word, self.config)
+                word_similarities[(i, j)] = (similarity, similarity_type)
 
                 # textual neighborhood evidence, increasing evidence if content words around this stop word are aligned
                 evidence = 0
@@ -507,6 +517,7 @@ class AlignerStanford(object):
             best_neighborhood_similarity = 0
             best_source = None
             best_target = None
+            best_word_similarity_type = None
 
             for source_word in unaligned_source:
                 for target_word in unaligned_target:
@@ -516,22 +527,23 @@ class AlignerStanford(object):
                     if (i, j) not in word_similarities:
                         continue
 
-                    if word_similarities[(i, j)] == self.config.alignment_similarity_threshold:
-                        if word_similarities[(i, j)] + neighborhood_similarities[(i, j)] <= 1.0:
+                    if word_similarities[(i, j)][0] == self.config.alignment_similarity_threshold:
+                        if word_similarities[(i, j)][0] + neighborhood_similarities[(i, j)] <= 1.0:
                             continue
 
-                    if self.config.theta * word_similarities[(i, j)] + (1 - self.config.theta) * neighborhood_similarities[(i, j)] > highest_weighted_similarity:
-                        highest_weighted_similarity = self.config.theta * word_similarities[(i, j)] + (1 - self.config.theta) * neighborhood_similarities[(i, j)]
+                    if self.config.theta * word_similarities[(i, j)][0] + (1 - self.config.theta) * neighborhood_similarities[(i, j)] > highest_weighted_similarity:
+                        highest_weighted_similarity = self.config.theta * word_similarities[(i, j)][0] + (1 - self.config.theta) * neighborhood_similarities[(i, j)]
                         best_source = source_word
                         best_target = target_word
-                        best_word_similarity = word_similarities[(i, j)]
+                        best_word_similarity = word_similarities[(i, j)][0]
+                        best_word_similarity_type = word_similarities[(i, j)][1]
                         best_neighborhood_similarity = neighborhood_similarities[(i, j)]
 
             if best_word_similarity >= self.config.alignment_similarity_threshold \
                     and (not limit_by_neighborhood or best_neighborhood_similarity > 0) \
                     and best_source.index not in self.source_indices_aligned \
                     and best_target.index not in self.target_indices_aligned:
-                self._add_to_alignments(best_source.index, best_target.index)
+                self._add_to_alignments(best_source.index, best_target.index, similarity_type=best_word_similarity_type)
                 if best_source is not None:
                     unaligned_source.remove(best_source)
                 if best_target is not None:
@@ -588,6 +600,7 @@ class AlignerStanford(object):
         self.alignments = set()
         self.source_indices_aligned = set()
         self.target_indices_aligned = set()
+        self.similarity_types = dict()
 
         self._align_ending_punctuation(source, target)
 
@@ -608,5 +621,5 @@ class AlignerStanford(object):
 
         self._align_stop_words_and_punctuations_by_textual_neighborhood(source, target)
 
-        return self.alignments
+        return self.alignments, self.similarity_types
 

@@ -12,6 +12,7 @@ from configparser import ConfigParser
 from processors.abstract_processor import AbstractProcessor
 from alignment.aligner import Aligner
 from alignment.aligner_stanford import AlignerStanford
+from alignment.context_info_compiler import ContextInfoCompiler
 from alignment.aligner import punctuations
 from utils.cobalt_align_reader import CobaltAlignReader
 from utils.meteor_align_reader import MeteorAlignReader
@@ -630,8 +631,6 @@ class CobaltAlignerStanford(AbstractProcessor):
         alignments = []
 
         for i, sentence in enumerate(targets):
-            if i == 122:
-                pass
             alignments.append(aligner.align(sentence, references[i]))
 
         output = codecs.open(os.path.expanduser(working_dir + '/' + tgt_path.split('/')[-1] + '.' + ref_path.split('/')[-1] + '.cobalt-align-stanford.out'), 'w', 'utf-8')
@@ -639,9 +638,10 @@ class CobaltAlignerStanford(AbstractProcessor):
         for i, alignment in enumerate(alignments):
             print('Sentence #' + str(i + 1), file=output)
 
-            for a in sorted(alignment, key=lambda x: x[0]):
+            for a in sorted(alignment[0], key=lambda x: x[0]):
                 output.write('[' + str(targets[i][a[0] - 1].index) + ', ' + str(references[i][a[1] - 1].index) + ']' + ' : ' +
-                             '[' + targets[i][a[0] - 1].form + ', ' + references[i][a[1] - 1].form + ']\n')
+                             '[' + targets[i][a[0] - 1].form + ', ' + references[i][a[1] - 1].form + ']' + ' : ' +
+                             alignment[1][(a[0], a[1])] + '\n')
 
             output.write('\n')
         output.close()
@@ -652,6 +652,61 @@ class CobaltAlignerStanford(AbstractProcessor):
         ref_path = working_dir + '/' + 'ref.parse'
         reader = CobaltAlignReader()
         result = reader.read(working_dir + '/' + tgt_path.split('/')[-1] + '.' + ref_path.split('/')[-1] + '.cobalt-align-stanford.out')
+        AbstractProcessor.set_result_tgt(self, result)
+        AbstractProcessor.set_result_ref(self, result)
+
+
+class CobaltAlignerContextInfoCompiler(AbstractProcessor):
+
+    def __init__(self):
+        AbstractProcessor.__init__(self)
+        AbstractProcessor.set_name(self, 'cobalt_aligner_context_info_compiler')
+        AbstractProcessor.set_output(self, True)
+
+    def run(self, config, from_file=False):
+        working_dir = os.path.expanduser(config.get('Data', 'working_dir'))
+        tgt_path = working_dir + '/' + 'tgt.parse'
+        ref_path = working_dir + '/' + 'ref.parse'
+
+        if os.path.exists(working_dir + '/' + tgt_path.split('/')[-1] + '.' + ref_path.split('/')[-1] + '.cobalt-align-stanford-context-diff.out'):
+            print("Context difference already compiled.\n Context difference compiler will not run.")
+            return
+
+        reader = CobaltAlignReader()
+
+        alignment_result = reader.read(working_dir + '/' + tgt_path.split('/')[-1] + '.' + ref_path.split('/')[-1] + '.cobalt-align-stanford.out')
+        targets = StanfordParseLoader.parsed_sentences(tgt_path)
+        references = StanfordParseLoader.parsed_sentences(ref_path)
+
+        compiler = ContextInfoCompiler('english')
+        info = []
+
+        for i, sentence in enumerate(targets):
+            info.append(compiler.compile_context_info(sentence, references[i], alignment_result[i][0]))
+
+        output = codecs.open(os.path.expanduser(working_dir + '/' + tgt_path.split('/')[-1] + '.' + ref_path.split('/')[-1] + '.cobalt-align-stanford-context-diff.out'), 'w', 'utf-8')
+
+        for i, context_info in enumerate(info):
+            print('Sentence #' + str(i + 1), file=output)
+
+            for j, a in enumerate(alignment_result[i][0]):
+                output.write('[' + str(targets[i][a[0] - 1].index) + ', ' + str(references[i][a[1] - 1].index) + ']' + ' : ')
+                output.write('[' + targets[i][a[0] - 1].form + ', ' + references[i][a[1] - 1].form + ']' + ' : ')
+                output.write(alignment_result[i][2][j] + ' : ')
+                output.write('srcDiff=' + ','.join(context_info[j]['srcDiff']) + ';')
+                output.write('srcCon=' + ','.join(context_info[j]['srcCon']) + ';')
+                output.write('tgtDiff=' + ','.join(context_info[j]['tgtDiff']) + ';')
+                output.write('tgtCon=' + ','.join(context_info[j]['tgtCon']) + '\n')
+
+            output.write('\n')
+        output.close()
+
+    def get(self, config, from_file=False):
+        working_dir = os.path.expanduser(config.get('Data', 'working_dir'))
+        tgt_path = working_dir + '/' + 'tgt.parse'
+        ref_path = working_dir + '/' + 'ref.parse'
+        reader = CobaltAlignReader()
+        result = reader.read(working_dir + '/' + tgt_path.split('/')[-1] + '.' + ref_path.split('/')[-1] + '.cobalt-align-stanford-context-diff.out')
         AbstractProcessor.set_result_tgt(self, result)
         AbstractProcessor.set_result_ref(self, result)
 
