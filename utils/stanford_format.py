@@ -14,7 +14,9 @@ class StanfordParseLoader(object):
         loader = ParsedSentencesLoader()
         sentences = loader.load(text)
         parsed = []
+        i = 0
         for sentence in sentences['sentences']:
+            i += 1
             parsed.append(StanfordParseLoader._process_parse_result(sentence))
         return parsed
 
@@ -25,7 +27,7 @@ class StanfordParseLoader(object):
         for i, item in enumerate(raw_sentence['words']):
             word = Word(i + 1, item[0])
             word.lemma = item[1]['Lemma']
-            word.pos = item[1]['PartOfSpeech']
+            word.pos = item[1]['PartOfSpeech'].lower()
             word.ner = item[1]['NamedEntityTag']
             words.append(word)
         return words
@@ -58,7 +60,7 @@ class StanfordParseLoader(object):
             if child_word is None:
                 continue
             for i in range(len(complete)):
-                if child_word.head == complete[i].index:
+                if child_word.head is not None and child_word.head.index == complete[i].index:
                     head_word = complete[i]
             if head_word is None:
                 continue
@@ -67,13 +69,19 @@ class StanfordParseLoader(object):
                     if '_' in complete[i].dep and words[w].form in complete[i].dep:
                         words[w].collapsed = True
                         words[w].dep = complete[i].dep
-                        words[w].head = head_word.index
-                        words[w].set_children_nodes([child_word.index])
+                        words[w].head = head_word
+                        words[w].set_children_nodes([child_word])
                 except:
                     break
             if not words[w].collapsed: # head of punctuation marks - previous word
-                words[w].head = words[w].index - 1
+                words[w].head = words[words[w].index - 2]
                 words[w].dep = 'punct'
+
+        for word in words:
+            if len(word.children) == 0:
+                word.find_children_nodes(words)
+            if word.head is not None:
+                word.parents = [word.head]
 
         return words
 
@@ -82,7 +90,8 @@ class StanfordParseLoader(object):
         for word in words:
             if word.index in dependencies.keys():
                 word.dep = dependencies[word.index][0]
-                word.head = dependencies[word.index][1]
+                if dependencies[word.index][1] > 0:
+                    word.head = words[dependencies[word.index][1] - 1]
         return words
 
     @staticmethod

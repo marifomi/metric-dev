@@ -57,7 +57,7 @@ class RankingData(object):
 
             self.datasets.append(dataset)
 
-    def write_dataset(self, parsed=False):
+    def write_dataset(self, parsed=False, verbose=False):
 
         print("Copying dataset to " + self.cfg.get('Data', 'working_dir') + ' ...')
 
@@ -77,18 +77,26 @@ class RankingData(object):
                             ref_lines = input_ref.readlines()
 
                         for sys_name in dataset.system_names[lp]:
+                            counter_sys = 0
                             with codecs.open(wmt.system_path(self.dir, dataset.name, lp, sys_name), 'r', 'utf8') as input_sys:
                                 for line in input_sys.readlines():
-
+                                    counter_tgt += 1
+                                    counter_sys += 1
                                     if parsed and line.startswith('Sentence #'):
-                                        counter_tgt += 1
                                         output_tgt.write(wmt.substitute_line_number(line, counter_tgt))
                                     else:
-                                        output_tgt.write(line)
+                                        if verbose:
+                                            output_tgt.write('{}\t{}\t{}\t{}\t{}'.format(dataset.name,
+                                                                                         lp,
+                                                                                         sys_name,
+                                                                                         counter_sys,
+                                                                                         line))
+                                        else:
+                                            output_tgt.write(line)
 
                                 for line in ref_lines:
+                                    counter_ref += 1
                                     if parsed and line.startswith('Sentence #'):
-                                        counter_ref += 1
                                         output_ref.write(wmt.substitute_line_number(line, counter_ref))
                                     else:
                                         output_ref.write(line)

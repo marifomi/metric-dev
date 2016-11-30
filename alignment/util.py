@@ -1,4 +1,5 @@
 from lex_resources.config import *
+from utils.word import Word
 
 
 def is_sublist(A, B):
@@ -27,9 +28,9 @@ def find_all_common_contiguous_sublists(A, B, turn_to_lower_cases=True):
     a = []
     b = []
     for item in A:
-        a.append(item)
+        a.append(item.form if isinstance(item, Word) else item)
     for item in B:
-        b.append(item)
+        b.append(item.form if isinstance(item, Word) else item)
 
     if turn_to_lower_cases:
         for i in range(len(a)):
@@ -37,8 +38,7 @@ def find_all_common_contiguous_sublists(A, B, turn_to_lower_cases=True):
         for i in range(len(b)):
             b[i] = b[i].lower()
             
-
-    commonContiguousSublists = []
+    sublists = []
 
     swapped = False
     if len(a) > len(b):
@@ -47,31 +47,31 @@ def find_all_common_contiguous_sublists(A, B, turn_to_lower_cases=True):
         b = temp
         swapped = True
 
-    maxSize = len(a)
-    for size in range(maxSize, 0, -1):
-        startingIndicesForA = [item for item in range(0, len(a)-size+1)]
-        startingIndicesForB = [item for item in range(0, len(b)-size+1)]
-        for i in startingIndicesForA:
-            for j in startingIndicesForB:
+    max_size = len(a)
+    for size in range(max_size, 0, -1):
+        starting_a = [item for item in range(0, len(a)-size+1)]
+        starting_b = [item for item in range(0, len(b)-size+1)]
+        for i in starting_a:
+            for j in starting_b:
                 if a[i:i+size] == b[j:j+size]:
                     # check if a contiguous superset has already been inserted; don't insert this one in that case
-                    alreadyInserted = False
-                    currentAIndices = [item for item in range(i,i+size)]
-                    currentBIndices = [item for item in range(j,j+size)]
-                    for item in commonContiguousSublists:
-                        if is_sublist(currentAIndices, item[0]) and is_sublist(currentBIndices, item[1]):
-                            alreadyInserted = True
+                    already_inserted = False
+                    current_a = [item for item in range(i,i+size)]
+                    current_b = [item for item in range(j,j+size)]
+                    for item in sublists:
+                        if is_sublist(current_a, item[0]) and is_sublist(current_b, item[1]):
+                            already_inserted = True
                             break
-                    if not alreadyInserted:
-                        commonContiguousSublists.append([currentAIndices, currentBIndices])
+                    if not already_inserted:
+                        sublists.append([current_a, current_b])
 
     if swapped:
-        for item in commonContiguousSublists:
+        for item in sublists:
             temp = item[0]
             item[0] = item[1]
             item[1] = temp
 
-    return commonContiguousSublists
+    return sublists
 
 
 def find_textual_neighborhood(sentenceDetails, wordIndex, leftSpan, rightSpan):
@@ -98,18 +98,53 @@ def find_textual_neighborhood(sentenceDetails, wordIndex, leftSpan, rightSpan):
     return [wordIndices, lemmas, wordIndex-startWordIndex, endWordIndex-wordIndex]
 
 
-def is_acronym(word, namedEntity):
-    # returns whether 'word' is an acronym of 'namedEntity', which is a list of the component words
+def find_textual_neighborhood_stanford(words, index, left_span, right_span):
+    # return the lemmas in the span [wordIndex-leftSpan, wordIndex+rightSpan] and the positions actually available,
+    # left and right
 
-    canonicalWord = word.replace('.', '')
-    if not canonicalWord.isupper() or len(canonicalWord) != len(namedEntity) or canonicalWord.lower() in ['a', 'i']:
+    global punctuations
+
+    start = max(1, index - left_span)
+    end = min(len(words), index + right_span)
+
+    result_words = []
+    for item in words[start-1:index-1]:
+        if item.lemma not in cobalt_stopwords + punctuations:
+            result_words.append(item)
+    for item in words[index:end]:
+        if item.lemma not in cobalt_stopwords + punctuations:
+            result_words.append(item)
+
+    return result_words
+
+
+def is_acronym(word, named_entity):
+    # returns whether 'word' is an acronym of 'named_entity', which is a list of the component words
+
+    word = word.replace('.', '')
+    if not word.isupper() or len(word) != len(named_entity):
         return False
 
     acronym = True    
-    for i in range(len(canonicalWord)):
-        if canonicalWord[i] != namedEntity[i][0]:
+    for i in range(len(word)):
+        if word[i] != named_entity[i][0]:
             acronym = False
             break
 
     return acronym
 
+
+def is_acronym_stanford(word, named_entity_group):
+    # returns whether 'word' is an acronym of 'named_entity', which is a list of the component words
+
+    form = word.form.replace('.', '')
+    if not form.isupper() or len(form) != len(named_entity_group.forms):
+        return False
+
+    acronym = True
+    for i in range(len(named_entity_group.forms)):
+        if form[i] != named_entity_group.forms[i][0]:
+            acronym = False
+            break
+
+    return acronym
