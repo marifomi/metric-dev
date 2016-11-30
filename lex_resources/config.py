@@ -17,3 +17,5 @@ extended_stopwords = ExtendedStopwordsList('english')
 
 punctuations = ['%', '(', '-lrb-', '.', ',', '-', '?', '!', ';', '_', ':', '{', '}', '[', '/', ']', '...', '\'\'', '\'', ')', '-rrb-']
 cobalt_stopwords = stopwords.words('english')
+sign_to_word = {'%' : 'percent',
+                 'percent' : '%'}
