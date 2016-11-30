@@ -121,11 +121,14 @@ def find_textual_neighborhood_stanford(words, index, left_span, right_span):
 def is_acronym(word, named_entity):
     # returns whether 'word' is an acronym of 'named_entity', which is a list of the component words
 
+    if word == 'I':
+        return False
+
     word = word.replace('.', '')
     if not word.isupper() or len(word) != len(named_entity):
         return False
 
-    acronym = True    
+    acronym = True
     for i in range(len(word)):
         if word[i] != named_entity[i][0]:
             acronym = False
