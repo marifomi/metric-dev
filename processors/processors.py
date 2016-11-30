@@ -551,43 +551,33 @@ class MeteorAligner(AbstractProcessor):
 
     def run(self, config, from_file=False):
 
-        tgt_path = os.path.expanduser(config.get('Data', 'tgt'))
-        ref_path = os.path.expanduser(config.get('Data', 'ref'))
-        tgt_file_name = tgt_path.split('/')[-1]
-        name = ''
-        if len(config.get('Alignment', 'name')) > 0:
-            name = '_' + config.get('Alignment', 'name')
+        working_dir = os.path.expanduser(config.get('Data', 'working_dir'))
+        tgt_path = working_dir + '/' + 'tgt.txt'
+        ref_path = working_dir + '/' + 'ref.txt'
 
-        prefix = os.path.expanduser(config.get('Alignment', 'dir')) + '/' + tgt_file_name + '.' + config.get('Alignment', 'aligner') + name
-
-        if os.path.exists(prefix + '-align.out'):
+        if os.path.exists(working_dir + '/' + 'meteor-align.out'):
             print("Meteor alignments already exist!")
             return
 
-        meteor = os.path.expanduser(config.get('Metrics', 'meteor'))
-        lang = config.get('Settings', 'tgt_lang')
+        meteor = os.path.expanduser(config.get('Paths', 'meteor'))
+        lang = loads(config.get('Settings', 'language_pairs'))[0].split('-')[1]
 
         if os.path.exists(tgt_path + '.' + 'token'):
             print("Meteor will not run the tokenizer! Data is already tokenized! ")
             subprocess.call(['java', '-Xmx2G', '-jar', meteor, tgt_path + '.' + 'token', ref_path + '.' + 'token', '-l', lang,
-                             '-lower', '-writeAlignments', '-f', prefix])
+                             '-lower', '-writeAlignments', '-f', working_dir + '/' + 'meteor'])
         else:
             print("Meteor will run the tokenizer! Data is not yet tokenized! ")
             subprocess.call(['java', '-Xmx2G', '-jar', meteor, tgt_path, ref_path, '-l', lang,
-                         '-norm', '-writeAlignments', '-f', prefix])
+                         '-norm', '-writeAlignments', '-f', working_dir + '/' + 'meteor'])
 
 
     def get(self, config, from_file=False):
 
-        tgt_path = os.path.expanduser(config.get('Data', 'tgt'))
-        align_dir = os.path.expanduser(config.get('Alignment', 'dir'))
-        aligner = config.get('Alignment', 'aligner')
-        name = ''
-        if len(config.get('Alignment', 'name')) > 0:
-            name = '_' + config.get('Alignment', 'name')
+        working_dir = os.path.expanduser(config.get('Data', 'working_dir'))
         reader = MeteorAlignReader()
 
-        result = reader.read(align_dir + '/' + tgt_path.split('/')[-1] + '.' + aligner + name + '-align.out')
+        result = reader.read(working_dir + '/' + 'meteor-align.out')
         AbstractProcessor.set_result_tgt(self, result)
         AbstractProcessor.set_result_ref(self, result)
 
