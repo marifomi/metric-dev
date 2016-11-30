@@ -33,13 +33,18 @@ def word_relatedness_alignment(word1, word2, config):
     if canonical_word1.isdigit() and canonical_word2.isdigit() and canonical_word1 != canonical_word2:
         similarity = 0
 
-    # stopwords can be similar to only stopwords
-    if similarity is None and ((function_word(canonical_word1) and not function_word(canonical_word2)) or (function_word(canonical_word2) and not function_word(canonical_word1))):
+    # stopwords can be similar to only stopwords (Check lemmas here)
+    if similarity is None and ((function_word(word1.lemma) and not function_word(word2.lemma)) or (function_word(word2.lemma) and not function_word(word1.lemma))):
         similarity = 0
 
     # punctuations can only be either identical or totally dissimilar
     if similarity is None and (canonical_word1 in punctuations or canonical_word2 in punctuations) and (not canonical_word1 == canonical_word2):
         similarity = 0
+
+    if (canonical_word1, canonical_word2) in sign_to_word.items():
+        similarity = config.exact
+        __word_relatedness_alignment__[word1.form + '__' + word2.form] = similarity
+        return similarity
 
     if similarity is not None:
         __word_relatedness_alignment__[word1.form + '__' + word2.form] = similarity
