@@ -15,6 +15,7 @@ from alignment.aligner_stanford import AlignerStanford
 from alignment.context_info_compiler import ContextInfoCompiler
 from alignment.aligner import punctuations
 from utils.cobalt_align_reader import CobaltAlignReader
+from utils.cobalt_align_reader_prev import CobaltAlignReaderPrev
 from utils.meteor_align_reader import MeteorAlignReader
 from utils.prepare_wmt import PrepareWmt
 from utils import wmt
@@ -734,7 +735,7 @@ class CobaltAligner(AbstractProcessor):
         working_dir = os.path.expanduser(config.get('Data', 'working_dir'))
         tgt_path = working_dir + '/' + 'tgt.parse'
         ref_path = working_dir + '/' + 'ref.parse'
-        reader = CobaltAlignReader()
+        reader = CobaltAlignReaderPrev()
         result = reader.read(working_dir + '/' + tgt_path.split('/')[-1] + '.' + ref_path.split('/')[-1] + '.cobalt-align.out')
         AbstractProcessor.set_result_tgt(self, result)
         AbstractProcessor.set_result_ref(self, result)
