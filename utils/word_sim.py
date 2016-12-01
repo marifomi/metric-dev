@@ -25,12 +25,15 @@ def word_relatedness_alignment(word1, word2, config):
 
     # First check the cases where the words do not match or do match for sure
 
-    # Digits can be aligned only if they are identical
-
     if contractionDictionary.check_contraction(canonical_word1, canonical_word2):
         similarity = config.exact
 
+    # Digits can be aligned only if they are identical
     if canonical_word1.isdigit() and canonical_word2.isdigit() and canonical_word1 != canonical_word2:
+        similarity = 0
+
+    # Numberals can only be aligned to numerals
+    if (isnumeral(word1) and not isnumeral(word2)) or (isnumeral(word2) and not isnumeral(word1)):
         similarity = 0
 
     # stopwords can be similar to only stopwords (Check lemmas here)
@@ -255,6 +258,8 @@ def presentInPPDB(word1, word2):
 def function_word(word):
     return (word.lower() in cobalt_stopwords) or (word.lower() in punctuations) or (contractionDictionary.is_contraction(word.lower()))
 
+def isnumeral(word):
+    return word.form.isdigit() or word.pos == 'CD'
 
 def ispunct(word):
     return word.lower() in punctuations
