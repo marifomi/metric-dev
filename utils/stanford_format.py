@@ -78,12 +78,35 @@ class StanfordParseLoader(object):
                 words[w].dep = 'punct'
 
         for word in words:
+            if word.dep == 'punct':
+                continue
             if len(word.children) == 0:
                 word.find_children_nodes(words)
             if word.head is not None:
-                word.parents = [word.head]
+                copy = StanfordParseLoader._copy_word(word.head)
+                word.parents = [copy]
+                word.parents[0].dep = word.dep
 
         return words
+
+    @staticmethod
+    def _copy_word(word):
+        
+        copy = Word(word.index, word.form)
+        copy.lemma = word.lemma
+        copy.pos = word.pos
+        copy.ner = word.ner
+        copy.dep = ''
+        copy.collapsed = word.collapsed
+        copy.children = word.children
+        copy.parents = word.parents
+        copy.category = word.category
+        copy.head = word.head
+        copy.stopword = word.stopword
+        copy.punctuation = word.punctuation
+        copy.contraction = word.contraction
+
+        return copy
 
     @staticmethod
     def _words_with_dependenies(words, dependencies):
@@ -92,6 +115,11 @@ class StanfordParseLoader(object):
                 word.dep = dependencies[word.index][0]
                 if dependencies[word.index][1] > 0:
                     word.head = words[dependencies[word.index][1] - 1]
+                else:
+                    root_word = Word(0, 'ROOT')
+                    root_word.pos = 'root'
+                    root_word.dep = 'root'
+                    word.parents = [root_word]
         return words
 
     @staticmethod
