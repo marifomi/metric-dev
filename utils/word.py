@@ -22,7 +22,7 @@ class Word(object):
     def find_children_nodes(self, sentence_parse):
         if len(self.children) == 0:
             for i, word in enumerate(sentence_parse):
-                if word.head is not None and word.head.index == self.index:
+                if word.head is not None and word.head.index == self.index and word.dep != 'punct':
                     self.children.append(word)
 
         return self.children
