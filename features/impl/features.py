@@ -2,7 +2,6 @@ import math
 import numpy
 
 from scorer.scorer import Scorer
-from scorer.scorer_prev import ScorerPrev
 from lex_resources import config
 from utils import word_sim
 from features.impl.abstract_feature import *
@@ -5847,7 +5846,7 @@ class Cobalt(AbstractFeature):
         AbstractFeature.set_description(self, "Cobalt score")
 
     def run(self, cand, ref):
-        my_scorer = ScorerPrev()
+        my_scorer = Scorer()
         word_level_scores = my_scorer.word_scores(cand['parse'], ref['parse'], cand['alignments'])
         score = my_scorer.sentence_score_cobalt(cand['parse'], ref['parse'], cand['alignments'], word_level_scores)
         AbstractFeature.set_value(self, score)
