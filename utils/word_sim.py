@@ -8,6 +8,7 @@ global ppdb_dict
 global cobalt_stopwords
 
 __word_relatedness_alignment__ = dict()
+__word_relatedness_alignment_stanford__ = dict()
 __word_relatedness_scoring__ = dict()
 
 
@@ -89,8 +90,8 @@ def word_relatedness_alignment_stanford(word1, word2, config):
 
     double_check = 0
 
-    if word1.form + '__' + word2.form in __word_relatedness_alignment__:
-        return __word_relatedness_alignment__[word1.form + '__' + word2.form]
+    if word1.form + '__' + word2.form in __word_relatedness_alignment_stanford__:
+        return __word_relatedness_alignment_stanford__[word1.form + '__' + word2.form]
 
     canonical_word1 = canonize_word(word1.form)
     canonical_word2 = canonize_word(word2.form)
@@ -121,7 +122,7 @@ def word_relatedness_alignment_stanford(word1, word2, config):
         similarity = 0
 
     if similarity is not None:
-        __word_relatedness_alignment__[word1.form + '__' + word2.form] = (similarity, similarity_type)
+        __word_relatedness_alignment_stanford__[word1.form + '__' + word2.form] = (similarity, similarity_type)
         return similarity, similarity_type
 
     if canonical_word1 == canonical_word2:
@@ -157,7 +158,7 @@ def word_relatedness_alignment_stanford(word1, word2, config):
         similarity = 0.0
 
     if double_check == 0:
-        __word_relatedness_alignment__[word1.form + '__' + word2.form] = (similarity, similarity_type)
+        __word_relatedness_alignment_stanford__[word1.form + '__' + word2.form] = (similarity, similarity_type)
 
     return similarity, similarity_type
 
