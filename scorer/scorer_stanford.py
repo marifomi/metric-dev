@@ -15,7 +15,7 @@ class WordInformation(object):
         self.penalty_mean = 0.0
 
 
-class ScorerPrev(object):
+class ScorerStanford(object):
 
     alpha = 1
     beta = 1
@@ -119,7 +119,6 @@ class ScorerPrev(object):
 
         return 2 * (1.0/(1.0 + math.exp(-penalty))) - 1
 
-
     def sentence_length(self, sentence):
         return len(prepareSentence2(sentence))
 
@@ -129,10 +128,10 @@ class ScorerPrev(object):
 
         for i, a in enumerate(alignments[0]):
             word_info = WordInformation()
-            word_info.similarity = word_sim.word_relatedness_scoring(sentence1[a[0] - 1], sentence2[a[1] - 1], self)
-            word_info.penalty_test = self.get_penalties(alignments[2][i], 'test')
-            word_info.penalty_ref = self.get_penalties(alignments[2][i], 'ref')
-            word_info.penalty_mean = self.get_penalties(alignments[2][i], 'mean')
+            word_info.similarity = word_sim.get_similarity_type_score(alignments[2][i], self)
+            word_info.penalty_test = self.get_penalties(alignments[3][i], 'test')
+            word_info.penalty_ref = self.get_penalties(alignments[3][i], 'ref')
+            word_info.penalty_mean = self.get_penalties(alignments[3][i], 'mean')
 
             word_scores.append(word_info)
 
