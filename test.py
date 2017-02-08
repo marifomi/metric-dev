@@ -3,8 +3,6 @@ import os
 
 from configparser import ConfigParser
 from utils.ranking_data import RankingData
-from utils.write_parsed import write_parsed
-from utils.write_parsed2 import write_parsed2
 from utils.human_ranking import HumanRanking
 from processors.process import Process
 from features.feature_extractor import FeatureExtractor
