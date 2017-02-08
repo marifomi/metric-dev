@@ -10,6 +10,7 @@ from operator import itemgetter
 from alignment.context_info_compiler import ContextInfoCompiler
 from utils.stanford_format import StanfordParseLoader
 
+# external_compiler = ContextInfoCompiler('english')
 
 class Aligner(object):
 
@@ -1098,7 +1099,6 @@ class Aligner(object):
         myWordAlignmentTokens = [[sentence1LemmasAndPosTags[item[0]-1][2], sentence2LemmasAndPosTags[item[1]-1][2]] for item in myWordAlignments]
 
         # To test external context compiler
-        # external_compiler = ContextInfoCompiler('english')
         # source_words = StanfordParseLoader._process_parse_result(sentence1ParseResult['sentences'][0])
         # target_words = StanfordParseLoader._process_parse_result(sentence2ParseResult['sentences'][0])
         # contextInfo = external_compiler.compile_context_info(source_words, target_words, myWordAlignments)
