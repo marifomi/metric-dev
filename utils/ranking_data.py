@@ -1,6 +1,7 @@
 """This class stores wmt-style ranking data (references and MT outputs) with dataset, language pairs and system ids"""
 
 import codecs
+import random
 
 from os.path import expanduser as usr
 from utils import wmt
@@ -18,16 +19,16 @@ class Dataset(object):
 
 
 class RankingData(object):
+    sentence_tuple = namedtuple("SentenceTuple", ["dataset", "lp", "system", "sentence_num", "target_sentence", "reference_sentence"])
 
     def __init__(self, config):
         self.cfg = config
         self.dir = self.cfg.get('Data', 'input_dir')
         self.datasets = []
         self.plain = []
+        self.parsed = []
 
-    def read_dataset(self):
-
-        sentence_tuple = namedtuple("SentenceTuple", ["dataset", "lp", "system", "sentence_num"])
+    def read_dataset(self, parsed=False):
 
         dataset_names = wmt.get_datasets(self.dir)
         for dataset_name in dataset_names:
@@ -48,14 +49,111 @@ class RankingData(object):
                 dataset.system_names[lp] = system_names
                 dataset.number_sentences[lp] = number_sentences
 
+                with codecs.open(wmt.reference_path(self.dir, dataset.name, lp), 'r', 'utf8') as ir:
+                    reference_sentences = ir.readlines()
+                if parsed:
+                    with codecs.open(wmt.reference_path(self.dir, dataset.name, lp).replace('plain', 'parse') + '.out', 'r', 'utf8') as pr:
+                        reference_parsed = self.read_parsed(pr)
+
                 for system_name in system_names:
+                    with codecs.open(wmt.system_path(self.dir, dataset.name, lp, system_name), 'r', 'utf8') as it:
+                        target_sentences = it.readlines()
+                    if parsed:
+                        with codecs.open(wmt.system_path(self.dir, dataset.name, lp, system_name).replace('plain', 'parse') + '.out', 'r', 'utf8') as pt:
+                            target_parsed = self.read_parsed(pt)
+
                     for sentence in range(wmt.sentences(wmt.reference_path(self.dir, dataset.name, lp))):
-                        self.plain.append(sentence_tuple(dataset=dataset.name,
-                                                         lp=lp,
-                                                         system=system_name,
-                                                         sentence_num=sentence + 1))
+                        self.plain.append(self.sentence_tuple(dataset=dataset.name,
+                                                              lp=lp,
+                                                              system=system_name,
+                                                              sentence_num=sentence + 1,
+                                                              target_sentence=target_sentences[sentence],
+                                                              reference_sentence=reference_sentences[sentence]))
+                    if parsed:
+                        for sentence in range(wmt.sentences(wmt.reference_path(self.dir, dataset.name, lp))):
+                            self.parsed.append(self.sentence_tuple(dataset=dataset.name,
+                                                                   lp=lp,
+                                                                   system=system_name,
+                                                                   sentence_num=sentence + 1,
+                                                                   target_sentence=target_parsed[sentence],
+                                                                   reference_sentence=reference_parsed[sentence]))
+
 
             self.datasets.append(dataset)
+
+    def write_meta_data(self, items, path):
+        with open(path, 'w') as o:
+            for item in items:
+                o.write("{}\t{}\t{}\t{}\n".format(item.dataset, item.lp, item.system, item.sentence_num))
+
+    def read_meta_data(self, path):
+        data = []
+        with open(path) as i:
+            lines = i.readlines()
+        for line in lines:
+            item = line.strip().split('\t')
+            data.append(item)
+        return data
+
+    def get_plain_data(self):
+        return self.plain
+
+    def get_parsed_data(self):
+        return self.parsed
+
+    def generate_sample(self, size):
+        plain, parsed = zip(*random.sample(list(zip(self.plain, self.parsed)), size))
+        return plain, parsed
+
+    def read_parsed(self, FILE):
+
+        lines = FILE.readlines()
+        sentences = []
+        sentence = []
+        for i, line in enumerate(lines):
+            if i == len(lines) - 1:
+                sentences.append(sentence)
+            if line.startswith('Sentence #'):
+                if i != 0:
+                    sentences.append(sentence)
+                    sentence = []
+                sentence.append(line)
+            else:
+                sentence.append(line)
+        return sentences
+
+    def write_parsed(self, parsed_items):
+
+        path_tgt = usr(self.cfg.get('Data', 'working_dir') + '/' + 'tgt.parse')
+        path_ref = usr(self.cfg.get('Data', 'working_dir') + '/' + 'ref.parse')
+
+        with codecs.open(path_tgt, 'w', 'utf8') as o:
+            for i, item in enumerate(parsed_items):
+                for line in item.target_sentence:
+                    if line.startswith('Sentence #'):
+                        o.write(wmt.substitute_line_number(line, i + 1))
+                    else:
+                        o.write(line)
+
+        with codecs.open(path_ref, 'w', 'utf8') as o:
+            for i, item in enumerate(parsed_items):
+                for line in item.reference_sentence:
+                    if line.startswith('Sentence #'):
+                        o.write(wmt.substitute_line_number(line, i + 1))
+                    else:
+                        o.write(line)
+
+    def write_plain(self, plain_items):
+        path_tgt = usr(self.cfg.get('Data', 'working_dir') + '/' + 'tgt.txt')
+        path_ref = usr(self.cfg.get('Data', 'working_dir') + '/' + 'ref.txt')
+
+        with codecs.open(path_tgt, 'w', 'utf8') as o:
+            for item in plain_items:
+                o.write(item.target_sentence)
+
+        with codecs.open(path_ref, 'w', 'utf8') as o:
+            for item in plain_items:
+                o.write(item.reference_sentence)
 
     def write_dataset(self, parsed=False, verbose=False):
 
@@ -111,3 +209,12 @@ class RankingData(object):
                         for i in range(dataset.number_sentences[lp]):
                             o.write('{0}\t{1}\t{2}\t{3}\t{4}\t{5}\n'.format(metric, dataset.name, lp, sys_name, str(i + 1), scores[counter]))
                             counter += 1
+
+    @staticmethod
+    def write_scores_meta(scores, data, metric='metric', output_path='scores.txt'):
+
+        with open(output_path, 'w') as o:
+            counter = 0
+            for dataset, lp, system, number in data:
+                o.write('{0}\t{1}\t{2}\t{3}\t{4}\t{5}\n'.format(metric, dataset, lp, system, str(number), scores[counter]))
+                counter += 1
