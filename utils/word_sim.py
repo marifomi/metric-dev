@@ -8,6 +8,7 @@ global ppdb_dict
 global cobalt_stopwords
 
 __word_relatedness_alignment__ = dict()
+__word_relatedness_alignment_stanford__ = dict()
 __word_relatedness_scoring__ = dict()
 
 
@@ -25,21 +26,29 @@ def word_relatedness_alignment(word1, word2, config):
 
     # First check the cases where the words do not match or do match for sure
 
-    # Digits can be aligned only if they are identical
-
     if contractionDictionary.check_contraction(canonical_word1, canonical_word2):
         similarity = config.exact
 
+    # Digits can be aligned only if they are identical
     if canonical_word1.isdigit() and canonical_word2.isdigit() and canonical_word1 != canonical_word2:
         similarity = 0
 
-    # stopwords can be similar to only stopwords
-    if similarity is None and ((function_word(canonical_word1) and not function_word(canonical_word2)) or (function_word(canonical_word2) and not function_word(canonical_word1))):
+    # Numberals can only be aligned to numerals
+    if (isnumeral(word1) and not isnumeral(word2)) or (isnumeral(word2) and not isnumeral(word1)):
+        similarity = 0
+
+    # stopwords can be similar to only stopwords (Check lemmas here)
+    if similarity is None and ((function_word(word1.lemma) and not function_word(word2.lemma)) or (function_word(word2.lemma) and not function_word(word1.lemma))):
         similarity = 0
 
     # punctuations can only be either identical or totally dissimilar
     if similarity is None and (canonical_word1 in punctuations or canonical_word2 in punctuations) and (not canonical_word1 == canonical_word2):
         similarity = 0
+
+    if (canonical_word1, canonical_word2) in sign_to_word.items():
+        similarity = config.exact
+        __word_relatedness_alignment__[word1.form + '__' + word2.form] = similarity
+        return similarity
 
     if similarity is not None:
         __word_relatedness_alignment__[word1.form + '__' + word2.form] = similarity
@@ -81,8 +90,8 @@ def word_relatedness_alignment_stanford(word1, word2, config):
 
     double_check = 0
 
-    if word1.form + '__' + word2.form in __word_relatedness_alignment__:
-        return __word_relatedness_alignment__[word1.form + '__' + word2.form]
+    if word1.form + '__' + word2.form in __word_relatedness_alignment_stanford__:
+        return __word_relatedness_alignment_stanford__[word1.form + '__' + word2.form]
 
     canonical_word1 = canonize_word(word1.form)
     canonical_word2 = canonize_word(word2.form)
@@ -113,7 +122,7 @@ def word_relatedness_alignment_stanford(word1, word2, config):
         similarity = 0
 
     if similarity is not None:
-        __word_relatedness_alignment__[word1.form + '__' + word2.form] = (similarity, similarity_type)
+        __word_relatedness_alignment_stanford__[word1.form + '__' + word2.form] = (similarity, similarity_type)
         return similarity, similarity_type
 
     if canonical_word1 == canonical_word2:
@@ -149,7 +158,7 @@ def word_relatedness_alignment_stanford(word1, word2, config):
         similarity = 0.0
 
     if double_check == 0:
-        __word_relatedness_alignment__[word1.form + '__' + word2.form] = (similarity, similarity_type)
+        __word_relatedness_alignment_stanford__[word1.form + '__' + word2.form] = (similarity, similarity_type)
 
     return similarity, similarity_type
 
@@ -250,6 +259,8 @@ def presentInPPDB(word1, word2):
 def function_word(word):
     return (word.lower() in cobalt_stopwords) or (word.lower() in punctuations) or (contractionDictionary.is_contraction(word.lower()))
 
+def isnumeral(word):
+    return word.form.isdigit() or word.pos == 'CD'
 
 def ispunct(word):
     return word.lower() in punctuations

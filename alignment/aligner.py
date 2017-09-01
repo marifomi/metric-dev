@@ -7,7 +7,10 @@ from utils.word_sim import *
 from utils.core_nlp_utils import *
 from utils import load_resources
 from operator import itemgetter
+from alignment.context_info_compiler import ContextInfoCompiler
+from utils.stanford_format import StanfordParseLoader
 
+# external_compiler = ContextInfoCompiler('english')
 
 class Aligner(object):
 
@@ -41,14 +44,28 @@ class Aligner(object):
         for ktem in sourceNodes:
             for ltem in targetNodes:
 
-                word1 = Word(ktem[0], ktem[1])
-                word1.lemma = sourceLemmas[ktem[0]-1]
-                word1.pos = sourcePosTags[ktem[0]-1]
-                word1.dep = ktem[2]
-                word2 = Word(ltem[0], ltem[1])
-                word2.lemma = targetLemmas[ltem[0]-1]
-                word2.pos = targetPosTags[ltem[0]-1]
-                word2.dep = ltem[2]
+                # To compare root nodes with dummy index 0:
+                if ktem[0] == 0:
+                    word1 = Word(ktem[0], ktem[1])
+                    word1.lemma = 'ROOT'
+                    word1.pos = 'root'
+                    word1.dep = 'root'
+                else:
+                    word1 = Word(ktem[0], ktem[1])
+                    word1.lemma = sourceLemmas[ktem[0]-1]
+                    word1.pos = sourcePosTags[ktem[0]-1]
+                    word1.dep = ktem[2]
+
+                if ltem[0] == 0:
+                    word2 = Word(ltem[0], ltem[1])
+                    word2.lemma = 'ROOT'
+                    word2.pos = 'root'
+                    word2.dep = 'root'
+                else:
+                    word2 = Word(ltem[0], ltem[1])
+                    word2.lemma = targetLemmas[ltem[0]-1]
+                    word2.pos = targetPosTags[ltem[0]-1]
+                    word2.dep = ltem[2]
 
                 if ([ktem[0], ltem[0]] in existingAlignments or word_relatedness_alignment(word1, word2, self.config) >= self.config.alignment_similarity_threshold) and (
                     (ktem[2] == ltem[2]) or
@@ -1071,6 +1088,7 @@ class Aligner(object):
         return contextInfo
 
     def align_sentence(self, sentence1, sentence2):
+
         sentence1ParseResult = parse_text(sentence1)
         sentence2ParseResult = parse_text(sentence2)
 
@@ -1079,8 +1097,13 @@ class Aligner(object):
 
         myWordAlignments = sorted(self.alignWords(sentence1LemmasAndPosTags, sentence2LemmasAndPosTags, sentence1ParseResult, sentence2ParseResult), key=itemgetter(0))
         myWordAlignmentTokens = [[sentence1LemmasAndPosTags[item[0]-1][2], sentence2LemmasAndPosTags[item[1]-1][2]] for item in myWordAlignments]
-        contextInfo = []
 
+        # To test external context compiler
+        # source_words = StanfordParseLoader._process_parse_result(sentence1ParseResult['sentences'][0])
+        # target_words = StanfordParseLoader._process_parse_result(sentence2ParseResult['sentences'][0])
+        # contextInfo = external_compiler.compile_context_info(source_words, target_words, myWordAlignments)
+
+        contextInfo = []
         for pair in myWordAlignments:
             sourceWord = sentence1LemmasAndPosTags[pair[0] - 1]
             targetWord = sentence2LemmasAndPosTags[pair[1] - 1]
