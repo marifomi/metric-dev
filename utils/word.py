@@ -7,7 +7,7 @@ class Word(object):
         self.index = index
         self.form = form
         self.lemma = None
-        self.pos = None
+        self.pos = 'root'
         self.ner = None
         self.dep = ''
         self.collapsed = False

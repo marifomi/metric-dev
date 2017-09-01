@@ -136,7 +136,7 @@ def word_relatedness_alignment_stanford(word1, word2, config):
         similarity = config.paraphrase
         similarity_type = 'Paraphrase'
 
-    elif cosine_similarity(word1.form, word2.form) > config.related_threshold and 'distributional' in config.selected_lexical_resources:
+    elif (word1.index != 0 and word2.index != 0) and cosine_similarity(word1.form, word2.form) > config.related_threshold and 'distributional' in config.selected_lexical_resources:
         double_check = 1
 
         if (not word1.is_function_word() and not word2.is_function_word()) or word1.pos[0] == word2.pos[0]:

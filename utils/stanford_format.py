@@ -82,6 +82,8 @@ class StanfordParseLoader(object):
                 word.find_children_nodes(words)
             if word.head is not None:
                 word.parents = [word.head]
+            if word.dep == 'root':
+                word.parents = [Word(0, '@ROOT@')]
 
         return words
 

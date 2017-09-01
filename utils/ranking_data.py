@@ -109,5 +109,5 @@ class RankingData(object):
                 for lp in sorted(dataset.system_names.keys()):
                     for sys_name in dataset.system_names[lp]:
                         for i in range(dataset.number_sentences[lp]):
-                            o.write('{0}\t{1}\t{2}\t{3}\t{4}\t{5}\n'.format(metric, dataset.name, lp, sys_name, str(i + 1), scores[counter]))
+                            o.write('{0}\t{1}\t{2}\t{3}\t{4}\t{5}\n'.format(metric, dataset.name, lp, sys_name, str(i + 1), scores[counter][0]))
                             counter += 1
